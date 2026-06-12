@@ -1,0 +1,13 @@
+.git
+.github
+.turbo
+node_modules
+apps/*/node_modules
+apps/*/dist
+apps/*/.env
+apps/*/.env.local
+apps/*/.env.*.local
+*.log
+Dockerfile
+docker-compose.yml
+README.md

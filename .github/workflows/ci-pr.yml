@@ -1,0 +1,52 @@
+name: CI - Pull Request Checks
+
+on:
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  lint-and-format:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: "1.3.14"
+      - run: bun install --frozen-lockfile
+      - run: bun run lint
+
+  type-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: "1.3.14"
+      - run: bun install --frozen-lockfile
+      - run: bun run typecheck
+
+  build-check-frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: "1.3.14"
+      - run: bun install --frozen-lockfile
+      - run: bunx turbo run build --filter=web
+        env:
+          VITE_API_URL: http://localhost:3000/api/v1
+          VITE_WS_URL: ws://localhost:3000
+          VITE_MEILISEARCH_HOST: http://localhost:7700
+          VITE_MEILISEARCH_SEARCH_KEY: placeholder
+          VITE_PAYSTACK_PUBLIC_KEY: placeholder
+          VITE_TURNSTILE_SITE_KEY: placeholder
+          VITE_APP_NAME: DextaLearning
+          VITE_APP_URL: http://localhost:5173
+          VITE_VAPID_PUBLIC_KEY: placeholder
+
+  build-check-backend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build --target api -f Dockerfile .

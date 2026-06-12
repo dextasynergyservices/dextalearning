@@ -1,0 +1,33 @@
+{
+	"name": "dextalearning",
+	"private": true,
+	"scripts": {
+		"build": "turbo run build",
+		"dev": "turbo run dev --parallel",
+		"dev:apps": "turbo run dev --parallel",
+		"dev:infra": "docker compose up -d postgres redis meilisearch",
+		"docker:api": "docker compose --profile api up --build api",
+		"docker:down": "docker compose down",
+		"docker:logs": "docker compose logs -f",
+		"lint": "turbo run lint",
+		"lint:fix": "turbo run lint:fix",
+		"format": "turbo run format",
+		"typecheck": "turbo run typecheck",
+		"check-types": "turbo run typecheck"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "^2.5.0",
+		"lefthook": "^2.1.9",
+		"prettier": "^3.7.4",
+		"turbo": "^2.9.18",
+		"typescript": "5.9.2"
+	},
+	"engines": {
+		"node": ">=18"
+	},
+	"packageManager": "bun@1.3.14",
+	"workspaces": [
+		"apps/*",
+		"packages/*"
+	]
+}

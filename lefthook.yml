@@ -1,0 +1,13 @@
+pre-commit:
+  commands:
+    biome:
+      run: bunx biome check .
+    typecheck:
+      run: bun run typecheck
+
+pre-push:
+  commands:
+    biome-full:
+      run: bunx biome check .
+    typecheck-full:
+      run: bun run typecheck
