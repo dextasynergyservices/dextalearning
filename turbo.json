@@ -2,8 +2,12 @@
 	"$schema": "https://turborepo.dev/schema.json",
 	"ui": "tui",
 	"tasks": {
+		"prisma:generate": {
+			"inputs": ["prisma/schema.prisma", "prisma.config.ts"],
+			"outputs": ["generated/**"]
+		},
 		"build": {
-			"dependsOn": ["^build"],
+			"dependsOn": ["^build", "prisma:generate"],
 			"inputs": ["$TURBO_DEFAULT$", ".env*"],
 			"outputs": ["dist/**", ".next/**", "!.next/cache/**", "!.next/dev/**"]
 		},
@@ -17,7 +21,7 @@
 			"cache": false
 		},
 		"typecheck": {
-			"dependsOn": ["^typecheck"]
+			"dependsOn": ["^typecheck", "prisma:generate"]
 		},
 		"test": {
 			"dependsOn": ["^build"]

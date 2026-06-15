@@ -13,8 +13,17 @@
 	--font-mono: "JetBrains Mono", monospace;
 	--color-brand-primary: #1d4ed8;
 	--color-brand-primary-hover: #1e40af;
+	--color-brand-primary-light: #dbeafe;
 	--color-brand-accent: #f59e0b;
 	--color-brand-accent-hover: #d97706;
+	--color-brand-accent-light: #fef3c7;
+	--color-hero-bg: #0a0a0a;
+	--color-hero-surface: #111827;
+	--color-hero-card: #1f2937;
+	--color-success: #10b981;
+	--color-error: #ef4444;
+	--color-warning: #f59e0b;
+	--color-info: #3b82f6;
 	--color-sidebar-ring: var(--sidebar-ring);
 	--color-sidebar-border: var(--sidebar-border);
 	--color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -136,5 +145,29 @@
 	}
 	html {
 		@apply font-sans;
+	}
+}
+
+@layer components {
+	.badge-open {
+		@apply inline-flex items-center rounded-pill bg-success/10 text-success text-xs font-stats font-semibold px-2.5 py-0.5 uppercase tracking-wide;
+	}
+	.badge-soon {
+		@apply inline-flex items-center rounded-pill bg-slate-100 text-slate-500 text-xs font-stats font-semibold px-2.5 py-0.5 uppercase tracking-wide;
+	}
+	.badge-free {
+		@apply inline-flex items-center rounded-pill bg-brand-primary-light text-brand-primary text-xs font-stats font-semibold px-2.5 py-0.5 uppercase tracking-wide;
+	}
+	.badge-earnback {
+		@apply inline-flex items-center rounded-pill bg-brand-accent-light text-amber-700 text-xs font-stats font-semibold px-2.5 py-0.5 uppercase tracking-wide;
+	}
+	.btn-primary {
+		@apply bg-brand-primary hover:bg-brand-primary-hover text-white font-sans font-semibold rounded-btn transition-colors;
+	}
+	.btn-accent {
+		@apply bg-brand-accent hover:bg-brand-accent-hover text-white font-sans font-semibold rounded-btn transition-colors;
+	}
+	.btn-outline {
+		@apply border border-brand-primary text-brand-primary hover:bg-brand-primary-light font-sans font-semibold rounded-btn transition-colors;
 	}
 }

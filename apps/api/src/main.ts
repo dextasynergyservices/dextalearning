@@ -2,6 +2,8 @@ import { ValidationPipe } from "@nestjs/common";
 import { NestFactory } from "@nestjs/core";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 import { AppModule } from "./app.module";
+import { AllExceptionsFilter } from "./common/filters/all-exceptions.filter";
+import { ResponseInterceptor } from "./common/interceptors/response.interceptor";
 
 async function bootstrap() {
 	const app = await NestFactory.create(AppModule);
@@ -21,6 +23,10 @@ async function bootstrap() {
 			forbidNonWhitelisted: true,
 		}),
 	);
+	// biome-ignore lint/correctness/useHookAtTopLevel: Nest application setup method, not a React hook.
+	app.useGlobalFilters(new AllExceptionsFilter());
+	// biome-ignore lint/correctness/useHookAtTopLevel: Nest application setup method, not a React hook.
+	app.useGlobalInterceptors(new ResponseInterceptor());
 
 	const swaggerConfig = new DocumentBuilder()
 		.setTitle("DextaLearning API")
