@@ -1,0 +1,69 @@
+{
+	"about": {
+		"badge": "Sobre nosotros",
+		"title": "El aprendizaje, rediseñado en torno a cómo aprenden las personas",
+		"subtitle": "DextaLearning convierte décadas de ciencia del aprendizaje en una plataforma donde terminar — y recordar — es lo normal.",
+		"mission_title": "Nuestra misión",
+		"mission_body": "Hacer que el aprendizaje profundo y duradero sea la norma, no la excepción — para cada educador, en cada aula.",
+		"beliefs_title": "En qué creemos",
+		"beliefs": {
+			"science": {
+				"title": "Ciencia, no moda",
+				"body": "Cada función se basa en evidencia sobre cómo funcionan de verdad la memoria y la motivación."
+			},
+			"finish": {
+				"title": "Terminar importa",
+				"body": "Empezar es fácil. Diseñamos para la parte más difícil y valiosa — terminar."
+			},
+			"access": {
+				"title": "Hecho para todos",
+				"body": "Móvil primero, multilingüe y de bajo ancho de banda — aprendizaje que llega a cada persona."
+			}
+		},
+		"stats_title": "El impacto hasta ahora",
+		"stats": {
+			"completion": {
+				"value": "94%",
+				"label": "Finalización en cursos Earn-Back"
+			},
+			"learners": { "value": "12K+", "label": "Educadores aprendiendo" },
+			"languages": { "value": "4", "label": "Idiomas desde el primer día" },
+			"lessons": { "value": "15min", "label": "Duración máx. de lección" }
+		},
+		"cta_title": "Únete al movimiento",
+		"cta_body": "Empieza gratis y descubre cómo se siente aprender bien.",
+		"cta_button": "Comenzar"
+	},
+	"community": {
+		"badge": "Comunidad",
+		"title": "Aprendes más rápido cuando no estás solo",
+		"subtitle": "Cohortes, grupos y una comunidad de educadores que crecen juntos.",
+		"voices_title": "Voces de estudiantes",
+		"engage_title": "Formas de participar",
+		"engage": {
+			"cohorts": {
+				"title": "Únete a una cohorte",
+				"body": "Aprende junto a compañeros con un facilitador y una fecha compartida."
+			},
+			"groups": {
+				"title": "Encuentra tu grupo",
+				"body": "Pequeños grupos de pares te mantienen responsable y motivado."
+			},
+			"share": {
+				"title": "Comparte tu historia",
+				"body": "Inspira a otros con cómo el aprendizaje cambió tu enseñanza."
+			}
+		},
+		"cta_title": "Crece con otros",
+		"cta_body": "Crea una cuenta gratis y encuentra a tu gente.",
+		"cta_button": "Unirme a la comunidad"
+	},
+	"blog": {
+		"title": "El blog de DextaLearning",
+		"subtitle": "Notas sobre la ciencia del aprendizaje, la enseñanza y la construcción de DextaLearning.",
+		"read_time": "{{count}} min de lectura",
+		"back": "Todos los artículos",
+		"not_found_title": "Artículo no encontrado",
+		"not_found_body": "Este artículo pudo haberse movido o ya no está disponible."
+	}
+}

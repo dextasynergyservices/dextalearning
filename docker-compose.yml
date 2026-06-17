@@ -1,5 +1,10 @@
 services:
+  # Containerised API for production-style runs only. Excluded from the default
+  # `docker compose up` (which brings up infra: postgres/redis/meilisearch) so it
+  # never collides with the local `bun run dev` API on :3000. Start it explicitly
+  # with `bun run docker:api` (docker compose --profile api up --build api).
   api:
+    profiles: ["api"]
     build:
       context: .
       dockerfile: Dockerfile

@@ -1,0 +1,48 @@
+{
+	"about": {
+		"title": "About DextaLearning",
+		"description": "The story and mission behind one Learning Operating System wey dey based on behavior."
+	},
+	"blog": {
+		"title": "Blog",
+		"description": "Tori about learning science, teaching, and how we dey build DextaLearning."
+	},
+	"community": {
+		"title": "Community",
+		"description": "Learner voices, tori, and the people wey dey grow with DextaLearning."
+	},
+	"search": {
+		"title": "Search",
+		"description": "One search across all academy — courses, paths, and cohorts."
+	},
+	"login": {
+		"eyebrow": "Account",
+		"title": "Sign in",
+		"description": "Email + password and Google sign-in go land for the next Phase 1 slice."
+	},
+	"register": {
+		"eyebrow": "Account",
+		"title": "Open your account",
+		"description": "Registration with full validation go land for the next Phase 1 slice."
+	},
+	"teacher": {
+		"eyebrow": "Teacher Academy",
+		"title": "Teacher Academy",
+		"description": "The MVP academy landing — courses, paths, and cohorts for teachers."
+	},
+	"courses": {
+		"eyebrow": "Teacher Academy",
+		"title": "Courses",
+		"description": "The public course catalog — browse am, preview, and enrol."
+	},
+	"paths": {
+		"eyebrow": "Teacher Academy",
+		"title": "Learning Paths",
+		"description": "Courses wey dey arranged in order, with prerequisite and outcome."
+	},
+	"cohorts": {
+		"eyebrow": "Teacher Academy",
+		"title": "Cohorts",
+		"description": "Group programme wey get time limit and facilitator, with peer groups."
+	}
+}

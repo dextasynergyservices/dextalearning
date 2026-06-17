@@ -65,6 +65,7 @@
 	--radius-card: 16px;
 	--radius-btn: 12px;
 	--radius-pill: 9999px;
+	--radius-input: 10px;
 }
 
 :root {
@@ -145,6 +146,13 @@
 	}
 	html {
 		@apply font-sans;
+	}
+	/* Never allow horizontal scrolling anywhere in the app. `clip` (not `hidden`)
+	   keeps `position: sticky` working on the catalog filter bars. */
+	html,
+	body {
+		max-width: 100%;
+		overflow-x: clip;
 	}
 }
 
