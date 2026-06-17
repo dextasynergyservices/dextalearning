@@ -1,0 +1,48 @@
+{
+	"about": {
+		"title": "Acerca de DextaLearning",
+		"description": "La historia y la misión detrás de un sistema operativo de aprendizaje basado en el comportamiento."
+	},
+	"blog": {
+		"title": "Blog",
+		"description": "Notas sobre la ciencia del aprendizaje, la enseñanza y la construcción de DextaLearning."
+	},
+	"community": {
+		"title": "Comunidad",
+		"description": "Voces de los estudiantes, historias y las personas que crecen con DextaLearning."
+	},
+	"search": {
+		"title": "Buscar",
+		"description": "Búsqueda entre academias en cursos, rutas y cohortes."
+	},
+	"login": {
+		"eyebrow": "Cuenta",
+		"title": "Iniciar sesión",
+		"description": "El inicio de sesión con correo + contraseña y Google llega en la próxima etapa de la Fase 1."
+	},
+	"register": {
+		"eyebrow": "Cuenta",
+		"title": "Crea tu cuenta",
+		"description": "El registro con validación completa llega en la próxima etapa de la Fase 1."
+	},
+	"teacher": {
+		"eyebrow": "Teacher Academy",
+		"title": "Teacher Academy",
+		"description": "La página de la academia MVP — cursos, rutas y cohortes para educadores."
+	},
+	"courses": {
+		"eyebrow": "Teacher Academy",
+		"title": "Cursos",
+		"description": "El catálogo público de cursos — explora, previsualiza e inscríbete."
+	},
+	"paths": {
+		"eyebrow": "Teacher Academy",
+		"title": "Rutas de aprendizaje",
+		"description": "Series ordenadas de cursos con requisitos previos y resultados."
+	},
+	"cohorts": {
+		"eyebrow": "Teacher Academy",
+		"title": "Cohortes",
+		"description": "Programas grupales guiados y con tiempo definido, con grupos de pares."
+	}
+}

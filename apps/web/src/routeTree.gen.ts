@@ -9,38 +9,385 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as VerifyEmailRouteImport } from './routes/verify-email'
+import { Route as SearchRouteImport } from './routes/search'
+import { Route as RegisterRouteImport } from './routes/register'
+import { Route as ProfileRouteImport } from './routes/profile'
+import { Route as OnboardingRouteImport } from './routes/onboarding'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as LeaderboardRouteImport } from './routes/leaderboard'
+import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
+import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as CommunityRouteImport } from './routes/community'
+import { Route as BlogRouteImport } from './routes/blog'
+import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as TeachersIndexRouteImport } from './routes/teachers/index'
+import { Route as BlogSlugRouteImport } from './routes/blog/$slug'
+import { Route as TeachersPathsIndexRouteImport } from './routes/teachers/paths/index'
+import { Route as TeachersCoursesIndexRouteImport } from './routes/teachers/courses/index'
+import { Route as TeachersCohortsIndexRouteImport } from './routes/teachers/cohorts/index'
+import { Route as TeachersPathsSlugRouteImport } from './routes/teachers/paths/$slug'
+import { Route as TeachersCoursesSlugRouteImport } from './routes/teachers/courses/$slug'
+import { Route as TeachersCohortsSlugRouteImport } from './routes/teachers/cohorts/$slug'
 
+const VerifyEmailRoute = VerifyEmailRouteImport.update({
+  id: '/verify-email',
+  path: '/verify-email',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SearchRoute = SearchRouteImport.update({
+  id: '/search',
+  path: '/search',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RegisterRoute = RegisterRouteImport.update({
+  id: '/register',
+  path: '/register',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProfileRoute = ProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OnboardingRoute = OnboardingRouteImport.update({
+  id: '/onboarding',
+  path: '/onboarding',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LeaderboardRoute = LeaderboardRouteImport.update({
+  id: '/leaderboard',
+  path: '/leaderboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
+  id: '/forgot-password',
+  path: '/forgot-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DashboardRoute = DashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CommunityRoute = CommunityRouteImport.update({
+  id: '/community',
+  path: '/community',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BlogRoute = BlogRouteImport.update({
+  id: '/blog',
+  path: '/blog',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AboutRoute = AboutRouteImport.update({
+  id: '/about',
+  path: '/about',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TeachersIndexRoute = TeachersIndexRouteImport.update({
+  id: '/teachers/',
+  path: '/teachers/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BlogSlugRoute = BlogSlugRouteImport.update({
+  id: '/$slug',
+  path: '/$slug',
+  getParentRoute: () => BlogRoute,
+} as any)
+const TeachersPathsIndexRoute = TeachersPathsIndexRouteImport.update({
+  id: '/teachers/paths/',
+  path: '/teachers/paths/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TeachersCoursesIndexRoute = TeachersCoursesIndexRouteImport.update({
+  id: '/teachers/courses/',
+  path: '/teachers/courses/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TeachersCohortsIndexRoute = TeachersCohortsIndexRouteImport.update({
+  id: '/teachers/cohorts/',
+  path: '/teachers/cohorts/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TeachersPathsSlugRoute = TeachersPathsSlugRouteImport.update({
+  id: '/teachers/paths/$slug',
+  path: '/teachers/paths/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TeachersCoursesSlugRoute = TeachersCoursesSlugRouteImport.update({
+  id: '/teachers/courses/$slug',
+  path: '/teachers/courses/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TeachersCohortsSlugRoute = TeachersCohortsSlugRouteImport.update({
+  id: '/teachers/cohorts/$slug',
+  path: '/teachers/cohorts/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
+  '/blog': typeof BlogRouteWithChildren
+  '/community': typeof CommunityRoute
+  '/dashboard': typeof DashboardRoute
+  '/forgot-password': typeof ForgotPasswordRoute
+  '/leaderboard': typeof LeaderboardRoute
+  '/login': typeof LoginRoute
+  '/onboarding': typeof OnboardingRoute
+  '/profile': typeof ProfileRoute
+  '/register': typeof RegisterRoute
+  '/search': typeof SearchRoute
+  '/verify-email': typeof VerifyEmailRoute
+  '/blog/$slug': typeof BlogSlugRoute
+  '/teachers/': typeof TeachersIndexRoute
+  '/teachers/cohorts/$slug': typeof TeachersCohortsSlugRoute
+  '/teachers/courses/$slug': typeof TeachersCoursesSlugRoute
+  '/teachers/paths/$slug': typeof TeachersPathsSlugRoute
+  '/teachers/cohorts/': typeof TeachersCohortsIndexRoute
+  '/teachers/courses/': typeof TeachersCoursesIndexRoute
+  '/teachers/paths/': typeof TeachersPathsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
+  '/blog': typeof BlogRouteWithChildren
+  '/community': typeof CommunityRoute
+  '/dashboard': typeof DashboardRoute
+  '/forgot-password': typeof ForgotPasswordRoute
+  '/leaderboard': typeof LeaderboardRoute
+  '/login': typeof LoginRoute
+  '/onboarding': typeof OnboardingRoute
+  '/profile': typeof ProfileRoute
+  '/register': typeof RegisterRoute
+  '/search': typeof SearchRoute
+  '/verify-email': typeof VerifyEmailRoute
+  '/blog/$slug': typeof BlogSlugRoute
+  '/teachers': typeof TeachersIndexRoute
+  '/teachers/cohorts/$slug': typeof TeachersCohortsSlugRoute
+  '/teachers/courses/$slug': typeof TeachersCoursesSlugRoute
+  '/teachers/paths/$slug': typeof TeachersPathsSlugRoute
+  '/teachers/cohorts': typeof TeachersCohortsIndexRoute
+  '/teachers/courses': typeof TeachersCoursesIndexRoute
+  '/teachers/paths': typeof TeachersPathsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
+  '/blog': typeof BlogRouteWithChildren
+  '/community': typeof CommunityRoute
+  '/dashboard': typeof DashboardRoute
+  '/forgot-password': typeof ForgotPasswordRoute
+  '/leaderboard': typeof LeaderboardRoute
+  '/login': typeof LoginRoute
+  '/onboarding': typeof OnboardingRoute
+  '/profile': typeof ProfileRoute
+  '/register': typeof RegisterRoute
+  '/search': typeof SearchRoute
+  '/verify-email': typeof VerifyEmailRoute
+  '/blog/$slug': typeof BlogSlugRoute
+  '/teachers/': typeof TeachersIndexRoute
+  '/teachers/cohorts/$slug': typeof TeachersCohortsSlugRoute
+  '/teachers/courses/$slug': typeof TeachersCoursesSlugRoute
+  '/teachers/paths/$slug': typeof TeachersPathsSlugRoute
+  '/teachers/cohorts/': typeof TeachersCohortsIndexRoute
+  '/teachers/courses/': typeof TeachersCoursesIndexRoute
+  '/teachers/paths/': typeof TeachersPathsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/about'
+    | '/blog'
+    | '/community'
+    | '/dashboard'
+    | '/forgot-password'
+    | '/leaderboard'
+    | '/login'
+    | '/onboarding'
+    | '/profile'
+    | '/register'
+    | '/search'
+    | '/verify-email'
+    | '/blog/$slug'
+    | '/teachers/'
+    | '/teachers/cohorts/$slug'
+    | '/teachers/courses/$slug'
+    | '/teachers/paths/$slug'
+    | '/teachers/cohorts/'
+    | '/teachers/courses/'
+    | '/teachers/paths/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/about'
+    | '/blog'
+    | '/community'
+    | '/dashboard'
+    | '/forgot-password'
+    | '/leaderboard'
+    | '/login'
+    | '/onboarding'
+    | '/profile'
+    | '/register'
+    | '/search'
+    | '/verify-email'
+    | '/blog/$slug'
+    | '/teachers'
+    | '/teachers/cohorts/$slug'
+    | '/teachers/courses/$slug'
+    | '/teachers/paths/$slug'
+    | '/teachers/cohorts'
+    | '/teachers/courses'
+    | '/teachers/paths'
+  id:
+    | '__root__'
+    | '/'
+    | '/about'
+    | '/blog'
+    | '/community'
+    | '/dashboard'
+    | '/forgot-password'
+    | '/leaderboard'
+    | '/login'
+    | '/onboarding'
+    | '/profile'
+    | '/register'
+    | '/search'
+    | '/verify-email'
+    | '/blog/$slug'
+    | '/teachers/'
+    | '/teachers/cohorts/$slug'
+    | '/teachers/courses/$slug'
+    | '/teachers/paths/$slug'
+    | '/teachers/cohorts/'
+    | '/teachers/courses/'
+    | '/teachers/paths/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AboutRoute: typeof AboutRoute
+  BlogRoute: typeof BlogRouteWithChildren
+  CommunityRoute: typeof CommunityRoute
+  DashboardRoute: typeof DashboardRoute
+  ForgotPasswordRoute: typeof ForgotPasswordRoute
+  LeaderboardRoute: typeof LeaderboardRoute
+  LoginRoute: typeof LoginRoute
+  OnboardingRoute: typeof OnboardingRoute
+  ProfileRoute: typeof ProfileRoute
+  RegisterRoute: typeof RegisterRoute
+  SearchRoute: typeof SearchRoute
+  VerifyEmailRoute: typeof VerifyEmailRoute
+  TeachersIndexRoute: typeof TeachersIndexRoute
+  TeachersCohortsSlugRoute: typeof TeachersCohortsSlugRoute
+  TeachersCoursesSlugRoute: typeof TeachersCoursesSlugRoute
+  TeachersPathsSlugRoute: typeof TeachersPathsSlugRoute
+  TeachersCohortsIndexRoute: typeof TeachersCohortsIndexRoute
+  TeachersCoursesIndexRoute: typeof TeachersCoursesIndexRoute
+  TeachersPathsIndexRoute: typeof TeachersPathsIndexRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/verify-email': {
+      id: '/verify-email'
+      path: '/verify-email'
+      fullPath: '/verify-email'
+      preLoaderRoute: typeof VerifyEmailRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/search': {
+      id: '/search'
+      path: '/search'
+      fullPath: '/search'
+      preLoaderRoute: typeof SearchRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/register': {
+      id: '/register'
+      path: '/register'
+      fullPath: '/register'
+      preLoaderRoute: typeof RegisterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/profile': {
+      id: '/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof ProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/onboarding': {
+      id: '/onboarding'
+      path: '/onboarding'
+      fullPath: '/onboarding'
+      preLoaderRoute: typeof OnboardingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/leaderboard': {
+      id: '/leaderboard'
+      path: '/leaderboard'
+      fullPath: '/leaderboard'
+      preLoaderRoute: typeof LeaderboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/forgot-password': {
+      id: '/forgot-password'
+      path: '/forgot-password'
+      fullPath: '/forgot-password'
+      preLoaderRoute: typeof ForgotPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dashboard': {
+      id: '/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof DashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/community': {
+      id: '/community'
+      path: '/community'
+      fullPath: '/community'
+      preLoaderRoute: typeof CommunityRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/blog': {
+      id: '/blog'
+      path: '/blog'
+      fullPath: '/blog'
+      preLoaderRoute: typeof BlogRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/about': {
+      id: '/about'
+      path: '/about'
+      fullPath: '/about'
+      preLoaderRoute: typeof AboutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -48,11 +395,96 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/teachers/': {
+      id: '/teachers/'
+      path: '/teachers'
+      fullPath: '/teachers/'
+      preLoaderRoute: typeof TeachersIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/blog/$slug': {
+      id: '/blog/$slug'
+      path: '/$slug'
+      fullPath: '/blog/$slug'
+      preLoaderRoute: typeof BlogSlugRouteImport
+      parentRoute: typeof BlogRoute
+    }
+    '/teachers/paths/': {
+      id: '/teachers/paths/'
+      path: '/teachers/paths'
+      fullPath: '/teachers/paths/'
+      preLoaderRoute: typeof TeachersPathsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/teachers/courses/': {
+      id: '/teachers/courses/'
+      path: '/teachers/courses'
+      fullPath: '/teachers/courses/'
+      preLoaderRoute: typeof TeachersCoursesIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/teachers/cohorts/': {
+      id: '/teachers/cohorts/'
+      path: '/teachers/cohorts'
+      fullPath: '/teachers/cohorts/'
+      preLoaderRoute: typeof TeachersCohortsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/teachers/paths/$slug': {
+      id: '/teachers/paths/$slug'
+      path: '/teachers/paths/$slug'
+      fullPath: '/teachers/paths/$slug'
+      preLoaderRoute: typeof TeachersPathsSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/teachers/courses/$slug': {
+      id: '/teachers/courses/$slug'
+      path: '/teachers/courses/$slug'
+      fullPath: '/teachers/courses/$slug'
+      preLoaderRoute: typeof TeachersCoursesSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/teachers/cohorts/$slug': {
+      id: '/teachers/cohorts/$slug'
+      path: '/teachers/cohorts/$slug'
+      fullPath: '/teachers/cohorts/$slug'
+      preLoaderRoute: typeof TeachersCohortsSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
+interface BlogRouteChildren {
+  BlogSlugRoute: typeof BlogSlugRoute
+}
+
+const BlogRouteChildren: BlogRouteChildren = {
+  BlogSlugRoute: BlogSlugRoute,
+}
+
+const BlogRouteWithChildren = BlogRoute._addFileChildren(BlogRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AboutRoute: AboutRoute,
+  BlogRoute: BlogRouteWithChildren,
+  CommunityRoute: CommunityRoute,
+  DashboardRoute: DashboardRoute,
+  ForgotPasswordRoute: ForgotPasswordRoute,
+  LeaderboardRoute: LeaderboardRoute,
+  LoginRoute: LoginRoute,
+  OnboardingRoute: OnboardingRoute,
+  ProfileRoute: ProfileRoute,
+  RegisterRoute: RegisterRoute,
+  SearchRoute: SearchRoute,
+  VerifyEmailRoute: VerifyEmailRoute,
+  TeachersIndexRoute: TeachersIndexRoute,
+  TeachersCohortsSlugRoute: TeachersCohortsSlugRoute,
+  TeachersCoursesSlugRoute: TeachersCoursesSlugRoute,
+  TeachersPathsSlugRoute: TeachersPathsSlugRoute,
+  TeachersCohortsIndexRoute: TeachersCohortsIndexRoute,
+  TeachersCoursesIndexRoute: TeachersCoursesIndexRoute,
+  TeachersPathsIndexRoute: TeachersPathsIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

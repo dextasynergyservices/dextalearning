@@ -1,0 +1,139 @@
+{
+	"hero": {
+		"badge": "OS d'apprentissage axé sur le comportement",
+		"title_lead": "Un apprentissage qui",
+		"title_highlight": "reste vraiment",
+		"subtitle": "Des décennies de science de l'apprentissage, d'IA et de psychologie sociale — réunies dans une seule plateforme qui fait de l'apprentissage profond la norme.",
+		"trust": "Gratuit au départ · Earn-Back à la réussite · Sans carte bancaire"
+	},
+	"principles": {
+		"eyebrow": "Fondé sur la science de l'apprentissage",
+		"title": "Pas une énième bibliothèque de vidéos",
+		"subtitle": "Chaque fonctionnalité est un mécanisme comportemental — conçu pour changer ce que vous retenez et jusqu'où vous allez.",
+		"items": {
+			"recall": {
+				"title": "Rappel actif, par défaut",
+				"body": "Des quiz avant et après chaque leçon transforment l'écoute passive en mémoire durable."
+			},
+			"spaced": {
+				"title": "Répétition espacée",
+				"body": "Des rappels intelligents ramènent les leçons au moment où vous êtes sur le point d'oublier."
+			},
+			"earnback": {
+				"title": "Programme Earn-Back",
+				"body": "Engagez-vous sur une échéance. Terminez ce que vous commencez et récupérez ce que vous avez payé."
+			},
+			"cohorts": {
+				"title": "Apprendre en cohorte",
+				"body": "Groupes de pairs, tâches communes et progrès visibles rendent l'élan collectif."
+			},
+			"pacing": {
+				"title": "Rythme adaptatif",
+				"body": "La plateforme lit votre vitesse et votre régularité, puis s'adapte à vous."
+			},
+			"growth": {
+				"title": "La progression, pas les notes",
+				"body": "Nous vous montrons votre progression — pas une froide note sur dix."
+			}
+		},
+		"visual": {
+			"title": "Rétention de la mémoire dans le temps",
+			"spaced": "Avec rappel espacé",
+			"decay": "Sans révision",
+			"aria": "Rétention de la mémoire : rappel espacé contre la courbe de l'oubli",
+			"day": "Jour {{n}}"
+		}
+	},
+	"academies": {
+		"title": "Une plateforme, plusieurs académies",
+		"subtitle": "Des sous-plateformes interchangeables, animées par le même moteur comportemental. La Teacher Academy est déjà disponible.",
+		"open": "Ouverte",
+		"soon": "Bientôt",
+		"enter": "Entrer dans l'académie",
+		"coming": "Bientôt disponible",
+		"items": {
+			"teacher": {
+				"name": "Teacher Academy",
+				"blurb": "Maîtrisez l'art d'enseigner avec des cours et cohortes axés sur le comportement."
+			},
+			"tech": {
+				"name": "Tech Academy",
+				"blurb": "Des parcours d'ingénierie pratiques avec un bac à sable de code intégré."
+			},
+			"business": {
+				"name": "Business Academy",
+				"blurb": "Des compétences concrètes en affaires et en leadership pour le monde réel."
+			},
+			"corporate": {
+				"name": "Corporate Academy",
+				"blurb": "Formation d'équipes et montée en compétences pour les organisations."
+			}
+		},
+		"visual": {
+			"aria": "Un socle de plateforme relié à quatre académies",
+			"core": "Socle"
+		}
+	},
+	"how": {
+		"title": "Comment ça marche",
+		"items": {
+			"goal": {
+				"title": "Choisissez un objectif",
+				"body": "Choisissez un cours, un parcours ou une cohorte et fixez votre échéance personnelle."
+			},
+			"learn": {
+				"title": "Apprenez de la bonne façon",
+				"body": "Micro-leçons, quiz de rappel, projets et cohortes de pairs vous font avancer."
+			},
+			"finish": {
+				"title": "Terminez et récupérez",
+				"body": "Terminez à temps, obtenez votre certificat — et récupérez votre engagement."
+			}
+		}
+	},
+	"stories": {
+		"title": "Une vraie progression, de vraies personnes",
+		"items": {
+			"one": {
+				"quote": "J'ai enfin terminé un cours au lieu de l'abandonner à 20 %. L'échéance Earn-Back m'a tenu en haleine.",
+				"name": "Adaeze O.",
+				"role": "Enseignante au secondaire"
+			},
+			"two": {
+				"quote": "Les quiz de rappel avant chaque leçon sont déstabilisants, dans le bon sens. Je retiens vraiment les choses maintenant.",
+				"name": "Tunde A.",
+				"role": "Responsable pédagogique"
+			},
+			"three": {
+				"quote": "Le chat de ma cohorte est la raison pour laquelle je venais chaque semaine. Apprendre est devenu un sport d'équipe.",
+				"name": "Grace M.",
+				"role": "Enseignante au primaire"
+			}
+		}
+	},
+	"stats": {
+		"items": {
+			"completion": {
+				"value": "94%",
+				"label": "Taux de réussite des cours Earn-Back"
+			},
+			"recall": {
+				"value": "4×",
+				"label": "Mémorisation vs. vidéo passive"
+			},
+			"lesson": {
+				"value": "15min",
+				"label": "Durée max d'une leçon — pensée pour la concentration"
+			},
+			"languages": {
+				"value": "4",
+				"label": "Langues, dès le premier jour"
+			}
+		}
+	},
+	"cta": {
+		"title": "Prêt à apprendre comme votre cerveau le fait vraiment ?",
+		"subtitle": "Inscrivez-vous gratuitement, choisissez votre premier cours et prenez un engagement dont vous serez fier.",
+		"button": "Créer votre compte gratuit"
+	}
+}

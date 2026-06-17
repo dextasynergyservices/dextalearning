@@ -1,0 +1,48 @@
+{
+	"about": {
+		"title": "À propos de DextaLearning",
+		"description": "L'histoire et la mission derrière un système d'exploitation d'apprentissage axé sur le comportement."
+	},
+	"blog": {
+		"title": "Blog",
+		"description": "Réflexions sur la science de l'apprentissage, l'enseignement et la construction de DextaLearning."
+	},
+	"community": {
+		"title": "Communauté",
+		"description": "Les voix des apprenants, leurs histoires et les personnes qui grandissent avec DextaLearning."
+	},
+	"search": {
+		"title": "Recherche",
+		"description": "Recherche inter-académies parmi les cours, parcours et cohortes."
+	},
+	"login": {
+		"eyebrow": "Compte",
+		"title": "Se connecter",
+		"description": "La connexion par e-mail + mot de passe et Google arrive dans la prochaine étape de la Phase 1."
+	},
+	"register": {
+		"eyebrow": "Compte",
+		"title": "Créer votre compte",
+		"description": "L'inscription avec validation complète arrive dans la prochaine étape de la Phase 1."
+	},
+	"teacher": {
+		"eyebrow": "Teacher Academy",
+		"title": "Teacher Academy",
+		"description": "La page d'accueil de l'académie MVP — cours, parcours et cohortes pour les enseignants."
+	},
+	"courses": {
+		"eyebrow": "Teacher Academy",
+		"title": "Cours",
+		"description": "Le catalogue public de cours — parcourir, prévisualiser et s'inscrire."
+	},
+	"paths": {
+		"eyebrow": "Teacher Academy",
+		"title": "Parcours d'apprentissage",
+		"description": "Des suites ordonnées de cours avec prérequis et objectifs."
+	},
+	"cohorts": {
+		"eyebrow": "Teacher Academy",
+		"title": "Cohortes",
+		"description": "Des programmes de groupe encadrés et limités dans le temps, avec des groupes de pairs."
+	}
+}

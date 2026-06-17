@@ -1,0 +1,48 @@
+{
+	"about": {
+		"title": "About DextaLearning",
+		"description": "The story and mission behind a behavior-driven Learning Operating System."
+	},
+	"blog": {
+		"title": "Blog",
+		"description": "Notes on learning science, teaching, and building DextaLearning."
+	},
+	"community": {
+		"title": "Community",
+		"description": "Learner voices, stories, and the people growing with DextaLearning."
+	},
+	"search": {
+		"title": "Search",
+		"description": "Cross-academy search across courses, paths, and cohorts."
+	},
+	"login": {
+		"eyebrow": "Account",
+		"title": "Sign in",
+		"description": "Email + password and Google sign-in land in the next Phase 1 slice."
+	},
+	"register": {
+		"eyebrow": "Account",
+		"title": "Create your account",
+		"description": "Registration with full validation lands in the next Phase 1 slice."
+	},
+	"teacher": {
+		"eyebrow": "Teacher Academy",
+		"title": "Teacher Academy",
+		"description": "The MVP academy landing — courses, paths, and cohorts for educators."
+	},
+	"courses": {
+		"eyebrow": "Teacher Academy",
+		"title": "Courses",
+		"description": "The public course catalog — browse, preview, and enrol."
+	},
+	"paths": {
+		"eyebrow": "Teacher Academy",
+		"title": "Learning Paths",
+		"description": "Ordered tracks of courses with prerequisites and outcomes."
+	},
+	"cohorts": {
+		"eyebrow": "Teacher Academy",
+		"title": "Cohorts",
+		"description": "Time-boxed, facilitated group programmes with peer groups."
+	}
+}

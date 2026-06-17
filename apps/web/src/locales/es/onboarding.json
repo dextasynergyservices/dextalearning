@@ -1,1 +1,57 @@
-{}
+{
+	"progress": "Paso {{current}} de {{total}}",
+	"back": "Atrás",
+	"next": "Continuar",
+	"finish": "Finalizar",
+	"skip": "Omitir por ahora",
+	"language": {
+		"title": "Elige tu idioma",
+		"subtitle": "Puedes cambiarlo cuando quieras en ajustes."
+	},
+	"goals": {
+		"title": "¿Qué te trae por aquí?",
+		"subtitle": "Elige todo lo que aplique.",
+		"options": {
+			"teaching": "Mejorar mi enseñanza",
+			"certificates": "Obtener certificados",
+			"methods": "Aprender nuevos métodos",
+			"career": "Impulsar mi carrera",
+			"community": "Unirme a una comunidad"
+		}
+	},
+	"level": {
+		"title": "¿Desde dónde empiezas?",
+		"subtitle": "Adaptaremos tus recomendaciones.",
+		"options": {
+			"beginner": "Principiante",
+			"intermediate": "Intermedio",
+			"advanced": "Avanzado"
+		}
+	},
+	"hours": {
+		"title": "¿Cuánto tiempo puedes dedicar?",
+		"subtitle": "Por semana — sé honesto, puedes ajustarlo después.",
+		"options": {
+			"low": "1–2 horas",
+			"medium": "3–5 horas",
+			"high": "6–10 horas",
+			"max": "10+ horas"
+		}
+	},
+	"schedule": {
+		"title": "¿Cuándo aprendes mejor?",
+		"subtitle": "Programaremos tus recordatorios para que encajen.",
+		"options": {
+			"morning": "Mañanas",
+			"afternoon": "Tardes",
+			"evening": "Noches",
+			"weekend": "Fines de semana",
+			"flexible": "Flexible"
+		}
+	},
+	"done": {
+		"title": "¡Todo listo!",
+		"subtitle": "Bienvenido a DextaLearning — empecemos a aprender.",
+		"cta": "Ir a mi panel"
+	}
+}

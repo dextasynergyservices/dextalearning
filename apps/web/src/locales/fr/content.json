@@ -1,0 +1,66 @@
+{
+	"about": {
+		"badge": "À propos",
+		"title": "L'apprentissage, repensé autour de la façon dont on apprend vraiment",
+		"subtitle": "DextaLearning transforme des décennies de science de l'apprentissage en une plateforme où terminer — et retenir — devient la norme.",
+		"mission_title": "Notre mission",
+		"mission_body": "Faire de l'apprentissage profond et durable la norme, et non l'exception — pour chaque enseignant, dans chaque classe.",
+		"beliefs_title": "Ce en quoi nous croyons",
+		"beliefs": {
+			"science": {
+				"title": "La science avant le battage",
+				"body": "Chaque fonctionnalité repose sur des preuves du fonctionnement réel de la mémoire et de la motivation."
+			},
+			"finish": {
+				"title": "Terminer compte",
+				"body": "Commencer est facile. Nous concevons pour la partie la plus difficile et la plus précieuse — terminer."
+			},
+			"access": {
+				"title": "Conçu pour tous",
+				"body": "Mobile d'abord, multilingue et à faible bande passante — un apprentissage qui rejoint chacun."
+			}
+		},
+		"stats_title": "L'impact jusqu'ici",
+		"stats": {
+			"completion": { "value": "94%", "label": "Réussite des cours Earn-Back" },
+			"learners": { "value": "12K+", "label": "Enseignants en apprentissage" },
+			"languages": { "value": "4", "label": "Langues dès le départ" },
+			"lessons": { "value": "15min", "label": "Durée max d'une leçon" }
+		},
+		"cta_title": "Rejoignez le mouvement",
+		"cta_body": "Commencez gratuitement et découvrez ce que c'est d'apprendre correctement.",
+		"cta_button": "Commencer"
+	},
+	"community": {
+		"badge": "Communauté",
+		"title": "On apprend plus vite quand on n'est pas seul",
+		"subtitle": "Des cohortes, des groupes et une communauté d'enseignants qui grandissent ensemble.",
+		"voices_title": "Témoignages d'apprenants",
+		"engage_title": "Comment participer",
+		"engage": {
+			"cohorts": {
+				"title": "Rejoindre une cohorte",
+				"body": "Apprenez avec des pairs, un facilitateur et une échéance commune."
+			},
+			"groups": {
+				"title": "Trouver votre groupe",
+				"body": "De petits groupes de pairs vous gardent responsable et motivé."
+			},
+			"share": {
+				"title": "Partager votre histoire",
+				"body": "Inspirez les autres en racontant comment l'apprentissage a changé votre enseignement."
+			}
+		},
+		"cta_title": "Grandissez avec les autres",
+		"cta_body": "Créez un compte gratuit et trouvez votre communauté.",
+		"cta_button": "Rejoindre la communauté"
+	},
+	"blog": {
+		"title": "Le blog DextaLearning",
+		"subtitle": "Réflexions sur la science de l'apprentissage, l'enseignement et la construction de DextaLearning.",
+		"read_time": "{{count}} min de lecture",
+		"back": "Tous les articles",
+		"not_found_title": "Article introuvable",
+		"not_found_body": "Cet article a peut-être été déplacé ou n'est plus disponible."
+	}
+}

@@ -1,0 +1,139 @@
+{
+	"hero": {
+		"badge": "Learning OS wey dey based on behavior",
+		"title_lead": "Learning wey go",
+		"title_highlight": "really stick",
+		"subtitle": "Plenty years of learning science, AI, and how people dey behave — we put am for one place so that deep learning go be the normal thing.",
+		"trust": "Free to start · Earn-Back when you finish · No need card"
+	},
+	"principles": {
+		"eyebrow": "We build am on learning science",
+		"title": "No be just another video library",
+		"subtitle": "Every feature na behavior trick — we design am to change how much you remember and how far you go reach.",
+		"items": {
+			"recall": {
+				"title": "Active recall, automatic",
+				"body": "Quiz before and after every lesson dey turn ordinary watching to memory wey go last."
+			},
+			"spaced": {
+				"title": "Spaced repetition",
+				"body": "Sharp reminder dey bring the lesson back the moment wey you wan forget am."
+			},
+			"earnback": {
+				"title": "Earn-Back program",
+				"body": "Promise yourself one deadline. Finish wetin you start, collect back the money wey you pay."
+			},
+			"cohorts": {
+				"title": "Learn inside cohort",
+				"body": "Group of your padi, group work, and progress wey everybody fit see dey make am sweet."
+			},
+			"pacing": {
+				"title": "Adaptive pacing",
+				"body": "The platform dey read how fast and how steady you dey go, then e meet you for where you dey."
+			},
+			"growth": {
+				"title": "Growth, no be score",
+				"body": "We dey show you how far you don grow — no be cold mark out of ten."
+			}
+		},
+		"visual": {
+			"title": "How memory dey stay over time",
+			"spaced": "With spaced recall",
+			"decay": "Without review",
+			"aria": "Memory retention: spaced recall vs di forgetting curve",
+			"day": "Day {{n}}"
+		}
+	},
+	"academies": {
+		"title": "One platform, plenty academy",
+		"subtitle": "Sub-platform wey you fit change, and na the same behavior engine dey power dem. Teacher Academy don dey live now now.",
+		"open": "Open",
+		"soon": "Soon",
+		"enter": "Enter academy",
+		"coming": "E dey come",
+		"items": {
+			"teacher": {
+				"name": "Teacher Academy",
+				"blurb": "Sabi how to teach well with courses and cohorts wey dey based on behavior."
+			},
+			"tech": {
+				"name": "Tech Academy",
+				"blurb": "Hands-on engineering tracks with code sandbox inside your browser."
+			},
+			"business": {
+				"name": "Business Academy",
+				"blurb": "Real business and leadership skill for the real world."
+			},
+			"corporate": {
+				"name": "Corporate Academy",
+				"blurb": "Team training and upskilling for organisations of any size."
+			}
+		},
+		"visual": {
+			"aria": "One platform core wey connect to four academies",
+			"core": "Core"
+		}
+	},
+	"how": {
+		"title": "How e dey work",
+		"items": {
+			"goal": {
+				"title": "Pick one goal",
+				"body": "Choose course, path, or cohort and set the deadline wey you wan finish am."
+			},
+			"learn": {
+				"title": "Learn the correct way",
+				"body": "Micro-lessons, recall quiz, projects, and your cohort padi dey keep you moving."
+			},
+			"finish": {
+				"title": "Finish & collect back",
+				"body": "Finish on time, collect your certificate — and collect back wetin you promise."
+			}
+		}
+	},
+	"stories": {
+		"title": "Real growth, real people",
+		"items": {
+			"one": {
+				"quote": "I finally finish course instead of to leave am for 20%. The Earn-Back deadline keep me honest.",
+				"name": "Adaeze O.",
+				"role": "Secondary school teacher"
+			},
+			"two": {
+				"quote": "The recall quiz before every lesson dey uncomfortable for the best way. Now I really dey remember things.",
+				"name": "Tunde A.",
+				"role": "Curriculum lead"
+			},
+			"three": {
+				"quote": "Na my cohort group chat make me show up every week. Learning come be like team game.",
+				"name": "Grace M.",
+				"role": "Primary educator"
+			}
+		}
+	},
+	"stats": {
+		"items": {
+			"completion": {
+				"value": "94%",
+				"label": "Completion rate for Earn-Back courses"
+			},
+			"recall": {
+				"value": "4×",
+				"label": "Better recall pass passive video"
+			},
+			"lesson": {
+				"value": "15min",
+				"label": "Max lesson length — we build am for focus"
+			},
+			"languages": {
+				"value": "4",
+				"label": "Languages, from day one"
+			}
+		}
+	},
+	"cta": {
+		"title": "You ready to learn the way your brain really dey work?",
+		"subtitle": "Join free, pick your first course, and set commitment wey you go proud to keep.",
+		"button": "Open your free account"
+	}
+}

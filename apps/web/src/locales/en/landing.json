@@ -1,0 +1,139 @@
+{
+	"hero": {
+		"badge": "Behavior-driven learning OS",
+		"title_lead": "Learning that",
+		"title_highlight": "actually sticks",
+		"subtitle": "Decades of learning science, AI, and social psychology — engineered into one platform that makes deep, lasting learning the default.",
+		"trust": "Free to start · Earn-Back on completion · No card required"
+	},
+	"principles": {
+		"eyebrow": "Built on learning science",
+		"title": "Not another video library",
+		"subtitle": "Every feature is a behavioral mechanism — engineered to change how much you remember and how far you get.",
+		"items": {
+			"recall": {
+				"title": "Active recall, by default",
+				"body": "Quizzes before and after every lesson turn passive watching into durable memory."
+			},
+			"spaced": {
+				"title": "Spaced repetition",
+				"body": "Smart revisit reminders bring lessons back at the moment you're about to forget."
+			},
+			"earnback": {
+				"title": "Earn-Back program",
+				"body": "Commit to a deadline. Finish what you start, and earn back what you paid."
+			},
+			"cohorts": {
+				"title": "Learn in cohorts",
+				"body": "Peer groups, group tasks, and visible progress make momentum social."
+			},
+			"pacing": {
+				"title": "Adaptive pacing",
+				"body": "The platform reads your velocity and consistency, then meets you where you are."
+			},
+			"growth": {
+				"title": "Growth, not grades",
+				"body": "We show you how far you've grown — not a cold score out of ten."
+			}
+		},
+		"visual": {
+			"title": "Memory retention over time",
+			"spaced": "With spaced recall",
+			"decay": "Without review",
+			"aria": "Memory retention: spaced recall versus the forgetting curve",
+			"day": "Day {{n}}"
+		}
+	},
+	"academies": {
+		"title": "One platform, many academies",
+		"subtitle": "Interchangeable sub-platforms, each powered by the same behavioral engine. Teacher Academy is live today.",
+		"open": "Open",
+		"soon": "Soon",
+		"enter": "Enter academy",
+		"coming": "Coming soon",
+		"items": {
+			"teacher": {
+				"name": "Teacher Academy",
+				"blurb": "Master the craft of teaching with behavior-driven courses and cohorts."
+			},
+			"tech": {
+				"name": "Tech Academy",
+				"blurb": "Hands-on engineering tracks with an in-browser code sandbox."
+			},
+			"business": {
+				"name": "Business Academy",
+				"blurb": "Practical business and leadership skills for the real world."
+			},
+			"corporate": {
+				"name": "Corporate Academy",
+				"blurb": "Team training and upskilling for organizations at scale."
+			}
+		},
+		"visual": {
+			"aria": "One platform core connected to four academies",
+			"core": "Core"
+		}
+	},
+	"how": {
+		"title": "How it works",
+		"items": {
+			"goal": {
+				"title": "Pick a goal",
+				"body": "Choose a course, path, or cohort and set a personal completion deadline."
+			},
+			"learn": {
+				"title": "Learn the right way",
+				"body": "Micro-lessons, recall quizzes, projects, and peer cohorts keep you moving."
+			},
+			"finish": {
+				"title": "Finish & earn back",
+				"body": "Complete on time, earn your certificate — and earn back what you committed."
+			}
+		}
+	},
+	"stories": {
+		"title": "Real growth, real people",
+		"items": {
+			"one": {
+				"quote": "I finally finished a course instead of abandoning it at 20%. The Earn-Back deadline kept me honest.",
+				"name": "Adaeze O.",
+				"role": "Secondary school teacher"
+			},
+			"two": {
+				"quote": "The recall quizzes before each lesson are uncomfortable in the best way. I actually remember things now.",
+				"name": "Tunde A.",
+				"role": "Curriculum lead"
+			},
+			"three": {
+				"quote": "My cohort group chat is the reason I showed up every week. Learning felt like a team sport.",
+				"name": "Grace M.",
+				"role": "Primary educator"
+			}
+		}
+	},
+	"stats": {
+		"items": {
+			"completion": {
+				"value": "94%",
+				"label": "Completion rate on Earn-Back courses"
+			},
+			"recall": {
+				"value": "4×",
+				"label": "Better recall vs. passive video"
+			},
+			"lesson": {
+				"value": "15min",
+				"label": "Max lesson length — built for focus"
+			},
+			"languages": {
+				"value": "4",
+				"label": "Languages, from day one"
+			}
+		}
+	},
+	"cta": {
+		"title": "Ready to learn the way your brain actually works?",
+		"subtitle": "Join free, pick your first course, and set a commitment you'll be proud to keep.",
+		"button": "Create your free account"
+	}
+}

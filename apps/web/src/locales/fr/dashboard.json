@@ -1,1 +1,32 @@
-{}
+{
+	"nav": {
+		"home": "Accueil",
+		"explore": "Explorer",
+		"search": "Recherche",
+		"leaderboard": "Récompenses",
+		"profile": "Profil"
+	},
+	"home": {
+		"greeting": "Bon retour",
+		"subtitle": "Gardons votre élan.",
+		"stats": {
+			"streak": "Jours de suite",
+			"courses": "En cours",
+			"certificates": "Certificats"
+		},
+		"continue_title": "Continuer l'apprentissage",
+		"continue_empty": "Vos cours inscrits apparaîtront ici.",
+		"recommended_title": "Recommandé pour vous"
+	},
+	"leaderboard": {
+		"title": "Récompenses et classement",
+		"subtitle": "Les classements des plus progressés apparaîtront une fois en cohorte."
+	},
+	"profile": {
+		"title": "Profil",
+		"subtitle": "Gérez votre compte et vos préférences.",
+		"language": "Langue",
+		"account": "Compte",
+		"sign_out": "Se déconnecter"
+	}
+}

@@ -1,1 +1,57 @@
-{}
+{
+	"progress": "Step {{current}} of {{total}}",
+	"back": "Back",
+	"next": "Continue",
+	"finish": "Finish setup",
+	"skip": "Skip for now",
+	"language": {
+		"title": "Choose your language",
+		"subtitle": "You can change this anytime in settings."
+	},
+	"goals": {
+		"title": "What brings you here?",
+		"subtitle": "Pick all that apply.",
+		"options": {
+			"teaching": "Improve my teaching",
+			"certificates": "Earn certificates",
+			"methods": "Learn new methods",
+			"career": "Grow my career",
+			"community": "Join a community"
+		}
+	},
+	"level": {
+		"title": "Where are you starting?",
+		"subtitle": "We'll tailor your recommendations.",
+		"options": {
+			"beginner": "Beginner",
+			"intermediate": "Intermediate",
+			"advanced": "Advanced"
+		}
+	},
+	"hours": {
+		"title": "How much time can you commit?",
+		"subtitle": "Per week — be honest, you can adjust later.",
+		"options": {
+			"low": "1–2 hours",
+			"medium": "3–5 hours",
+			"high": "6–10 hours",
+			"max": "10+ hours"
+		}
+	},
+	"schedule": {
+		"title": "When do you learn best?",
+		"subtitle": "We'll time your reminders to fit.",
+		"options": {
+			"morning": "Mornings",
+			"afternoon": "Afternoons",
+			"evening": "Evenings",
+			"weekend": "Weekends",
+			"flexible": "Flexible"
+		}
+	},
+	"done": {
+		"title": "You're all set!",
+		"subtitle": "Welcome to DextaLearning — let's start learning.",
+		"cta": "Go to my dashboard"
+	}
+}

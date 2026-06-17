@@ -1,0 +1,116 @@
+{
+	"level": {
+		"all": "All",
+		"beginner": "Beginner",
+		"intermediate": "Intermediate",
+		"advanced": "Advanced",
+		"mixed": "Mixed"
+	},
+	"categories": {
+		"all": "All",
+		"pedagogy": "Pedagogy",
+		"classroom": "Classroom",
+		"edtech": "EdTech",
+		"assessment": "Assessment",
+		"leadership": "Leadership"
+	},
+	"card": {
+		"free": "Free",
+		"earn_back": "Earn-Back",
+		"lessons_one": "{{count}} lesson",
+		"lessons_other": "{{count}} lessons",
+		"by": "by {{name}}"
+	},
+	"landing": {
+		"badge": "Teacher Academy",
+		"title": "Grow into the teacher your students remember",
+		"subtitle": "Behavior-driven courses, learning paths, and cohorts — built for educators, by learning scientists.",
+		"browse_courses": "Browse courses",
+		"view_paths": "View paths",
+		"explore_title": "Three ways to grow",
+		"courses_name": "Courses",
+		"courses_desc": "Self-paced, micro-lesson courses you can start today.",
+		"paths_name": "Learning Paths",
+		"paths_desc": "Ordered tracks of courses toward a real outcome.",
+		"cohorts_name": "Cohorts",
+		"cohorts_desc": "Facilitated, time-boxed group programmes with peers.",
+		"featured": "Featured courses",
+		"view_all": "View all"
+	},
+	"catalog": {
+		"title": "Courses",
+		"subtitle": "Self-paced courses to level up your teaching.",
+		"search_placeholder": "Search courses",
+		"results_one": "{{count}} course",
+		"results_other": "{{count}} courses",
+		"empty_title": "No courses found",
+		"empty_body": "Try a different search or category.",
+		"clear": "Clear filters"
+	},
+	"detail": {
+		"enroll_free": "Enrol for free",
+		"enroll": "Enrol now",
+		"preview": "Preview",
+		"outcomes_title": "What you'll be able to do",
+		"testimonials_title": "Graduate voices",
+		"curriculum_title": "Curriculum",
+		"faq_title": "Frequently asked",
+		"instructor_title": "Your instructor",
+		"includes_title": "This course includes",
+		"includes_lessons": "{{count}} micro-lessons (max 15 min each)",
+		"includes_hours": "{{hours}} hours of content",
+		"includes_certificate": "Certificate of completion",
+		"includes_transcript": "Transcripts & captions in 4 languages",
+		"minutes": "{{count}} min",
+		"not_found_title": "Course not found",
+		"not_found_body": "This course may have moved or is no longer available."
+	},
+	"paths": {
+		"title": "Learning Paths",
+		"subtitle": "Ordered tracks of courses that build toward a real outcome.",
+		"search_placeholder": "Search paths",
+		"results_one": "{{count}} path",
+		"results_other": "{{count}} paths",
+		"courses_count_one": "{{count}} course",
+		"courses_count_other": "{{count}} courses",
+		"outcome_title": "The outcome",
+		"includes_courses": "Courses in this path",
+		"not_found_title": "Path not found",
+		"not_found_body": "This learning path may have moved or is no longer available."
+	},
+	"cohorts": {
+		"title": "Cohorts",
+		"subtitle": "Facilitated, time-boxed group programmes with peers.",
+		"search_placeholder": "Search cohorts",
+		"results_one": "{{count}} cohort",
+		"results_other": "{{count}} cohorts",
+		"starts": "Starts {{date}}",
+		"weeks_one": "{{count}} week",
+		"weeks_other": "{{count}} weeks",
+		"seats_left_one": "{{count}} seat left",
+		"seats_left_other": "{{count}} seats left",
+		"whats_included": "What's included",
+		"includes_courses": "Courses covered",
+		"not_found_title": "Cohort not found",
+		"not_found_body": "This cohort may have moved or is no longer available."
+	},
+	"search": {
+		"title": "Search",
+		"placeholder": "Search courses, paths, cohorts",
+		"type": {
+			"all": "All",
+			"courses": "Courses",
+			"paths": "Paths",
+			"cohorts": "Cohorts"
+		},
+		"results_one": "{{count}} result",
+		"results_other": "{{count}} results",
+		"empty_title": "No results",
+		"empty_body": "Try a different search term.",
+		"start_title": "Search DextaLearning",
+		"start_body": "Find courses, learning paths, and cohorts across the academy.",
+		"section_courses": "Courses",
+		"section_paths": "Learning Paths",
+		"section_cohorts": "Cohorts"
+	}
+}

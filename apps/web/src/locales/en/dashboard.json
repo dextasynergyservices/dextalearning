@@ -1,1 +1,32 @@
-{}
+{
+	"nav": {
+		"home": "Home",
+		"explore": "Explore",
+		"search": "Search",
+		"leaderboard": "Awards",
+		"profile": "Profile"
+	},
+	"home": {
+		"greeting": "Welcome back",
+		"subtitle": "Let's keep your momentum going.",
+		"stats": {
+			"streak": "Day streak",
+			"courses": "In progress",
+			"certificates": "Certificates"
+		},
+		"continue_title": "Continue learning",
+		"continue_empty": "Your enrolled courses will show up here.",
+		"recommended_title": "Recommended for you"
+	},
+	"leaderboard": {
+		"title": "Awards & leaderboard",
+		"subtitle": "Most-improved rankings appear once you join a cohort."
+	},
+	"profile": {
+		"title": "Profile",
+		"subtitle": "Manage your account and preferences.",
+		"language": "Language",
+		"account": "Account",
+		"sign_out": "Sign out"
+	}
+}

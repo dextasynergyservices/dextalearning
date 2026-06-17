@@ -1,0 +1,69 @@
+{
+	"about": {
+		"badge": "About us",
+		"title": "Learning, we design am around how people dey really learn",
+		"subtitle": "DextaLearning take plenty years of learning science build one platform where to finish — and to remember — na the normal thing.",
+		"mission_title": "Our mission",
+		"mission_body": "To make deep learning wey go last the normal thing, no be exception — for every teacher, for every classroom.",
+		"beliefs_title": "Wetin we believe",
+		"beliefs": {
+			"science": {
+				"title": "Science pass hype",
+				"body": "Every feature dey based on evidence of how memory and motivation dey really work."
+			},
+			"finish": {
+				"title": "To finish dey important",
+				"body": "To start easy. We design for the harder, better part — to finish."
+			},
+			"access": {
+				"title": "We build am for everybody",
+				"body": "Mobile-first, plenty languages, and low data — learning wey go meet you where you dey."
+			}
+		},
+		"stats_title": "The impact so far",
+		"stats": {
+			"completion": {
+				"value": "94%",
+				"label": "Completion for Earn-Back courses"
+			},
+			"learners": { "value": "12K+", "label": "Teachers wey dey learn" },
+			"languages": { "value": "4", "label": "Languages from day one" },
+			"lessons": { "value": "15min", "label": "Max lesson length" }
+		},
+		"cta_title": "Join the movement",
+		"cta_body": "Start free and see how to learn the correct way dey feel.",
+		"cta_button": "Make we start"
+	},
+	"community": {
+		"badge": "Community",
+		"title": "You dey learn faster when you no dey alone",
+		"subtitle": "Cohorts, groups, and one community of teachers wey dey grow together.",
+		"voices_title": "Learner voices",
+		"engage_title": "Ways to join",
+		"engage": {
+			"cohorts": {
+				"title": "Join one cohort",
+				"body": "Learn with your padi, one facilitator, and one deadline wey una share."
+			},
+			"groups": {
+				"title": "Find your group",
+				"body": "Small peer group dey keep you accountable and motivated."
+			},
+			"share": {
+				"title": "Share your story",
+				"body": "Inspire others with how learning change your teaching."
+			}
+		},
+		"cta_title": "Grow with others",
+		"cta_body": "Open free account and find your people.",
+		"cta_button": "Join the community"
+	},
+	"blog": {
+		"title": "The DextaLearning Blog",
+		"subtitle": "Tori about learning science, teaching, and how we dey build DextaLearning.",
+		"read_time": "{{count}} min read",
+		"back": "All posts",
+		"not_found_title": "We no see this post",
+		"not_found_body": "This article fit don move or e no dey available again."
+	}
+}
