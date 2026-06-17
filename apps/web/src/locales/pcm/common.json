@@ -1,5 +1,43 @@
 {
 	"app_name": "DextaLearning",
 	"tagline": "Learning wey dey stick — we build am so that people fit really learn.",
-	"get_started": "Make We Start"
+	"actions": {
+		"get_started": "Make we start",
+		"start_free": "Start to learn free",
+		"sign_in": "Sign in",
+		"create_account": "Open account",
+		"back_home": "Go back home",
+		"explore_courses": "Check di courses",
+		"coming_together": "We dey arrange am"
+	},
+	"nav": {
+		"courses": "Courses",
+		"paths": "Paths",
+		"cohorts": "Cohorts",
+		"about": "About",
+		"blog": "Blog",
+		"community": "Community"
+	},
+	"tabs": {
+		"home": "Home",
+		"explore": "Explore",
+		"search": "Search",
+		"account": "Account"
+	},
+	"footer": {
+		"tagline": "Na Learning Operating System wey dey based on how people dey behave — to make deep learning wey go last the normal thing, no be exception.",
+		"learn": "Learn",
+		"company": "Company",
+		"account": "Account",
+		"learning_paths": "Learning Paths",
+		"rights": "All rights reserved."
+	},
+	"account": {
+		"dashboard": "Dashboard",
+		"profile": "Profile",
+		"awards": "Awards",
+		"sign_out": "Comot",
+		"menu": "Account menu",
+		"greeting": "You don sign in"
+	}
 }

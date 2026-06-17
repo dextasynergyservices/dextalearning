@@ -1,0 +1,139 @@
+{
+	"hero": {
+		"badge": "SO de aprendizaje basado en el comportamiento",
+		"title_lead": "Aprendizaje que",
+		"title_highlight": "de verdad perdura",
+		"subtitle": "Décadas de ciencia del aprendizaje, IA y psicología social — reunidas en una plataforma que hace del aprendizaje profundo la norma.",
+		"trust": "Gratis para empezar · Earn-Back al completar · Sin tarjeta"
+	},
+	"principles": {
+		"eyebrow": "Basado en la ciencia del aprendizaje",
+		"title": "No es otra biblioteca de videos",
+		"subtitle": "Cada función es un mecanismo conductual — diseñado para cambiar cuánto recuerdas y hasta dónde llegas.",
+		"items": {
+			"recall": {
+				"title": "Recuerdo activo, por defecto",
+				"body": "Cuestionarios antes y después de cada lección convierten el ver pasivo en memoria duradera."
+			},
+			"spaced": {
+				"title": "Repetición espaciada",
+				"body": "Recordatorios inteligentes traen de vuelta las lecciones justo cuando estás por olvidarlas."
+			},
+			"earnback": {
+				"title": "Programa Earn-Back",
+				"body": "Comprométete con una fecha. Termina lo que empiezas y recupera lo que pagaste."
+			},
+			"cohorts": {
+				"title": "Aprende en cohortes",
+				"body": "Grupos de pares, tareas en equipo y progreso visible hacen social el impulso."
+			},
+			"pacing": {
+				"title": "Ritmo adaptativo",
+				"body": "La plataforma lee tu velocidad y constancia, y se adapta a donde estás."
+			},
+			"growth": {
+				"title": "Crecimiento, no calificaciones",
+				"body": "Te mostramos cuánto has crecido — no una fría nota sobre diez."
+			}
+		},
+		"visual": {
+			"title": "Retención de la memoria con el tiempo",
+			"spaced": "Con repaso espaciado",
+			"decay": "Sin repaso",
+			"aria": "Retención de la memoria: repaso espaciado frente a la curva del olvido",
+			"day": "Día {{n}}"
+		}
+	},
+	"academies": {
+		"title": "Una plataforma, muchas academias",
+		"subtitle": "Subplataformas intercambiables, impulsadas por el mismo motor conductual. La Teacher Academy ya está disponible.",
+		"open": "Abierta",
+		"soon": "Pronto",
+		"enter": "Entrar a la academia",
+		"coming": "Próximamente",
+		"items": {
+			"teacher": {
+				"name": "Teacher Academy",
+				"blurb": "Domina el arte de enseñar con cursos y cohortes basados en el comportamiento."
+			},
+			"tech": {
+				"name": "Tech Academy",
+				"blurb": "Rutas prácticas de ingeniería con un sandbox de código en el navegador."
+			},
+			"business": {
+				"name": "Business Academy",
+				"blurb": "Habilidades prácticas de negocios y liderazgo para el mundo real."
+			},
+			"corporate": {
+				"name": "Corporate Academy",
+				"blurb": "Capacitación de equipos y mejora de habilidades para organizaciones a escala."
+			}
+		},
+		"visual": {
+			"aria": "Un núcleo de plataforma conectado a cuatro academias",
+			"core": "Núcleo"
+		}
+	},
+	"how": {
+		"title": "Cómo funciona",
+		"items": {
+			"goal": {
+				"title": "Elige una meta",
+				"body": "Elige un curso, ruta o cohorte y fija tu fecha personal para completarlo."
+			},
+			"learn": {
+				"title": "Aprende de la forma correcta",
+				"body": "Microlecciones, cuestionarios de recuerdo, proyectos y cohortes te mantienen avanzando."
+			},
+			"finish": {
+				"title": "Termina y recupera",
+				"body": "Completa a tiempo, obtén tu certificado — y recupera lo que comprometiste."
+			}
+		}
+	},
+	"stories": {
+		"title": "Crecimiento real, personas reales",
+		"items": {
+			"one": {
+				"quote": "Por fin terminé un curso en vez de abandonarlo al 20 %. La fecha de Earn-Back me mantuvo honesto.",
+				"name": "Adaeze O.",
+				"role": "Profesora de secundaria"
+			},
+			"two": {
+				"quote": "Los cuestionarios de recuerdo antes de cada lección son incómodos en el mejor sentido. Ahora sí recuerdo las cosas.",
+				"name": "Tunde A.",
+				"role": "Líder de currículo"
+			},
+			"three": {
+				"quote": "El chat de mi cohorte es la razón por la que aparecía cada semana. Aprender se sintió como un deporte de equipo.",
+				"name": "Grace M.",
+				"role": "Educadora de primaria"
+			}
+		}
+	},
+	"stats": {
+		"items": {
+			"completion": {
+				"value": "94%",
+				"label": "Tasa de finalización en cursos Earn-Back"
+			},
+			"recall": {
+				"value": "4×",
+				"label": "Mejor recuerdo vs. video pasivo"
+			},
+			"lesson": {
+				"value": "15min",
+				"label": "Duración máx. de lección — hecha para concentrarse"
+			},
+			"languages": {
+				"value": "4",
+				"label": "Idiomas, desde el primer día"
+			}
+		}
+	},
+	"cta": {
+		"title": "¿Listo para aprender como tu cerebro realmente lo hace?",
+		"subtitle": "Únete gratis, elige tu primer curso y asume un compromiso del que estarás orgulloso.",
+		"button": "Crea tu cuenta gratis"
+	}
+}

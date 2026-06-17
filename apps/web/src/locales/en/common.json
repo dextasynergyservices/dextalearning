@@ -1,5 +1,43 @@
 {
 	"app_name": "DextaLearning",
 	"tagline": "Learning that sticks — built for how people actually learn.",
-	"get_started": "Get Started"
+	"actions": {
+		"get_started": "Get started",
+		"start_free": "Start learning free",
+		"sign_in": "Sign in",
+		"create_account": "Create account",
+		"back_home": "Back to home",
+		"explore_courses": "Explore courses",
+		"coming_together": "Coming together"
+	},
+	"nav": {
+		"courses": "Courses",
+		"paths": "Paths",
+		"cohorts": "Cohorts",
+		"about": "About",
+		"blog": "Blog",
+		"community": "Community"
+	},
+	"tabs": {
+		"home": "Home",
+		"explore": "Explore",
+		"search": "Search",
+		"account": "Account"
+	},
+	"footer": {
+		"tagline": "A behavior-driven Learning Operating System — making deep, lasting learning the default, not the exception.",
+		"learn": "Learn",
+		"company": "Company",
+		"account": "Account",
+		"learning_paths": "Learning Paths",
+		"rights": "All rights reserved."
+	},
+	"account": {
+		"dashboard": "Dashboard",
+		"profile": "Profile",
+		"awards": "Awards",
+		"sign_out": "Sign out",
+		"menu": "Account menu",
+		"greeting": "Signed in"
+	}
 }

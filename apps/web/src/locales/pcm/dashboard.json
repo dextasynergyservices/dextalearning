@@ -1,1 +1,32 @@
-{}
+{
+	"nav": {
+		"home": "Home",
+		"explore": "Explore",
+		"search": "Search",
+		"leaderboard": "Awards",
+		"profile": "Profile"
+	},
+	"home": {
+		"greeting": "Welcome back",
+		"subtitle": "Make we keep your momentum.",
+		"stats": {
+			"streak": "Day streak",
+			"courses": "Dey go on",
+			"certificates": "Certificates"
+		},
+		"continue_title": "Continue learning",
+		"continue_empty": "The courses wey you enrol go show here.",
+		"recommended_title": "We recommend for you"
+	},
+	"leaderboard": {
+		"title": "Awards & leaderboard",
+		"subtitle": "Most-improved ranking go show once you join one cohort."
+	},
+	"profile": {
+		"title": "Profile",
+		"subtitle": "Manage your account and settings.",
+		"language": "Language",
+		"account": "Account",
+		"sign_out": "Sign out"
+	}
+}

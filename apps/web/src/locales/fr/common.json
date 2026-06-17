@@ -1,5 +1,43 @@
 {
 	"app_name": "DextaLearning",
 	"tagline": "Un apprentissage qui dure, conçu pour la façon dont on apprend vraiment.",
-	"get_started": "Commencer"
+	"actions": {
+		"get_started": "Commencer",
+		"start_free": "Commencer gratuitement",
+		"sign_in": "Se connecter",
+		"create_account": "Créer un compte",
+		"back_home": "Retour à l'accueil",
+		"explore_courses": "Explorer les cours",
+		"coming_together": "En préparation"
+	},
+	"nav": {
+		"courses": "Cours",
+		"paths": "Parcours",
+		"cohorts": "Cohortes",
+		"about": "À propos",
+		"blog": "Blog",
+		"community": "Communauté"
+	},
+	"tabs": {
+		"home": "Accueil",
+		"explore": "Explorer",
+		"search": "Recherche",
+		"account": "Compte"
+	},
+	"footer": {
+		"tagline": "Un système d'exploitation d'apprentissage axé sur le comportement — pour faire de l'apprentissage profond et durable la norme, et non l'exception.",
+		"learn": "Apprendre",
+		"company": "Entreprise",
+		"account": "Compte",
+		"learning_paths": "Parcours d'apprentissage",
+		"rights": "Tous droits réservés."
+	},
+	"account": {
+		"dashboard": "Tableau de bord",
+		"profile": "Profil",
+		"awards": "Récompenses",
+		"sign_out": "Déconnexion",
+		"menu": "Menu du compte",
+		"greeting": "Connecté"
+	}
 }

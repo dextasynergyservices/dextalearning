@@ -1,0 +1,116 @@
+{
+	"level": {
+		"all": "All",
+		"beginner": "Beginner",
+		"intermediate": "Intermediate",
+		"advanced": "Advanced",
+		"mixed": "Mixed"
+	},
+	"categories": {
+		"all": "All",
+		"pedagogy": "Pedagogy",
+		"classroom": "Classroom",
+		"edtech": "EdTech",
+		"assessment": "Assessment",
+		"leadership": "Leadership"
+	},
+	"card": {
+		"free": "Free",
+		"earn_back": "Earn-Back",
+		"lessons_one": "{{count}} lesson",
+		"lessons_other": "{{count}} lessons",
+		"by": "by {{name}}"
+	},
+	"landing": {
+		"badge": "Teacher Academy",
+		"title": "Be the kind teacher wey your students nor go forget",
+		"subtitle": "Courses, learning paths, and cohorts wey dey based on behavior — we build am for teachers, na learning scientists make am.",
+		"browse_courses": "Browse courses",
+		"view_paths": "See paths",
+		"explore_title": "Three ways to grow",
+		"courses_name": "Courses",
+		"courses_desc": "Self-paced micro-lesson courses wey you fit start today.",
+		"paths_name": "Learning Paths",
+		"paths_desc": "Courses wey dey arranged in order to reach one real outcome.",
+		"cohorts_name": "Cohorts",
+		"cohorts_desc": "Group programme wey get facilitator and time limit, with your padi.",
+		"featured": "Featured courses",
+		"view_all": "See all"
+	},
+	"catalog": {
+		"title": "Courses",
+		"subtitle": "Self-paced courses to level up your teaching.",
+		"search_placeholder": "Search courses",
+		"results_one": "{{count}} course",
+		"results_other": "{{count}} courses",
+		"empty_title": "No course dey",
+		"empty_body": "Try another search or category.",
+		"clear": "Clear filter"
+	},
+	"detail": {
+		"enroll_free": "Enrol free",
+		"enroll": "Enrol now",
+		"preview": "Preview",
+		"outcomes_title": "Wetin you go fit do",
+		"testimonials_title": "Graduate voices",
+		"curriculum_title": "Curriculum",
+		"faq_title": "Question wey people dey ask",
+		"instructor_title": "Your instructor",
+		"includes_title": "This course include",
+		"includes_lessons": "{{count}} micro-lessons (max 15 min each)",
+		"includes_hours": "{{hours}} hours of content",
+		"includes_certificate": "Certificate when you finish",
+		"includes_transcript": "Transcripts & captions for 4 languages",
+		"minutes": "{{count}} min",
+		"not_found_title": "We no see this course",
+		"not_found_body": "This course fit don move or e no dey available again."
+	},
+	"paths": {
+		"title": "Learning Paths",
+		"subtitle": "Courses wey dey arranged in order to reach one real outcome.",
+		"search_placeholder": "Search paths",
+		"results_one": "{{count}} path",
+		"results_other": "{{count}} paths",
+		"courses_count_one": "{{count}} course",
+		"courses_count_other": "{{count}} courses",
+		"outcome_title": "The outcome",
+		"includes_courses": "Courses for this path",
+		"not_found_title": "We no see this path",
+		"not_found_body": "This learning path fit don move or e no dey available again."
+	},
+	"cohorts": {
+		"title": "Cohorts",
+		"subtitle": "Group programme wey get facilitator and time limit, with your padi.",
+		"search_placeholder": "Search cohorts",
+		"results_one": "{{count}} cohort",
+		"results_other": "{{count}} cohorts",
+		"starts": "E go start {{date}}",
+		"weeks_one": "{{count}} week",
+		"weeks_other": "{{count}} weeks",
+		"seats_left_one": "{{count}} seat remain",
+		"seats_left_other": "{{count}} seats remain",
+		"whats_included": "Wetin dey inside",
+		"includes_courses": "Courses wey dey covered",
+		"not_found_title": "We no see this cohort",
+		"not_found_body": "This cohort fit don move or e no dey available again."
+	},
+	"search": {
+		"title": "Search",
+		"placeholder": "Search courses, paths, cohorts",
+		"type": {
+			"all": "All",
+			"courses": "Courses",
+			"paths": "Paths",
+			"cohorts": "Cohorts"
+		},
+		"results_one": "{{count}} result",
+		"results_other": "{{count}} results",
+		"empty_title": "Nothing dey",
+		"empty_body": "Try another search word.",
+		"start_title": "Search DextaLearning",
+		"start_body": "Find courses, learning paths, and cohorts across the academy.",
+		"section_courses": "Courses",
+		"section_paths": "Learning Paths",
+		"section_cohorts": "Cohorts"
+	}
+}

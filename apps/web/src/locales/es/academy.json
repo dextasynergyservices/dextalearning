@@ -1,0 +1,116 @@
+{
+	"level": {
+		"all": "Todo",
+		"beginner": "Principiante",
+		"intermediate": "Intermedio",
+		"advanced": "Avanzado",
+		"mixed": "Mixto"
+	},
+	"categories": {
+		"all": "Todo",
+		"pedagogy": "Pedagogía",
+		"classroom": "Aula",
+		"edtech": "EdTech",
+		"assessment": "Evaluación",
+		"leadership": "Liderazgo"
+	},
+	"card": {
+		"free": "Gratis",
+		"earn_back": "Earn-Back",
+		"lessons_one": "{{count}} lección",
+		"lessons_other": "{{count}} lecciones",
+		"by": "por {{name}}"
+	},
+	"landing": {
+		"badge": "Teacher Academy",
+		"title": "Conviértete en el profesor que tus alumnos recordarán",
+		"subtitle": "Cursos, rutas y cohortes basados en el comportamiento — hechos para educadores, por científicos del aprendizaje.",
+		"browse_courses": "Explorar cursos",
+		"view_paths": "Ver rutas",
+		"explore_title": "Tres formas de crecer",
+		"courses_name": "Cursos",
+		"courses_desc": "Cursos de microlecciones a tu ritmo, desde hoy.",
+		"paths_name": "Rutas de aprendizaje",
+		"paths_desc": "Series ordenadas de cursos hacia un resultado real.",
+		"cohorts_name": "Cohortes",
+		"cohorts_desc": "Programas grupales guiados y con tiempo definido.",
+		"featured": "Cursos destacados",
+		"view_all": "Ver todo"
+	},
+	"catalog": {
+		"title": "Cursos",
+		"subtitle": "Cursos a tu ritmo para mejorar tu enseñanza.",
+		"search_placeholder": "Buscar cursos",
+		"results_one": "{{count}} curso",
+		"results_other": "{{count}} cursos",
+		"empty_title": "No se encontraron cursos",
+		"empty_body": "Prueba otra búsqueda o categoría.",
+		"clear": "Borrar filtros"
+	},
+	"detail": {
+		"enroll_free": "Inscríbete gratis",
+		"enroll": "Inscríbete",
+		"preview": "Vista previa",
+		"outcomes_title": "Lo que podrás hacer",
+		"testimonials_title": "Voces de graduados",
+		"curriculum_title": "Plan de estudios",
+		"faq_title": "Preguntas frecuentes",
+		"instructor_title": "Tu instructor",
+		"includes_title": "Este curso incluye",
+		"includes_lessons": "{{count}} microlecciones (máx. 15 min cada una)",
+		"includes_hours": "{{hours}} horas de contenido",
+		"includes_certificate": "Certificado de finalización",
+		"includes_transcript": "Transcripciones y subtítulos en 4 idiomas",
+		"minutes": "{{count}} min",
+		"not_found_title": "Curso no encontrado",
+		"not_found_body": "Este curso pudo haberse movido o ya no está disponible."
+	},
+	"paths": {
+		"title": "Rutas de aprendizaje",
+		"subtitle": "Series ordenadas de cursos que llevan a un resultado real.",
+		"search_placeholder": "Buscar rutas",
+		"results_one": "{{count}} ruta",
+		"results_other": "{{count}} rutas",
+		"courses_count_one": "{{count}} curso",
+		"courses_count_other": "{{count}} cursos",
+		"outcome_title": "El resultado",
+		"includes_courses": "Cursos de esta ruta",
+		"not_found_title": "Ruta no encontrada",
+		"not_found_body": "Esta ruta de aprendizaje pudo haberse movido o ya no está disponible."
+	},
+	"cohorts": {
+		"title": "Cohortes",
+		"subtitle": "Programas grupales guiados y con tiempo definido, con compañeros.",
+		"search_placeholder": "Buscar cohortes",
+		"results_one": "{{count}} cohorte",
+		"results_other": "{{count}} cohortes",
+		"starts": "Comienza el {{date}}",
+		"weeks_one": "{{count}} semana",
+		"weeks_other": "{{count}} semanas",
+		"seats_left_one": "{{count}} plaza disponible",
+		"seats_left_other": "{{count}} plazas disponibles",
+		"whats_included": "Qué incluye",
+		"includes_courses": "Cursos incluidos",
+		"not_found_title": "Cohorte no encontrada",
+		"not_found_body": "Esta cohorte pudo haberse movido o ya no está disponible."
+	},
+	"search": {
+		"title": "Buscar",
+		"placeholder": "Buscar cursos, rutas, cohortes",
+		"type": {
+			"all": "Todo",
+			"courses": "Cursos",
+			"paths": "Rutas",
+			"cohorts": "Cohortes"
+		},
+		"results_one": "{{count}} resultado",
+		"results_other": "{{count}} resultados",
+		"empty_title": "Sin resultados",
+		"empty_body": "Prueba con otro término de búsqueda.",
+		"start_title": "Buscar en DextaLearning",
+		"start_body": "Encuentra cursos, rutas de aprendizaje y cohortes en toda la academia.",
+		"section_courses": "Cursos",
+		"section_paths": "Rutas de aprendizaje",
+		"section_cohorts": "Cohortes"
+	}
+}

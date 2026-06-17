@@ -291,7 +291,11 @@ model User {
   timezone              String?       @db.VarChar(50)
   preferredVideoQuality VideoQuality  @default(quality_480p) @map("preferred_video_quality")
   progressJson          Json?         @map("progress_json")
+  // Better Auth core fields
+  name                  String?       @db.VarChar(300)
+  image                 String?
   createdAt             DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt             DateTime      @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   tenant                         Tenant?                     @relation(fields: [tenantId], references: [id])
   sessions                       Session[]
@@ -337,6 +341,7 @@ model Session {
   ipAddress String?  @map("ip_address") @db.VarChar(45)
   userAgent String?  @map("user_agent")
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -351,6 +356,10 @@ model Account {
   accessToken  String?  @map("access_token")
   refreshToken String?  @map("refresh_token")
   idToken      String?  @map("id_token")
+  accessTokenExpiresAt  DateTime? @map("access_token_expires_at") @db.Timestamptz(6)
+  refreshTokenExpiresAt DateTime? @map("refresh_token_expires_at") @db.Timestamptz(6)
+  scope        String?
+  password     String?
   expiresAt    DateTime? @map("expires_at") @db.Timestamptz(6)
   createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt    DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
@@ -367,6 +376,7 @@ model Verification {
   value      String
   expiresAt  DateTime @map("expires_at") @db.Timestamptz(6)
   createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt  DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   @@map("verifications")
 }

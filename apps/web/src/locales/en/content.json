@@ -1,0 +1,69 @@
+{
+	"about": {
+		"badge": "About us",
+		"title": "Learning, redesigned around how people actually learn",
+		"subtitle": "DextaLearning turns decades of learning science into a platform where finishing — and remembering — is the default.",
+		"mission_title": "Our mission",
+		"mission_body": "To make deep, lasting learning the default, not the exception — for every educator, in every classroom.",
+		"beliefs_title": "What we believe",
+		"beliefs": {
+			"science": {
+				"title": "Science over hype",
+				"body": "Every feature traces back to evidence on how memory and motivation actually work."
+			},
+			"finish": {
+				"title": "Finishing matters",
+				"body": "Starting is easy. We design for the harder, more valuable part — finishing."
+			},
+			"access": {
+				"title": "Built for everyone",
+				"body": "Mobile-first, multilingual, and low-bandwidth — learning that meets people where they are."
+			}
+		},
+		"stats_title": "The impact so far",
+		"stats": {
+			"completion": {
+				"value": "94%",
+				"label": "Completion on Earn-Back courses"
+			},
+			"learners": { "value": "12K+", "label": "Educators learning" },
+			"languages": { "value": "4", "label": "Languages from day one" },
+			"lessons": { "value": "15min", "label": "Max lesson length" }
+		},
+		"cta_title": "Join the movement",
+		"cta_body": "Start free and see what learning the right way feels like.",
+		"cta_button": "Get started"
+	},
+	"community": {
+		"badge": "Community",
+		"title": "You learn faster when you're not alone",
+		"subtitle": "Cohorts, groups, and a community of educators growing together.",
+		"voices_title": "Learner voices",
+		"engage_title": "Ways to get involved",
+		"engage": {
+			"cohorts": {
+				"title": "Join a cohort",
+				"body": "Learn alongside peers with a facilitator and a shared deadline."
+			},
+			"groups": {
+				"title": "Find your group",
+				"body": "Small peer groups keep you accountable and motivated."
+			},
+			"share": {
+				"title": "Share your story",
+				"body": "Inspire others with how learning changed your teaching."
+			}
+		},
+		"cta_title": "Grow with others",
+		"cta_body": "Create a free account and find your people.",
+		"cta_button": "Join the community"
+	},
+	"blog": {
+		"title": "The DextaLearning Blog",
+		"subtitle": "Notes on learning science, teaching, and building DextaLearning.",
+		"read_time": "{{count}} min read",
+		"back": "All posts",
+		"not_found_title": "Post not found",
+		"not_found_body": "This article may have moved or is no longer available."
+	}
+}
