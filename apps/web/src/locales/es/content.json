@@ -26,9 +26,18 @@
 				"value": "94%",
 				"label": "Finalización en cursos Earn-Back"
 			},
-			"learners": { "value": "12K+", "label": "Educadores aprendiendo" },
-			"languages": { "value": "4", "label": "Idiomas desde el primer día" },
-			"lessons": { "value": "15min", "label": "Duración máx. de lección" }
+			"learners": {
+				"value": "12K+",
+				"label": "Educadores aprendiendo"
+			},
+			"languages": {
+				"value": "4",
+				"label": "Idiomas desde el primer día"
+			},
+			"lessons": {
+				"value": "15min",
+				"label": "Duración máx. de lección"
+			}
 		},
 		"cta_title": "Únete al movimiento",
 		"cta_body": "Empieza gratis y descubre cómo se siente aprender bien.",
@@ -64,6 +73,23 @@
 		"read_time": "{{count}} min de lectura",
 		"back": "Todos los artículos",
 		"not_found_title": "Artículo no encontrado",
-		"not_found_body": "Este artículo pudo haberse movido o ya no está disponible."
+		"not_found_body": "Este artículo puede haberse movido o dejado de publicar.",
+		"empty": "Aún no hay artículos — vuelve pronto.",
+		"all_articles": "Todos los artículos",
+		"cta_title": "Ponlo en práctica",
+		"cta_body": "Explora cursos basados en la ciencia del aprendizaje.",
+		"written_by": "Escrito por"
+	},
+	"contact": {
+		"eyebrow": "Contáctanos",
+		"title": "Nos encantaría saber de ti",
+		"subtitle": "Preguntas, alianzas o comentarios — escríbenos y te responderemos.",
+		"email_label": "Escríbenos",
+		"email": "hello@dextalearning.com",
+		"community_label": "Únete a la comunidad",
+		"community_desc": "Aprende junto a miles de personas",
+		"support_label": "Ayuda y soporte",
+		"support_desc": "Respondemos en un día",
+		"follow": "Síguenos"
 	}
 }

@@ -9,7 +9,7 @@ import {
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { signOut, useSession } from "@/lib/auth-client";
+import { homeForRole, signOut, useSession } from "@/lib/auth-client";
 import { cn } from "@/lib/utils";
 
 function initialsOf(name?: string | null): string {
@@ -62,11 +62,17 @@ export function AccountMenu({ onDark = false }: { onDark?: boolean }) {
 		navigate({ to: "/" });
 	};
 
+	// Staff (instructor/admin) land on their Studio; learners on /dashboard.
+	const role = (user as { role?: string }).role;
 	const items = [
-		{ to: "/dashboard", label: t("account.dashboard"), icon: LayoutDashboard },
-		{ to: "/leaderboard", label: t("account.awards"), icon: Trophy },
-		{ to: "/profile", label: t("account.profile"), icon: UserRound },
-	] as const;
+		{
+			to: homeForRole(role),
+			label: t("account.dashboard"),
+			icon: LayoutDashboard,
+		},
+		{ to: "/leaderboard" as const, label: t("account.awards"), icon: Trophy },
+		{ to: "/profile" as const, label: t("account.profile"), icon: UserRound },
+	];
 
 	return (
 		<div ref={containerRef} className="relative">

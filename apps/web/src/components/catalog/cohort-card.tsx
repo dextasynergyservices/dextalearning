@@ -1,9 +1,9 @@
 import { Link } from "@tanstack/react-router";
 import { CalendarDays, UserRound, Users } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { CatalogVisual } from "@/components/catalog/catalog-visual";
 import { formatNgn, formatShortDate } from "@/lib/format";
 import type { SampleCohort } from "@/lib/sample-data";
-import { cn } from "@/lib/utils";
 
 export function CohortCard({ cohort }: { cohort: SampleCohort }) {
 	const { t, i18n } = useTranslation("academy");
@@ -17,24 +17,20 @@ export function CohortCard({ cohort }: { cohort: SampleCohort }) {
 			params={{ slug: cohort.slug }}
 			className="group flex flex-col overflow-hidden rounded-card border border-slate-200 bg-white shadow-card transition-all hover:-translate-y-1 hover:shadow-card-hover active:scale-[0.99]"
 		>
-			<div
-				className={cn(
-					"flex aspect-[16/9] flex-col justify-between bg-gradient-to-br p-4 text-white",
-					cohort.gradient,
-				)}
+			<CatalogVisual
+				icon={CalendarDays}
+				label={t(`level.${cohort.level}`)}
+				meta={t("cohorts.starts", {
+					date: formatShortDate(cohort.startsAt, locale),
+				})}
+				tone="primary"
 			>
-				<div className="flex items-center justify-between">
-					<CalendarDays className="size-6 text-white/85" />
-					<span className="rounded-pill bg-black/25 px-2.5 py-0.5 font-stats text-xs backdrop-blur-sm">
-						{t(`level.${cohort.level}`)}
+				{cohort.isEarnBack ? (
+					<span className="badge-earnback bg-white/90">
+						{t("card.earn_back")}
 					</span>
-				</div>
-				<p className="font-stats text-white/85 text-xs">
-					{t("cohorts.starts", {
-						date: formatShortDate(cohort.startsAt, locale),
-					})}
-				</p>
-			</div>
+				) : null}
+			</CatalogVisual>
 
 			<div className="flex flex-1 flex-col p-4">
 				<h3 className="line-clamp-2 font-display text-base text-slate-900 leading-snug">

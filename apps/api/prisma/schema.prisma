@@ -392,6 +392,7 @@ model Course {
   isFree             Boolean       @default(true) @map("is_free")
   currency           String        @default("NGN") @db.VarChar(3)
   isEarnBackEligible Boolean       @default(false) @map("is_earn_back_eligible")
+  earnBackPercentage Int?          @map("earn_back_percentage")
   earnBackDeadlineDays Int?        @map("earn_back_deadline_days")
   hasFinalAssessment Boolean       @default(true) @map("has_final_assessment")
   status             PublishStatus?
@@ -504,6 +505,7 @@ model LearningPath {
   isFree             Boolean       @default(true) @map("is_free")
   currency           String        @default("NGN") @db.VarChar(3)
   isEarnBackEligible Boolean       @default(false) @map("is_earn_back_eligible")
+  earnBackPercentage Int?          @map("earn_back_percentage")
   earnBackDeadlineDays Int?        @map("earn_back_deadline_days")
   outcomeStatement   String?       @map("outcome_statement")
   estimatedHours     Decimal?      @map("estimated_hours") @db.Decimal(6, 1)
@@ -563,6 +565,7 @@ model Cohort {
   isFree             Boolean           @default(true) @map("is_free")
   currency           String            @default("NGN") @db.VarChar(3)
   isEarnBackEligible Boolean           @default(false) @map("is_earn_back_eligible")
+  earnBackPercentage Int?              @map("earn_back_percentage")
   examMode           CohortExamMode?   @map("exam_mode")
   unlockMode         CohortUnlockMode? @map("unlock_mode")
   groupingMode       GroupingMode      @default(randomized) @map("grouping_mode")
@@ -1003,4 +1006,23 @@ model LeaderboardScore {
   user   User?   @relation(fields: [userId], references: [id])
 
   @@map("leaderboard_scores")
+}
+
+model BlogPost {
+  id          String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId    String?        @map("tenant_id") @db.Uuid
+  title       String         @db.VarChar(200)
+  slug        String         @unique @db.VarChar(200)
+  excerpt     String?
+  category    String?        @db.VarChar(80)
+  coverKey    String?        @map("cover_key")
+  bodyHtml    String?        @map("body_html")
+  authorName  String?        @map("author_name") @db.VarChar(120)
+  readMinutes Int?           @map("read_minutes")
+  status      PublishStatus?
+  publishedAt DateTime?      @map("published_at") @db.Timestamptz(6)
+  createdBy   String?        @map("created_by") @db.Uuid
+  createdAt   DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@map("blog_posts")
 }

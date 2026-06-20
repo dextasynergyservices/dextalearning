@@ -5,6 +5,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Logo } from "@/components/brand/logo";
 import { Button, buttonVariants } from "@/components/ui/button";
+import { homeForRole, useSession } from "@/lib/auth-client";
 import { SUPPORTED_LANGUAGES } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
@@ -38,6 +39,10 @@ const slide = {
 function OnboardingPage() {
 	const { t, i18n } = useTranslation("onboarding");
 	const navigate = useNavigate();
+	const { data: session } = useSession();
+	const home = homeForRole(
+		(session?.user as { role?: string } | undefined)?.role,
+	);
 	const [index, setIndex] = useState(0);
 	const [direction, setDirection] = useState(1);
 	const [goals, setGoals] = useState<string[]>([]);
@@ -84,7 +89,7 @@ function OnboardingPage() {
 				<p className="mt-2 max-w-sm text-slate-500">{t("done.subtitle")}</p>
 				<button
 					type="button"
-					onClick={() => navigate({ to: "/dashboard" })}
+					onClick={() => navigate({ to: home })}
 					className={cn(
 						buttonVariants({ variant: "primary", size: "lg" }),
 						"mt-8",
@@ -125,7 +130,7 @@ function OnboardingPage() {
 				</div>
 				<button
 					type="button"
-					onClick={() => navigate({ to: "/dashboard" })}
+					onClick={() => navigate({ to: home })}
 					className="text-slate-400 text-sm hover:text-slate-600"
 				>
 					{t("skip")}

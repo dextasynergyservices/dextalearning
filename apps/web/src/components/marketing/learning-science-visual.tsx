@@ -59,7 +59,7 @@ export function LearningScienceVisual() {
 	return (
 		<div
 			ref={scope}
-			className="relative overflow-hidden rounded-card border border-slate-200 bg-gradient-to-b from-white to-slate-50 p-5 shadow-card sm:p-7"
+			className="relative overflow-hidden rounded-card border border-slate-200 bg-white p-5 shadow-card sm:p-7"
 		>
 			<div className="flex flex-wrap items-center justify-between gap-3">
 				<p className="font-display text-slate-900 text-sm">

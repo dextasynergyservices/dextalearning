@@ -55,7 +55,6 @@ function CommunityPage() {
 		<PublicShell darkHeader>
 			{/* Hero */}
 			<section className="relative overflow-hidden bg-hero-bg text-white">
-				<div className="pointer-events-none absolute inset-0 bg-[radial-gradient(60%_55%_at_50%_-5%,rgba(245,158,11,0.22),transparent_70%)]" />
 				<div className="relative mx-auto max-w-4xl px-6 pt-24 pb-14 text-center lg:pt-32 lg:pb-20">
 					<motion.span
 						initial={{ opacity: 0, y: 12 }}
@@ -155,16 +154,15 @@ function CommunityPage() {
 			<section ref={ctaRef} className="mx-auto max-w-7xl px-6 py-14 lg:px-8">
 				<div
 					data-reveal="scale"
-					className="relative overflow-hidden rounded-card bg-brand-primary px-8 py-16 text-center text-white lg:py-20"
+					className="rounded-card bg-brand-primary px-8 py-16 text-center text-white shadow-card lg:py-20"
 				>
-					<div className="pointer-events-none absolute -top-24 -right-24 size-72 rounded-full bg-brand-accent/30 blur-[100px]" />
-					<h2 className="relative font-display text-3xl tracking-tight sm:text-4xl">
+					<h2 className="font-display text-3xl tracking-tight sm:text-4xl">
 						{t("community.cta_title")}
 					</h2>
-					<p className="relative mx-auto mt-4 max-w-xl text-blue-100">
+					<p className="mx-auto mt-4 max-w-xl text-blue-100">
 						{t("community.cta_body")}
 					</p>
-					<div className="relative mt-8 flex justify-center">
+					<div className="mt-8 flex justify-center">
 						<Link
 							to="/register"
 							className={buttonVariants({ variant: "accent", size: "lg" })}

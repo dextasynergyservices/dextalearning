@@ -6,6 +6,7 @@ import { createRoot } from "react-dom/client";
 import { Toaster } from "sonner";
 import "./lib/fonts";
 import "./index.css";
+import "lenis/dist/lenis.css";
 import "./lib/i18n";
 import { routeTree } from "./routeTree.gen";
 

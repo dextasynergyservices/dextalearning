@@ -1,9 +1,9 @@
 import { Link } from "@tanstack/react-router";
-import { Clock, PlayCircle, Star, Users } from "lucide-react";
+import { BookOpen, Clock, PlayCircle, Star, Users } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { CatalogVisual } from "@/components/catalog/catalog-visual";
 import { formatCompact, formatNgn } from "@/lib/format";
 import type { SampleCourse } from "@/lib/sample-data";
-import { cn } from "@/lib/utils";
 
 export function CourseCard({ course }: { course: SampleCourse }) {
 	const { t } = useTranslation("academy");
@@ -15,17 +15,13 @@ export function CourseCard({ course }: { course: SampleCourse }) {
 			params={{ slug: course.slug }}
 			className="group flex flex-col overflow-hidden rounded-card border border-slate-200 bg-white shadow-card transition-all hover:-translate-y-1 hover:shadow-card-hover active:scale-[0.99]"
 		>
-			<div
-				className={cn(
-					"relative flex aspect-video items-center justify-center bg-gradient-to-br",
-					course.gradient,
-				)}
+			<CatalogVisual
+				icon={BookOpen}
+				label={t(`level.${course.level}`)}
+				meta={t(`categories.${course.category}`)}
 			>
-				<PlayCircle className="size-10 text-white/80 transition-transform group-hover:scale-110" />
-				<span className="absolute top-3 left-3 rounded-pill bg-black/30 px-2.5 py-0.5 font-stats text-white text-xs backdrop-blur-sm">
-					{t(`level.${course.level}`)}
-				</span>
-				<span className="absolute top-3 right-3">
+				<div className="flex items-center gap-2">
+					<PlayCircle className="size-5 transition-transform group-hover:scale-110" />
 					{isFree ? (
 						<span className="badge-free bg-white/90">{t("card.free")}</span>
 					) : course.isEarnBack ? (
@@ -33,8 +29,8 @@ export function CourseCard({ course }: { course: SampleCourse }) {
 							{t("card.earn_back")}
 						</span>
 					) : null}
-				</span>
-			</div>
+				</div>
+			</CatalogVisual>
 
 			<div className="flex flex-1 flex-col p-4">
 				<p className="font-stats font-semibold text-brand-primary text-xs uppercase tracking-wide">

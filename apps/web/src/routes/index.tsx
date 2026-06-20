@@ -65,12 +65,12 @@ function RevealSection({
 // Placeholder photos for now; real images drop into the same `src`s later.
 // Each tile is grayscaled then multiplied with a brand-family tint.
 const HERO_TINTS = [
-	"bg-blue-600/70",
-	"bg-emerald-500/60",
-	"bg-violet-600/65",
-	"bg-amber-500/55",
-	"bg-indigo-700/70",
-	"bg-sky-600/60",
+	"bg-brand-primary/70",
+	"bg-brand-accent/55",
+	"bg-hero-surface/70",
+	"bg-brand-primary-hover/65",
+	"bg-brand-accent-hover/55",
+	"bg-hero-card/65",
 ];
 
 const HERO_TILES = [
@@ -145,11 +145,7 @@ function Hero() {
 	const { t } = useTranslation(["landing", "common"]);
 
 	return (
-		<section className="relative overflow-hidden bg-gradient-to-br from-[#0b1640] via-[#0a1130] to-[#070a1c] text-white">
-			{/* Ambient glow effects */}
-			<div className="pointer-events-none absolute -top-40 -left-32 size-[28rem] rounded-full bg-brand-primary/20 blur-[120px]" />
-			<div className="pointer-events-none absolute bottom-0 -right-20 size-[22rem] rounded-full bg-brand-accent/10 blur-[100px]" />
-
+		<section className="relative overflow-hidden bg-hero-bg text-white">
 			<div className="mx-auto grid max-w-7xl items-center gap-8 lg:grid-cols-[1fr_1.15fr] lg:gap-6">
 				{/* Headline */}
 				<div className="px-6 pt-24 pb-8 lg:py-32 lg:pl-8">
@@ -487,17 +483,15 @@ function CtaBand() {
 		<RevealSection className="mx-auto max-w-7xl px-6 py-14 lg:px-8">
 			<div
 				data-reveal="scale"
-				className="relative overflow-hidden rounded-card bg-brand-primary px-8 py-16 text-center text-white lg:py-20"
+				className="rounded-card bg-brand-primary px-8 py-16 text-center text-white shadow-card lg:py-20"
 			>
-				<div className="pointer-events-none absolute -top-24 -right-24 size-72 rounded-full bg-brand-accent/30 blur-[100px]" />
-				<div className="pointer-events-none absolute -bottom-16 -left-16 size-56 rounded-full bg-white/10 blur-[80px]" />
-				<h2 className="relative font-display text-3xl tracking-tight sm:text-4xl">
+				<h2 className="font-display text-3xl tracking-tight sm:text-4xl">
 					{t("cta.title")}
 				</h2>
-				<p className="relative mx-auto mt-4 max-w-xl text-blue-100">
+				<p className="mx-auto mt-4 max-w-xl text-blue-100">
 					{t("cta.subtitle")}
 				</p>
-				<div className="relative mt-8 flex justify-center">
+				<div className="mt-8 flex justify-center">
 					<Link
 						to="/register"
 						className={buttonVariants({ variant: "accent", size: "lg" })}

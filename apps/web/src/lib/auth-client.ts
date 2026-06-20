@@ -8,6 +8,16 @@ export const authClient = createAuthClient({
 
 export const { signUp, signIn, signOut, useSession } = authClient;
 
+/** Post-auth landing per role: staff go to the Creator Studio, learners to the
+ *  learner dashboard. */
+export function homeForRole(
+	role?: string,
+): "/admin" | "/instructor" | "/dashboard" {
+	if (role === "admin") return "/admin";
+	if (role === "instructor") return "/instructor";
+	return "/dashboard";
+}
+
 const APP_URL = import.meta.env.VITE_APP_URL ?? window.location.origin;
 
 /** Kicks off Google OAuth. New accounts land on onboarding; the Better Auth

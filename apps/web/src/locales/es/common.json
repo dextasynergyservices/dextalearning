@@ -16,13 +16,18 @@
 		"cohorts": "Cohortes",
 		"about": "Acerca de",
 		"blog": "Blog",
-		"community": "Comunidad"
+		"community": "Comunidad",
+		"contact": "Contacto"
 	},
 	"tabs": {
 		"home": "Inicio",
+		"courses": "Cursos",
+		"paths": "Rutas",
+		"cohorts": "Cohortes",
 		"explore": "Explorar",
 		"search": "Buscar",
-		"account": "Cuenta"
+		"account": "Cuenta",
+		"more": "Más"
 	},
 	"footer": {
 		"tagline": "Un sistema operativo de aprendizaje basado en el comportamiento — para que el aprendizaje profundo y duradero sea la norma, no la excepción.",
@@ -39,5 +44,17 @@
 		"sign_out": "Cerrar sesión",
 		"menu": "Menú de cuenta",
 		"greeting": "Sesión iniciada"
+	},
+	"errors": {
+		"media": {
+			"duration_exceeded": "Ese archivo dura más de 15 minutos — recórtalo, por favor.",
+			"unsupported_format": "Ese tipo de archivo no es compatible.",
+			"unsupported_language": "Ese idioma no es compatible.",
+			"invalid_caption_format": "Ese archivo de subtítulos necesita tiempos válidos, por ejemplo 00:00:00.000 --> 00:00:04.000.",
+			"file_required": "Elige un archivo, por favor."
+		},
+		"content": {
+			"not_publishable": "Algunas lecciones aún necesitan contenido o transcripción antes de publicar."
+		}
 	}
 }
