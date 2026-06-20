@@ -26,9 +26,18 @@
 				"value": "94%",
 				"label": "Completion for Earn-Back courses"
 			},
-			"learners": { "value": "12K+", "label": "Teachers wey dey learn" },
-			"languages": { "value": "4", "label": "Languages from day one" },
-			"lessons": { "value": "15min", "label": "Max lesson length" }
+			"learners": {
+				"value": "12K+",
+				"label": "Teachers wey dey learn"
+			},
+			"languages": {
+				"value": "4",
+				"label": "Languages from day one"
+			},
+			"lessons": {
+				"value": "15min",
+				"label": "Max lesson length"
+			}
 		},
 		"cta_title": "Join the movement",
 		"cta_body": "Start free and see how to learn the correct way dey feel.",
@@ -63,7 +72,24 @@
 		"subtitle": "Tori about learning science, teaching, and how we dey build DextaLearning.",
 		"read_time": "{{count}} min read",
 		"back": "All posts",
-		"not_found_title": "We no see this post",
-		"not_found_body": "This article fit don move or e no dey available again."
+		"not_found_title": "Article no dey",
+		"not_found_body": "Dis article fit don move or dem unpublish am.",
+		"empty": "No article yet — check back soon.",
+		"all_articles": "All articles",
+		"cta_title": "Put am to work",
+		"cta_body": "Check courses wey we build on di science of learning.",
+		"written_by": "Written by"
+	},
+	"contact": {
+		"eyebrow": "Reach us",
+		"title": "We go like hear from you",
+		"subtitle": "Questions, partnership, or feedback — send us message and we go reply you.",
+		"email_label": "Email us",
+		"email": "hello@dextalearning.com",
+		"community_label": "Join di community",
+		"community_desc": "Learn with thousands of others",
+		"support_label": "Help & support",
+		"support_desc": "We dey reply within one day",
+		"follow": "Follow us"
 	}
 }

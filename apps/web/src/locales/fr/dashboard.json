@@ -16,17 +16,78 @@
 		},
 		"continue_title": "Continuer l'apprentissage",
 		"continue_empty": "Vos cours inscrits apparaîtront ici.",
-		"recommended_title": "Recommandé pour vous"
+		"recommended_title": "Recommandé pour vous",
+		"explore_title": "Explorer les cours",
+		"browse_cta": "Explorer les cours",
+		"start_title": "Commencer à apprendre",
+		"start_body": "Vos cours en cours apparaîtront ici. Choisissez-en un ci-dessous pour commencer.",
+		"tip_title": "Astuce d'apprentissage",
+		"tip_body": "Les sessions courtes et quotidiennes valent mieux que le bachotage — 15 minutes concentrées aujourd'hui ancrent durablement.",
+		"learning_plan": "Plan d'apprentissage",
+		"tips_title": "Étudier plus intelligemment aujourd'hui",
+		"science_badge": "Fondé sur la science",
+		"learning_tips": {
+			"recall": {
+				"title": "Rappelez avant de relire",
+				"body": "Après chaque leçon, fermez les notes et expliquez l'idée principale de mémoire."
+			},
+			"spacing": {
+				"title": "Revenez demain",
+				"body": "Une courte révision après le sommeil renforce mieux la mémoire qu'une longue session."
+			},
+			"focus": {
+				"title": "Une idée à la fois",
+				"body": "Terminez une micro-leçon, faites une pause, puis continuez quand le point clé est clair."
+			}
+		},
+		"view_course": "Voir le cours",
+		"empty_courses": "Aucun cours publié pour le moment. Revenez bientôt !"
+	},
+	"lesson": {
+		"title": "Leçon",
+		"back": "Retour",
+		"eyebrow": "Leçon ciblée",
+		"heading": "Regarder, lire, rappeler",
+		"body": "Gardez la session courte, utilisez la transcription si utile, puis passez au rappel pendant que l'idée est fraîche.",
+		"cue_duration": "15 min max",
+		"cue_transcript": "Transcription",
+		"cue_recall": "Rappel",
+		"tip_title": "Restez sur une idée",
+		"tip_body": "Les leçons Dexta reposent sur le micro-apprentissage : terminez cette leçon, puis prenez le temps d'expliquer le point clé avec vos propres mots."
 	},
 	"leaderboard": {
 		"title": "Récompenses et classement",
-		"subtitle": "Les classements des plus progressés apparaîtront une fois en cohorte."
+		"subtitle": "Les classements des plus progressés apparaîtront une fois en cohorte.",
+		"your_standing": "Votre classement",
+		"rank": "Rang",
+		"points": "Points",
+		"streak_days": "Jours d'affilée",
+		"browse_cta": "Parcourir les cours",
+		"empty_title": "Le classement se prépare",
+		"empty_body": "Terminez des leçons et des évaluations pour gagner des points et décrocher votre place au classement {{type}}.",
+		"types": {
+			"overall": "Général",
+			"consistency": "Régularité",
+			"improved": "Plus progressé",
+			"group": "Groupe",
+			"peer": "Entraide"
+		},
+		"preview_note": "Classement d'exemple — les classements en direct s'activent quand vous rejoignez une cohorte.",
+		"you": "Vous",
+		"pts": "pts",
+		"your_position": "Votre position",
+		"this_week": "Cette semaine"
 	},
 	"profile": {
 		"title": "Profil",
 		"subtitle": "Gérez votre compte et vos préférences.",
 		"language": "Langue",
 		"account": "Compte",
-		"sign_out": "Se déconnecter"
+		"sign_out": "Se déconnecter",
+		"preferences": "Préférences",
+		"more": "Plus",
+		"name": "Nom",
+		"email": "E-mail",
+		"role": "Rôle"
 	}
 }

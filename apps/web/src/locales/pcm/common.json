@@ -16,13 +16,18 @@
 		"cohorts": "Cohorts",
 		"about": "About",
 		"blog": "Blog",
-		"community": "Community"
+		"community": "Community",
+		"contact": "Contact"
 	},
 	"tabs": {
 		"home": "Home",
+		"courses": "Courses",
+		"paths": "Paths",
+		"cohorts": "Cohorts",
 		"explore": "Explore",
 		"search": "Search",
-		"account": "Account"
+		"account": "Account",
+		"more": "More"
 	},
 	"footer": {
 		"tagline": "Na Learning Operating System wey dey based on how people dey behave — to make deep learning wey go last the normal thing, no be exception.",
@@ -39,5 +44,17 @@
 		"sign_out": "Comot",
 		"menu": "Account menu",
 		"greeting": "You don sign in"
+	},
+	"errors": {
+		"media": {
+			"duration_exceeded": "Dis file pass 15 minutes — abeg cut am small.",
+			"unsupported_format": "Dis file type no dey supported.",
+			"unsupported_language": "Dis language no dey supported.",
+			"invalid_caption_format": "Dis caption file need correct time, like 00:00:00.000 --> 00:00:04.000.",
+			"file_required": "Abeg choose file."
+		},
+		"content": {
+			"not_publishable": "Some lessons still need content or transcript before you fit publish."
+		}
 	}
 }

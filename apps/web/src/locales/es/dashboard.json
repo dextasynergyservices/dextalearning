@@ -16,17 +16,78 @@
 		},
 		"continue_title": "Continuar aprendiendo",
 		"continue_empty": "Tus cursos inscritos aparecerán aquí.",
-		"recommended_title": "Recomendado para ti"
+		"recommended_title": "Recomendado para ti",
+		"explore_title": "Explorar cursos",
+		"browse_cta": "Explorar cursos",
+		"start_title": "Empieza a aprender",
+		"start_body": "Tus cursos en progreso aparecerán aquí. Elige uno abajo para empezar.",
+		"tip_title": "Consejo de aprendizaje",
+		"tip_body": "Las sesiones cortas y diarias superan al atracón — 15 minutos concentrados hoy fijan la memoria.",
+		"learning_plan": "Plan de aprendizaje",
+		"tips_title": "Estudia mejor hoy",
+		"science_badge": "Basado en ciencia",
+		"learning_tips": {
+			"recall": {
+				"title": "Recuerda antes de repasar",
+				"body": "Después de cada lección, cierra las notas y explica la idea principal de memoria."
+			},
+			"spacing": {
+				"title": "Vuelve mañana",
+				"body": "Un repaso breve después de dormir fortalece más la memoria que una sola sesión larga."
+			},
+			"focus": {
+				"title": "Una idea a la vez",
+				"body": "Termina una microlección, pausa y continúa cuando el punto clave esté claro."
+			}
+		},
+		"view_course": "Ver curso",
+		"empty_courses": "Aún no hay cursos publicados. ¡Vuelve pronto!"
+	},
+	"lesson": {
+		"title": "Lección",
+		"back": "Volver",
+		"eyebrow": "Lección enfocada",
+		"heading": "Mira, lee, recuerda",
+		"body": "Mantén la sesión breve, usa la transcripción cuando ayude y luego practica recordar mientras la idea está fresca.",
+		"cue_duration": "15 min máx.",
+		"cue_transcript": "Transcripción",
+		"cue_recall": "Recordar",
+		"tip_title": "Quédate con una idea",
+		"tip_body": "Las lecciones de Dexta están basadas en microaprendizaje: completa esta lección y luego explica el punto clave con tus propias palabras."
 	},
 	"leaderboard": {
 		"title": "Logros y clasificación",
-		"subtitle": "Los rankings de más mejorados aparecen al unirte a una cohorte."
+		"subtitle": "Los rankings de más mejorados aparecen al unirte a una cohorte.",
+		"your_standing": "Tu posición",
+		"rank": "Puesto",
+		"points": "Puntos",
+		"streak_days": "Días seguidos",
+		"browse_cta": "Explorar cursos",
+		"empty_title": "La clasificación se está preparando",
+		"empty_body": "Completa lecciones y evaluaciones para ganar puntos y reclamar tu lugar en la clasificación {{type}}.",
+		"types": {
+			"overall": "General",
+			"consistency": "Constancia",
+			"improved": "Más mejorado",
+			"group": "Grupo",
+			"peer": "Compañero"
+		},
+		"preview_note": "Clasificación de ejemplo — las clasificaciones en vivo se activan al unirte a una cohorte.",
+		"you": "Tú",
+		"pts": "pts",
+		"your_position": "Tu posición",
+		"this_week": "Esta semana"
 	},
 	"profile": {
 		"title": "Perfil",
 		"subtitle": "Gestiona tu cuenta y preferencias.",
 		"language": "Idioma",
 		"account": "Cuenta",
-		"sign_out": "Cerrar sesión"
+		"sign_out": "Cerrar sesión",
+		"preferences": "Preferencias",
+		"more": "Más",
+		"name": "Nombre",
+		"email": "Correo",
+		"role": "Rol"
 	}
 }

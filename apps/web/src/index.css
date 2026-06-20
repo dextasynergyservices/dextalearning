@@ -179,3 +179,47 @@
 		@apply border border-brand-primary text-brand-primary hover:bg-brand-primary-light font-sans font-semibold rounded-btn transition-colors;
 	}
 }
+
+/* ── Plyr overrides ──────────────────────────────────────────────────────────
+   Tailwind CSS v4's preflight resets `button`, `progress`, and `*` borders,
+   which strips Plyr controls of their styles. These scoped overrides restore
+   the visual state Plyr expects. ──────────────────────────────────────────── */
+@layer components {
+	.plyr {
+		--plyr-color-main: var(--color-brand-primary, #1d4ed8);
+	}
+
+	/* Prevent the global `* { border: … }` reset from adding borders to every
+	   element inside the player. */
+	.plyr *,
+	.plyr *::before,
+	.plyr *::after {
+		border-style: none;
+		border-width: 0;
+	}
+
+	/* Restore Plyr button visibility — preflight sets background: transparent
+	   and strips all default button styles. */
+	.plyr button {
+		appearance: none;
+		background: transparent;
+		border: 0;
+		cursor: pointer;
+		color: inherit;
+	}
+
+	/* Ensure Plyr's control bar is visible and interactive. */
+	.plyr__controls {
+		display: flex;
+		opacity: 1;
+	}
+
+	/* Restore the progress bar — preflight resets <input[type=range]>. */
+	.plyr input[type="range"] {
+		appearance: none;
+		background: transparent;
+		border: 0;
+		margin: 0;
+		padding: 0;
+	}
+}

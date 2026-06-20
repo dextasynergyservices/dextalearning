@@ -1,0 +1,52 @@
+import { Global, Module, type Provider } from "@nestjs/common";
+import { type ConnectionOptions, Queue } from "bullmq";
+import {
+	AUDIO_QUEUE,
+	CAPTION_QUEUE,
+	QUEUE_AUDIO,
+	QUEUE_CAPTION,
+	QUEUE_CONNECTION,
+	QUEUE_VIDEO,
+	VIDEO_QUEUE,
+} from "./queue.constants";
+
+// Hand BullMQ a connection *options* object (it owns the client) rather than a
+// shared ioredis instance — avoids version-skew between app ioredis and the one
+// BullMQ bundles. `maxRetriesPerRequest: null` is required by blocking workers.
+function buildConnection(): ConnectionOptions {
+	const url = new URL(process.env.REDIS_URL ?? "redis://localhost:6379");
+	return {
+		host: url.hostname,
+		port: Number(url.port || 6379),
+		username: url.username || undefined,
+		password: url.password || undefined,
+		tls: url.protocol === "rediss:" ? {} : undefined,
+		maxRetriesPerRequest: null,
+	};
+}
+
+function queueProvider(token: symbol, name: string): Provider {
+	return {
+		provide: token,
+		useFactory: (connection: ConnectionOptions) =>
+			new Queue(name, { connection }),
+		inject: [QUEUE_CONNECTION],
+	};
+}
+
+/**
+ * Shared BullMQ connection options + the media queues, exposed as DI tokens.
+ * Producers inject a `Queue`; workers (Media context) build a `Worker` from the
+ * shared connection. Global so any context can enqueue durable work (§6.4).
+ */
+@Global()
+@Module({
+	providers: [
+		{ provide: QUEUE_CONNECTION, useFactory: buildConnection },
+		queueProvider(VIDEO_QUEUE, QUEUE_VIDEO),
+		queueProvider(AUDIO_QUEUE, QUEUE_AUDIO),
+		queueProvider(CAPTION_QUEUE, QUEUE_CAPTION),
+	],
+	exports: [QUEUE_CONNECTION, VIDEO_QUEUE, AUDIO_QUEUE, CAPTION_QUEUE],
+})
+export class QueueModule {}

@@ -1,19 +1,23 @@
+import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { Search } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { CohortCard } from "@/components/catalog/cohort-card";
-import { CourseCard } from "@/components/catalog/course-card";
 import { FilterChips } from "@/components/catalog/filter-chips";
-import { PathCard } from "@/components/catalog/path-card";
+import {
+	PublicCohortCard,
+	PublicCourseCard,
+	PublicPathCard,
+} from "@/components/catalog/public-cards";
 import { PublicShell } from "@/components/layout/public-shell";
 import { Reveal } from "@/components/marketing/reveal";
 import { SearchField } from "@/components/ui/search-field";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
-	SAMPLE_COHORTS,
-	SAMPLE_COURSES,
-	SAMPLE_PATHS,
-} from "@/lib/sample-data";
+	getPublishedCohorts,
+	getPublishedCourses,
+	getPublishedPaths,
+} from "@/lib/content-api";
 
 const SEARCH_TYPES = ["all", "courses", "paths", "cohorts"] as const;
 
@@ -24,37 +28,55 @@ export const Route = createFileRoute("/search")({
 	component: SearchPage,
 });
 
-function matches(haystack: string[], query: string): boolean {
-	return haystack.some((text) => text.toLowerCase().includes(query));
+function matches(
+	haystack: (string | null | undefined)[],
+	query: string,
+): boolean {
+	return haystack.some((text) => (text ?? "").toLowerCase().includes(query));
 }
 
 function SearchPage() {
 	const { q } = Route.useSearch();
-	const { t } = useTranslation("academy");
+	const { t } = useTranslation(["academy", "authoring", "dashboard"]);
 	const [query, setQuery] = useState(q ?? "");
 	const [type, setType] = useState<string>("all");
 
+	const coursesQ = useQuery({
+		queryKey: ["published-courses"],
+		queryFn: getPublishedCourses,
+	});
+	const pathsQ = useQuery({
+		queryKey: ["published-paths"],
+		queryFn: getPublishedPaths,
+	});
+	const cohortsQ = useQuery({
+		queryKey: ["published-cohorts"],
+		queryFn: getPublishedCohorts,
+	});
+
 	const normalized = query.trim().toLowerCase();
 	const active = normalized.length > 0;
+	const loading =
+		active && (coursesQ.isPending || pathsQ.isPending || cohortsQ.isPending);
 
 	const { courses, paths, cohorts, total } = useMemo(() => {
-		if (!active) {
-			return { courses: [], paths: [], cohorts: [], total: 0 };
-		}
+		if (!active) return { courses: [], paths: [], cohorts: [], total: 0 };
 		const courseHits =
 			type === "all" || type === "courses"
-				? SAMPLE_COURSES.filter((c) =>
-						matches([c.title, c.summary, c.instructorName], normalized),
+				? (coursesQ.data ?? []).filter((c) =>
+						matches([c.title, c.description], normalized),
 					)
 				: [];
 		const pathHits =
 			type === "all" || type === "paths"
-				? SAMPLE_PATHS.filter((p) => matches([p.title, p.summary], normalized))
+				? (pathsQ.data ?? []).filter((p) =>
+						matches([p.title, p.description, p.outcomeStatement], normalized),
+					)
 				: [];
 		const cohortHits =
 			type === "all" || type === "cohorts"
-				? SAMPLE_COHORTS.filter((c) =>
-						matches([c.title, c.summary, c.facilitatorName], normalized),
+				? (cohortsQ.data ?? []).filter((c) =>
+						matches([c.title, c.description], normalized),
 					)
 				: [];
 		return {
@@ -63,7 +85,7 @@ function SearchPage() {
 			cohorts: cohortHits,
 			total: courseHits.length + pathHits.length + cohortHits.length,
 		};
-	}, [active, normalized, type]);
+	}, [active, normalized, type, coursesQ.data, pathsQ.data, cohortsQ.data]);
 
 	return (
 		<PublicShell mobileTitle={t("search.title")}>
@@ -102,6 +124,12 @@ function SearchPage() {
 							{t("search.start_body")}
 						</p>
 					</div>
+				) : loading ? (
+					<div className="mt-6 grid gap-5 pb-10 sm:grid-cols-2 lg:grid-cols-3">
+						{["a", "b", "c"].map((k) => (
+							<Skeleton key={k} className="h-48 rounded-card" />
+						))}
+					</div>
 				) : total === 0 ? (
 					<div className="flex flex-col items-center justify-center py-24 text-center">
 						<span className="flex size-14 items-center justify-center rounded-full bg-slate-100 text-slate-400">
@@ -125,7 +153,7 @@ function SearchPage() {
 								</h2>
 								<Reveal className="mt-3 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
 									{courses.map((course) => (
-										<CourseCard key={course.slug} course={course} />
+										<PublicCourseCard key={course.id} course={course} />
 									))}
 								</Reveal>
 							</section>
@@ -138,7 +166,7 @@ function SearchPage() {
 								</h2>
 								<Reveal className="mt-3 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
 									{paths.map((path) => (
-										<PathCard key={path.slug} path={path} />
+										<PublicPathCard key={path.id} path={path} />
 									))}
 								</Reveal>
 							</section>
@@ -151,7 +179,7 @@ function SearchPage() {
 								</h2>
 								<Reveal className="mt-3 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
 									{cohorts.map((cohort) => (
-										<CohortCard key={cohort.slug} cohort={cohort} />
+										<PublicCohortCard key={cohort.id} cohort={cohort} />
 									))}
 								</Reveal>
 							</section>

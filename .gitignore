@@ -41,3 +41,6 @@ yarn-error.log*
 coverage/
 
 dextalearning_blueprint.md
+todo.txt
+.agents
+memory/

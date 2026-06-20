@@ -1,3 +1,4 @@
+import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import {
@@ -9,11 +10,12 @@ import {
 } from "lucide-react";
 import type { ComponentType } from "react";
 import { useTranslation } from "react-i18next";
-import { CourseCard } from "@/components/catalog/course-card";
+import { PublicCourseCard } from "@/components/catalog/public-cards";
 import { PublicShell } from "@/components/layout/public-shell";
 import { buttonVariants } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useReveal } from "@/hooks/use-reveal";
-import { SAMPLE_COURSES } from "@/lib/sample-data";
+import { getPublishedCourses } from "@/lib/content-api";
 
 export const Route = createFileRoute("/teachers/")({
 	component: TeacherAcademyPage,
@@ -31,7 +33,11 @@ const PILLARS: {
 
 function TeacherAcademyPage() {
 	const { t } = useTranslation("academy");
-	const featured = SAMPLE_COURSES.slice(0, 4);
+	const { data: courses, isPending } = useQuery({
+		queryKey: ["published-courses"],
+		queryFn: getPublishedCourses,
+	});
+	const featured = (courses ?? []).slice(0, 4);
 	const pillarsRef = useReveal<HTMLElement>();
 	const featuredRef = useReveal<HTMLElement>();
 
@@ -39,8 +45,6 @@ function TeacherAcademyPage() {
 		<PublicShell darkHeader>
 			{/* Hero */}
 			<section className="relative overflow-hidden bg-hero-bg text-white">
-				<div className="pointer-events-none absolute -top-40 -left-32 size-[28rem] rounded-full bg-brand-primary/25 blur-[120px]" />
-				<div className="pointer-events-none absolute top-10 -right-24 size-[24rem] rounded-full bg-brand-accent/15 blur-[120px]" />
 				<div className="relative mx-auto max-w-4xl px-6 pt-24 pb-16 text-center lg:pt-36 lg:pb-24">
 					<motion.span
 						initial={{ opacity: 0, y: 12 }}
@@ -142,13 +146,30 @@ function TeacherAcademyPage() {
 							{t("landing.view_all")} <ArrowRight className="size-4" />
 						</Link>
 					</div>
-					<div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-						{featured.map((course) => (
-							<div key={course.slug} data-reveal="scale">
-								<CourseCard course={course} />
-							</div>
-						))}
-					</div>
+					{isPending ? (
+						<div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+							{["a", "b", "c", "d"].map((k) => (
+								<Skeleton key={k} className="h-64 rounded-card" />
+							))}
+						</div>
+					) : featured.length > 0 ? (
+						<div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+							{featured.map((course) => (
+								<div key={course.id} data-reveal="scale">
+									<PublicCourseCard course={course} />
+								</div>
+							))}
+						</div>
+					) : (
+						<div className="mt-8 rounded-card border border-slate-200 border-dashed bg-white py-16 text-center">
+							<BookOpen className="mx-auto size-8 text-slate-300" />
+							<p className="mt-3 text-slate-500">
+								{t("landing.featured_empty", {
+									defaultValue: "New courses are on the way — check back soon.",
+								})}
+							</p>
+						</div>
+					)}
 				</div>
 			</section>
 		</PublicShell>

@@ -1,94 +1,363 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Crown, Trophy } from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
+import {
+	ChevronDown,
+	ChevronUp,
+	Crown,
+	Flame,
+	Info,
+	Minus,
+	Star,
+	TrendingUp,
+	Trophy,
+	Users,
+} from "lucide-react";
+import { type ComponentType, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { LearnerShell } from "@/components/layout/learner-shell";
-import { Reveal } from "@/components/marketing/reveal";
-import { Skeleton } from "@/components/ui/skeleton";
+import { useSession } from "@/lib/auth-client";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/leaderboard")({
-	component: LeaderboardPage,
+	component: AwardsPage,
 });
 
-// Podium order: 2nd (left), 1st (center, tallest), 3rd (right).
-const PODIUM = [
-	{ rank: 2, ring: "ring-slate-300", badge: "bg-slate-300", h: "h-20" },
-	{ rank: 1, ring: "ring-amber-400", badge: "bg-amber-400", h: "h-28" },
-	{ rank: 3, ring: "ring-orange-300", badge: "bg-orange-300", h: "h-16" },
+// The five leaderboard types (blueprint §4.9). Default is growth-based.
+const TYPES: { key: string; icon: ComponentType<{ className?: string }> }[] = [
+	{ key: "overall", icon: Trophy },
+	{ key: "consistency", icon: Flame },
+	{ key: "improved", icon: TrendingUp },
+	{ key: "group", icon: Users },
+	{ key: "peer", icon: Star },
 ];
 
-function LeaderboardPage() {
+// Preview roster — replaced by live cohort scores once Phase 4/5 ships.
+const ROSTER = [
+	{ name: "Amara Okafor", points: 2840, change: 1 },
+	{ name: "Wei Chen", points: 2655, change: 2 },
+	{ name: "Sofia Reyes", points: 2480, change: -1 },
+	{ name: "David Mensah", points: 2210, change: 0 },
+	{ name: "Priya Nair", points: 1990, change: 3 },
+	{ name: "Tunde Bello", points: 1820, change: -2 },
+	{ name: "Mei Lin", points: 1655, change: 1 },
+	{ name: "Carlos Diaz", points: 1430, change: -1 },
+];
+
+const TINTS = [
+	"bg-brand-primary",
+	"bg-indigo-600",
+	"bg-emerald-600",
+	"bg-amber-600",
+	"bg-rose-500",
+	"bg-slate-600",
+	"bg-teal-600",
+	"bg-violet-600",
+];
+
+interface Entry {
+	name: string;
+	points: number;
+	change: number;
+	isYou?: boolean;
+	rank: number;
+}
+
+function initialsOf(name: string): string {
+	return (
+		name
+			.split(" ")
+			.filter(Boolean)
+			.slice(0, 2)
+			.map((p) => p[0]?.toUpperCase() ?? "")
+			.join("") || "?"
+	);
+}
+
+function tintFor(name: string): string {
+	let hash = 0;
+	for (const ch of name) hash = (hash * 31 + ch.charCodeAt(0)) >>> 0;
+	return TINTS[hash % TINTS.length];
+}
+
+function Avatar({
+	name,
+	image,
+	className,
+}: {
+	name: string;
+	image?: string | null;
+	className: string;
+}) {
+	if (image) {
+		return (
+			<img
+				src={image}
+				alt=""
+				className={cn("rounded-full object-cover", className)}
+			/>
+		);
+	}
+	return (
+		<span
+			className={cn(
+				"flex items-center justify-center rounded-full font-display text-white",
+				tintFor(name),
+				className,
+			)}
+		>
+			{initialsOf(name)}
+		</span>
+	);
+}
+
+function ChangeBadge({ value }: { value: number }) {
+	if (value > 0)
+		return (
+			<span className="flex items-center font-stats font-semibold text-emerald-600 text-xs">
+				<ChevronUp className="size-3.5" />
+				{value}
+			</span>
+		);
+	if (value < 0)
+		return (
+			<span className="flex items-center font-stats font-semibold text-rose-500 text-xs">
+				<ChevronDown className="size-3.5" />
+				{Math.abs(value)}
+			</span>
+		);
+	return <Minus className="size-3.5 text-slate-300" />;
+}
+
+const PODIUM_META: Record<
+	number,
+	{ ring: string; bar: string; badge: string; height: string }
+> = {
+	1: {
+		ring: "ring-amber-400",
+		bar: "bg-amber-100",
+		badge: "bg-amber-400",
+		height: "h-20 sm:h-24",
+	},
+	2: {
+		ring: "ring-slate-300",
+		bar: "bg-slate-100",
+		badge: "bg-slate-400",
+		height: "h-14 sm:h-16",
+	},
+	3: {
+		ring: "ring-orange-300",
+		bar: "bg-orange-100",
+		badge: "bg-orange-400",
+		height: "h-10 sm:h-12",
+	},
+};
+
+function AwardsPage() {
 	const { t } = useTranslation("dashboard");
+	const { data: session } = useSession();
+	const user = session?.user;
+	const [type, setType] = useState("overall");
+
+	const entries = useMemo<Entry[]>(() => {
+		const youName = user?.name?.trim() || t("leaderboard.you");
+		const raw = [
+			...ROSTER,
+			{ name: youName, points: 1900, change: 4, isYou: true },
+		];
+		return raw
+			.sort((a, b) => b.points - a.points)
+			.map((e, i) => ({ ...e, rank: i + 1 }));
+	}, [user?.name, t]);
+
+	const podium = entries.slice(0, 3);
+	const rest = entries.slice(3);
+	const you = entries.find((e) => e.isYou);
+	// Display order for the podium: 2nd · 1st · 3rd.
+	const podiumOrder = [podium[1], podium[0], podium[2]].filter(Boolean);
 
 	return (
 		<LearnerShell title={t("leaderboard.title")}>
-			<div className="pt-5 lg:pt-6">
-				<div className="flex items-center gap-3">
-					<span className="flex size-11 items-center justify-center rounded-btn bg-brand-accent-light text-amber-700">
-						<Trophy className="size-6" />
-					</span>
-					<div>
-						<h2 className="font-display text-2xl text-slate-900 sm:text-3xl">
-							{t("leaderboard.title")}
-						</h2>
-						<p className="text-slate-500">{t("leaderboard.subtitle")}</p>
-					</div>
+			<div className="space-y-6 pt-5 lg:pt-6">
+				<div>
+					<h2 className="font-display text-2xl text-slate-900 sm:text-3xl">
+						{t("leaderboard.title")}
+					</h2>
+					<p className="mt-1 text-slate-500">{t("leaderboard.subtitle")}</p>
 				</div>
 
-				{/* Podium */}
-				<div className="mt-6 grid grid-cols-3 items-end gap-3 rounded-card border border-slate-200 bg-gradient-to-b from-white to-slate-50 p-5 shadow-card sm:gap-6 sm:p-8">
-					{PODIUM.map(({ rank, ring, badge, h }) => (
-						<div key={rank} className="flex flex-col items-center">
-							<div className="relative">
-								{rank === 1 ? (
-									<Crown className="-top-5 -translate-x-1/2 absolute left-1/2 size-6 text-amber-400" />
+				{/* Preview banner */}
+				<div className="flex items-start gap-2.5 rounded-card border border-amber-200 bg-amber-50 px-4 py-3 text-amber-800 text-sm">
+					<Info className="mt-0.5 size-4 shrink-0" />
+					<p>{t("leaderboard.preview_note")}</p>
+				</div>
+
+				{/* Type selector with an animated active pill */}
+				<div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] lg:mx-0 lg:flex-wrap lg:px-0 [&::-webkit-scrollbar]:hidden">
+					{TYPES.map(({ key, icon: Icon }) => {
+						const active = type === key;
+						return (
+							<button
+								key={key}
+								type="button"
+								onClick={() => setType(key)}
+								className={cn(
+									"relative inline-flex shrink-0 items-center gap-1.5 rounded-pill border px-3.5 py-2 font-medium text-sm transition-colors",
+									active
+										? "border-brand-primary text-white"
+										: "border-slate-200 bg-white text-slate-600 hover:border-brand-primary/40 hover:text-slate-900",
+								)}
+							>
+								{active ? (
+									<motion.span
+										layoutId="lb-tab"
+										className="absolute inset-0 rounded-pill bg-brand-primary"
+										transition={{ type: "spring", stiffness: 380, damping: 30 }}
+									/>
 								) : null}
-								<Skeleton
-									className={cn("size-12 rounded-full ring-4 sm:size-14", ring)}
-								/>
-								<span
+								<Icon className="relative z-10 size-4" />
+								<span className="relative z-10">
+									{t(`leaderboard.types.${key}`)}
+								</span>
+							</button>
+						);
+					})}
+				</div>
+
+				<AnimatePresence mode="wait">
+					<motion.div
+						key={type}
+						initial={{ opacity: 0, y: 8 }}
+						animate={{ opacity: 1, y: 0 }}
+						exit={{ opacity: 0, y: -8 }}
+						transition={{ duration: 0.25 }}
+						className="space-y-6"
+					>
+						{/* Podium */}
+						<section className="rounded-card border border-slate-200 bg-white p-5 shadow-card sm:p-6">
+							<p className="mb-4 font-stats font-semibold text-slate-400 text-xs uppercase tracking-wide">
+								{t("leaderboard.this_week")}
+							</p>
+							<div className="grid grid-cols-3 items-end gap-3 sm:gap-5">
+								{podiumOrder.map((entry, i) => {
+									const meta = PODIUM_META[entry.rank];
+									return (
+										<motion.div
+											key={entry.name}
+											initial={{ opacity: 0, y: 30 }}
+											animate={{ opacity: 1, y: 0 }}
+											transition={{
+												delay: 0.1 + i * 0.1,
+												type: "spring",
+												stiffness: 260,
+												damping: 22,
+											}}
+											className="flex flex-col items-center"
+										>
+											<div className="relative">
+												{entry.rank === 1 ? (
+													<Crown className="-top-5 -translate-x-1/2 absolute left-1/2 size-6 text-amber-400" />
+												) : null}
+												<Avatar
+													name={entry.name}
+													image={entry.isYou ? user?.image : undefined}
+													className={cn(
+														"size-12 text-base ring-4 sm:size-16 sm:text-lg",
+														meta.ring,
+													)}
+												/>
+												<span
+													className={cn(
+														"-bottom-1.5 -translate-x-1/2 absolute left-1/2 flex size-5 items-center justify-center rounded-full font-stats font-bold text-[11px] text-white",
+														meta.badge,
+													)}
+												>
+													{entry.rank}
+												</span>
+											</div>
+											<p className="mt-3 max-w-full truncate text-center font-medium text-slate-900 text-xs sm:text-sm">
+												{entry.isYou ? t("leaderboard.you") : entry.name}
+											</p>
+											<p className="font-stats font-bold text-brand-primary text-sm sm:text-base">
+												{entry.points.toLocaleString()}
+											</p>
+											<div
+												className={cn(
+													"mt-2 w-full rounded-t-card",
+													meta.bar,
+													meta.height,
+												)}
+											/>
+										</motion.div>
+									);
+								})}
+							</div>
+						</section>
+
+						{/* Your position */}
+						{you ? (
+							<section>
+								<p className="mb-2 px-1 font-stats font-semibold text-slate-400 text-xs uppercase tracking-wide">
+									{t("leaderboard.your_position")}
+								</p>
+								<div className="flex items-center gap-3 rounded-card border-2 border-brand-primary/30 bg-brand-primary-light/40 p-4 shadow-card sm:gap-4">
+									<span className="w-8 text-center font-stats font-bold text-brand-primary text-lg">
+										{you.rank}
+									</span>
+									<Avatar
+										name={you.name}
+										image={user?.image}
+										className="size-11 text-sm"
+									/>
+									<div className="min-w-0 flex-1">
+										<p className="truncate font-display text-slate-900">
+											{t("leaderboard.you")}
+										</p>
+										<p className="text-slate-500 text-xs">
+											{you.points.toLocaleString()} {t("leaderboard.pts")}
+										</p>
+									</div>
+									<ChangeBadge value={you.change} />
+								</div>
+							</section>
+						) : null}
+
+						{/* Ranked list (4th onward) */}
+						<section className="space-y-2">
+							{rest.map((entry, i) => (
+								<motion.div
+									key={entry.name}
+									initial={{ opacity: 0, x: -12 }}
+									animate={{ opacity: 1, x: 0 }}
+									transition={{ delay: 0.05 * i, duration: 0.3 }}
 									className={cn(
-										"-bottom-1 -translate-x-1/2 absolute left-1/2 flex size-5 items-center justify-center rounded-full font-stats font-bold text-[10px] text-white",
-										badge,
+										"flex items-center gap-3 rounded-card border p-3.5 sm:gap-4",
+										entry.isYou
+											? "border-brand-primary/30 bg-brand-primary-light/30"
+											: "border-slate-200 bg-white shadow-card",
 									)}
 								>
-									{rank}
-								</span>
-							</div>
-							<Skeleton className="mt-3 h-2.5 w-12 sm:w-16" />
-							<div
-								className={cn(
-									"mt-3 w-full rounded-t-card bg-gradient-to-b from-brand-primary/15 to-brand-primary/5",
-									h,
-								)}
-							/>
-						</div>
-					))}
-				</div>
-
-				{/* Ranked list */}
-				<Reveal className="mt-5 space-y-3" y={18}>
-					{["a", "b", "c", "d", "e"].map((key, i) => (
-						<div
-							key={key}
-							className="flex items-center gap-4 rounded-card border border-slate-200 bg-white p-4 shadow-card"
-						>
-							<span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-slate-100 font-stats font-bold text-slate-400 text-xs">
-								{i + 4}
-							</span>
-							<Skeleton className="size-10 rounded-full" />
-							<div className="flex-1 space-y-2">
-								<Skeleton className="h-3 w-1/3" />
-								<Skeleton className="h-2 w-1/4" />
-							</div>
-							<Skeleton className="h-6 w-12" />
-						</div>
-					))}
-				</Reveal>
-
-				<p className="mt-4 text-center text-slate-400 text-sm">
-					{t("leaderboard.subtitle")}
-				</p>
+									<span className="w-7 text-center font-stats font-bold text-slate-400 text-sm">
+										{entry.rank}
+									</span>
+									<Avatar
+										name={entry.name}
+										image={entry.isYou ? user?.image : undefined}
+										className="size-10 text-sm"
+									/>
+									<div className="min-w-0 flex-1">
+										<p className="truncate font-medium text-slate-900 text-sm">
+											{entry.isYou ? t("leaderboard.you") : entry.name}
+										</p>
+										<p className="font-stats text-slate-400 text-xs">
+											{entry.points.toLocaleString()} {t("leaderboard.pts")}
+										</p>
+									</div>
+									<ChangeBadge value={entry.change} />
+								</motion.div>
+							))}
+						</section>
+					</motion.div>
+				</AnimatePresence>
 			</div>
 		</LearnerShell>
 	);

@@ -22,10 +22,22 @@
 		},
 		"stats_title": "L'impact jusqu'ici",
 		"stats": {
-			"completion": { "value": "94%", "label": "Réussite des cours Earn-Back" },
-			"learners": { "value": "12K+", "label": "Enseignants en apprentissage" },
-			"languages": { "value": "4", "label": "Langues dès le départ" },
-			"lessons": { "value": "15min", "label": "Durée max d'une leçon" }
+			"completion": {
+				"value": "94%",
+				"label": "Réussite des cours Earn-Back"
+			},
+			"learners": {
+				"value": "12K+",
+				"label": "Enseignants en apprentissage"
+			},
+			"languages": {
+				"value": "4",
+				"label": "Langues dès le départ"
+			},
+			"lessons": {
+				"value": "15min",
+				"label": "Durée max d'une leçon"
+			}
 		},
 		"cta_title": "Rejoignez le mouvement",
 		"cta_body": "Commencez gratuitement et découvrez ce que c'est d'apprendre correctement.",
@@ -61,6 +73,23 @@
 		"read_time": "{{count}} min de lecture",
 		"back": "Tous les articles",
 		"not_found_title": "Article introuvable",
-		"not_found_body": "Cet article a peut-être été déplacé ou n'est plus disponible."
+		"not_found_body": "Cet article a peut-être été déplacé ou dépublié.",
+		"empty": "Aucun article pour l'instant — revenez bientôt.",
+		"all_articles": "Tous les articles",
+		"cta_title": "Mettez-le en pratique",
+		"cta_body": "Explorez des cours fondés sur la science de l'apprentissage.",
+		"written_by": "Écrit par"
+	},
+	"contact": {
+		"eyebrow": "Contactez-nous",
+		"title": "Nous serions ravis de vous lire",
+		"subtitle": "Questions, partenariats ou retours — écrivez-nous et nous vous répondrons.",
+		"email_label": "Écrivez-nous",
+		"email": "hello@dextalearning.com",
+		"community_label": "Rejoindre la communauté",
+		"community_desc": "Apprenez aux côtés de milliers d'autres",
+		"support_label": "Aide et support",
+		"support_desc": "Nous répondons sous un jour",
+		"follow": "Suivez-nous"
 	}
 }
