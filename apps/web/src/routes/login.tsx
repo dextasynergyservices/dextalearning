@@ -10,7 +10,12 @@ import { FormField } from "@/components/auth/form-field";
 import { GoogleButton } from "@/components/auth/google-button";
 import { PasswordField } from "@/components/auth/password-field";
 import { Button } from "@/components/ui/button";
-import { signIn, signInWithGoogle } from "@/lib/auth-client";
+import {
+	authClient,
+	homeForRole,
+	signIn,
+	signInWithGoogle,
+} from "@/lib/auth-client";
 import { type LoginValues, loginSchema } from "@/lib/auth-schemas";
 
 export const Route = createFileRoute("/login")({ component: LoginPage });
@@ -28,22 +33,28 @@ function LoginPage() {
 	});
 
 	const onSubmit = async (values: LoginValues) => {
-		await signIn.email(
-			{
-				email: values.email,
-				password: values.password,
-				callbackURL: "/dashboard",
-			},
-			{
-				onSuccess: () => {
-					toast.success(t("toasts.logged_in"));
-					navigate({ to: "/dashboard" });
-				},
-				onError: (ctx) => {
-					toast.error(ctx.error.message || t("toasts.error"));
-				},
-			},
-		);
+		// No `callbackURL` — Better Auth would auto-redirect there, overriding our
+		// role-based landing.
+		const { data, error } = await signIn.email({
+			email: values.email,
+			password: values.password,
+		});
+
+		if (error) {
+			toast.error(error.message || t("toasts.error"));
+			return;
+		}
+
+		toast.success(t("toasts.logged_in"));
+		// Hydrate the reactive useSession() store BEFORE navigating. Without this
+		// the destination's RequireAuth / role gate still sees the pre-login null
+		// session and bounces us back to /login (the "have to log in twice" bug).
+		// Do NOT remove — read the role from the freshly fetched session.
+		const fresh = await authClient.getSession();
+		const role = (
+			(fresh?.data?.user ?? data?.user) as { role?: string } | undefined
+		)?.role;
+		navigate({ to: homeForRole(role) });
 	};
 
 	return (

@@ -16,17 +16,78 @@
 		},
 		"continue_title": "Continue learning",
 		"continue_empty": "Your enrolled courses will show up here.",
-		"recommended_title": "Recommended for you"
+		"recommended_title": "Recommended for you",
+		"explore_title": "Explore courses",
+		"browse_cta": "Explore courses",
+		"start_title": "Start learning",
+		"start_body": "Your courses in progress will show up here. Pick one below to begin.",
+		"tip_title": "Learning tip",
+		"tip_body": "Short, daily sessions beat cramming — 15 focused minutes today builds recall that lasts.",
+		"learning_plan": "Learning plan",
+		"tips_title": "Study smarter today",
+		"science_badge": "Science-backed",
+		"learning_tips": {
+			"recall": {
+				"title": "Recall before review",
+				"body": "After each lesson, close the notes and explain the main idea from memory."
+			},
+			"spacing": {
+				"title": "Return tomorrow",
+				"body": "A quick revisit after sleep strengthens memory more than one long session."
+			},
+			"focus": {
+				"title": "One idea at a time",
+				"body": "Finish one micro-lesson, pause, then move on when the key point feels clear."
+			}
+		},
+		"view_course": "View course",
+		"empty_courses": "No courses are published yet. Check back soon!"
+	},
+	"lesson": {
+		"title": "Lesson",
+		"back": "Back",
+		"eyebrow": "Focus lesson",
+		"heading": "Watch, read, recall",
+		"body": "Keep the session short, follow the transcript when useful, then move into recall while the idea is fresh.",
+		"cue_duration": "15 min max",
+		"cue_transcript": "Transcript",
+		"cue_recall": "Recall",
+		"tip_title": "Stay with one idea",
+		"tip_body": "Dexta lessons are built around micro-learning: complete this one, then pause long enough to explain the key point in your own words."
 	},
 	"leaderboard": {
 		"title": "Awards & leaderboard",
-		"subtitle": "Most-improved rankings appear once you join a cohort."
+		"subtitle": "Most-improved rankings appear once you join a cohort.",
+		"your_standing": "Your standing",
+		"rank": "Rank",
+		"points": "Points",
+		"streak_days": "Day streak",
+		"browse_cta": "Browse courses",
+		"empty_title": "The leaderboard is warming up",
+		"empty_body": "Complete lessons and assessments to earn points and claim your spot on the {{type}} board.",
+		"types": {
+			"overall": "Overall",
+			"consistency": "Consistency",
+			"improved": "Most improved",
+			"group": "Group",
+			"peer": "Peer helper"
+		},
+		"preview_note": "Example standings — live rankings activate when you join a cohort.",
+		"you": "You",
+		"pts": "pts",
+		"your_position": "Your position",
+		"this_week": "This week"
 	},
 	"profile": {
 		"title": "Profile",
 		"subtitle": "Manage your account and preferences.",
 		"language": "Language",
 		"account": "Account",
-		"sign_out": "Sign out"
+		"sign_out": "Sign out",
+		"preferences": "Preferences",
+		"more": "More",
+		"name": "Name",
+		"email": "Email",
+		"role": "Role"
 	}
 }

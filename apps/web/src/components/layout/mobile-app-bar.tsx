@@ -1,8 +1,10 @@
 import { Link, useRouter } from "@tanstack/react-router";
-import { ChevronLeft, Search } from "lucide-react";
+import { ChevronLeft, Search, UserRound } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Logo } from "@/components/brand/logo";
 import { LanguageSwitcher } from "@/components/layout/language-switcher";
+import { useSession } from "@/lib/auth-client";
 import { cn } from "@/lib/utils";
 
 interface MobileAppBarProps {
@@ -32,6 +34,8 @@ export function MobileAppBar({
 	transparent = false,
 }: MobileAppBarProps) {
 	const router = useRouter();
+	const { t } = useTranslation("common");
+	const { data: session } = useSession();
 	const [scrolled, setScrolled] = useState(false);
 
 	useEffect(() => {
@@ -99,9 +103,40 @@ export function MobileAppBar({
 
 				<div className="ml-auto flex items-center gap-0.5">
 					<LanguageSwitcher compact onDark={onDark} />
-					<Link to="/search" aria-label="Search" className={iconClass(onDark)}>
+					<Link
+						to="/search"
+						aria-label={t("tabs.search")}
+						className={iconClass(onDark)}
+					>
 						<Search className="size-5" />
 					</Link>
+					{session ? (
+						<Link
+							to="/profile"
+							aria-label={t("tabs.account")}
+							className="flex size-10 items-center justify-center"
+						>
+							{session.user.image ? (
+								<img
+									src={session.user.image}
+									alt=""
+									className="size-7 rounded-full object-cover"
+								/>
+							) : (
+								<span className="flex size-7 items-center justify-center rounded-full bg-brand-primary font-semibold text-[11px] text-white">
+									{session.user.name?.trim().charAt(0).toUpperCase() || "U"}
+								</span>
+							)}
+						</Link>
+					) : (
+						<Link
+							to="/login"
+							aria-label={t("actions.sign_in")}
+							className={iconClass(onDark)}
+						>
+							<UserRound className="size-5" />
+						</Link>
+					)}
 				</div>
 			</div>
 		</header>

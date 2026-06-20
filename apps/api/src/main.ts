@@ -55,8 +55,26 @@ async function bootstrap() {
 
 	const swaggerConfig = new DocumentBuilder()
 		.setTitle("DextaLearning API")
-		.setDescription("Behavior-driven learning operating system API")
+		.setDescription(
+			[
+				"Behaviour-driven learning operating system API.",
+				"",
+				"- **Auth** — session cookies issued by Better Auth at `/api/auth/*` (sign-in, OAuth, OTP). Protected endpoints read that cookie, so call them with credentials included.",
+				"- **Envelope** — success responses are `{ success: true, data }`; errors are `{ success: false, error: { code, message, details?, requestId } }`.",
+				"- **Roles** — `learner`, `instructor`, `facilitator`, `admin`. Admin satisfies every role gate.",
+			].join("\n"),
+		)
 		.setVersion("1.0")
+		.addCookieAuth("better-auth.session_token", {
+			type: "apiKey",
+			in: "cookie",
+			description: "Better Auth session cookie set after sign-in.",
+		})
+		.addTag("catalog", "Public browse of published courses & curricula")
+		.addTag("authoring", "Instructor/Admin course → module → lesson management")
+		.addTag("media", "Lesson media uploads, encoding & protected playback")
+		.addTag("auth", "Registration (Better Auth serves sign-in/OAuth/OTP)")
+		.addTag("health", "Liveness probe")
 		.build();
 	const swaggerDocument = SwaggerModule.createDocument(app, swaggerConfig);
 	// Mounted under the API prefix so the docs live alongside the endpoints:

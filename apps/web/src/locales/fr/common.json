@@ -16,13 +16,18 @@
 		"cohorts": "Cohortes",
 		"about": "À propos",
 		"blog": "Blog",
-		"community": "Communauté"
+		"community": "Communauté",
+		"contact": "Contact"
 	},
 	"tabs": {
 		"home": "Accueil",
+		"courses": "Cours",
+		"paths": "Parcours",
+		"cohorts": "Cohortes",
 		"explore": "Explorer",
 		"search": "Recherche",
-		"account": "Compte"
+		"account": "Compte",
+		"more": "Plus"
 	},
 	"footer": {
 		"tagline": "Un système d'exploitation d'apprentissage axé sur le comportement — pour faire de l'apprentissage profond et durable la norme, et non l'exception.",
@@ -39,5 +44,17 @@
 		"sign_out": "Déconnexion",
 		"menu": "Menu du compte",
 		"greeting": "Connecté"
+	},
+	"errors": {
+		"media": {
+			"duration_exceeded": "Ce fichier dépasse 15 minutes — veuillez le raccourcir.",
+			"unsupported_format": "Ce type de fichier n'est pas pris en charge.",
+			"unsupported_language": "Cette langue n'est pas prise en charge.",
+			"invalid_caption_format": "Ce fichier de sous-titres doit contenir des minutages valides, par exemple 00:00:00.000 --> 00:00:04.000.",
+			"file_required": "Veuillez choisir un fichier."
+		},
+		"content": {
+			"not_publishable": "Certaines leçons ont besoin de contenu ou d'une transcription avant la publication."
+		}
 	}
 }

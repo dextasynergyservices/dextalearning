@@ -19,17 +19,36 @@ import { Route as LeaderboardRouteImport } from './routes/leaderboard'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as CommunityRouteImport } from './routes/community'
-import { Route as BlogRouteImport } from './routes/blog'
+import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as TeachersIndexRouteImport } from './routes/teachers/index'
+import { Route as InstructorIndexRouteImport } from './routes/instructor/index'
+import { Route as BlogIndexRouteImport } from './routes/blog/index'
+import { Route as AdminIndexRouteImport } from './routes/admin/index'
+import { Route as LessonsLessonIdRouteImport } from './routes/lessons.$lessonId'
+import { Route as CoursesSlugRouteImport } from './routes/courses.$slug'
 import { Route as BlogSlugRouteImport } from './routes/blog/$slug'
 import { Route as TeachersPathsIndexRouteImport } from './routes/teachers/paths/index'
 import { Route as TeachersCoursesIndexRouteImport } from './routes/teachers/courses/index'
 import { Route as TeachersCohortsIndexRouteImport } from './routes/teachers/cohorts/index'
+import { Route as InstructorPathsIndexRouteImport } from './routes/instructor/paths/index'
+import { Route as InstructorCoursesIndexRouteImport } from './routes/instructor/courses/index'
+import { Route as AdminPathsIndexRouteImport } from './routes/admin/paths/index'
+import { Route as AdminCoursesIndexRouteImport } from './routes/admin/courses/index'
+import { Route as AdminCohortsIndexRouteImport } from './routes/admin/cohorts/index'
+import { Route as AdminBlogIndexRouteImport } from './routes/admin/blog/index'
 import { Route as TeachersPathsSlugRouteImport } from './routes/teachers/paths/$slug'
 import { Route as TeachersCoursesSlugRouteImport } from './routes/teachers/courses/$slug'
 import { Route as TeachersCohortsSlugRouteImport } from './routes/teachers/cohorts/$slug'
+import { Route as InstructorPathsPathIdRouteImport } from './routes/instructor/paths/$pathId'
+import { Route as InstructorLessonsLessonIdRouteImport } from './routes/instructor/lessons/$lessonId'
+import { Route as InstructorCoursesCourseIdRouteImport } from './routes/instructor/courses/$courseId'
+import { Route as AdminPathsPathIdRouteImport } from './routes/admin/paths/$pathId'
+import { Route as AdminLessonsLessonIdRouteImport } from './routes/admin/lessons/$lessonId'
+import { Route as AdminCoursesCourseIdRouteImport } from './routes/admin/courses/$courseId'
+import { Route as AdminCohortsCohortIdRouteImport } from './routes/admin/cohorts/$cohortId'
+import { Route as AdminBlogPostIdRouteImport } from './routes/admin/blog/$postId'
 
 const VerifyEmailRoute = VerifyEmailRouteImport.update({
   id: '/verify-email',
@@ -81,9 +100,9 @@ const CommunityRoute = CommunityRouteImport.update({
   path: '/community',
   getParentRoute: () => rootRouteImport,
 } as any)
-const BlogRoute = BlogRouteImport.update({
-  id: '/blog',
-  path: '/blog',
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AboutRoute = AboutRouteImport.update({
@@ -101,10 +120,35 @@ const TeachersIndexRoute = TeachersIndexRouteImport.update({
   path: '/teachers/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const InstructorIndexRoute = InstructorIndexRouteImport.update({
+  id: '/instructor/',
+  path: '/instructor/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BlogIndexRoute = BlogIndexRouteImport.update({
+  id: '/blog/',
+  path: '/blog/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminIndexRoute = AdminIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AdminRoute,
+} as any)
+const LessonsLessonIdRoute = LessonsLessonIdRouteImport.update({
+  id: '/lessons/$lessonId',
+  path: '/lessons/$lessonId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CoursesSlugRoute = CoursesSlugRouteImport.update({
+  id: '/courses/$slug',
+  path: '/courses/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const BlogSlugRoute = BlogSlugRouteImport.update({
-  id: '/$slug',
-  path: '/$slug',
-  getParentRoute: () => BlogRoute,
+  id: '/blog/$slug',
+  path: '/blog/$slug',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const TeachersPathsIndexRoute = TeachersPathsIndexRouteImport.update({
   id: '/teachers/paths/',
@@ -121,6 +165,36 @@ const TeachersCohortsIndexRoute = TeachersCohortsIndexRouteImport.update({
   path: '/teachers/cohorts/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const InstructorPathsIndexRoute = InstructorPathsIndexRouteImport.update({
+  id: '/instructor/paths/',
+  path: '/instructor/paths/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const InstructorCoursesIndexRoute = InstructorCoursesIndexRouteImport.update({
+  id: '/instructor/courses/',
+  path: '/instructor/courses/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminPathsIndexRoute = AdminPathsIndexRouteImport.update({
+  id: '/paths/',
+  path: '/paths/',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminCoursesIndexRoute = AdminCoursesIndexRouteImport.update({
+  id: '/courses/',
+  path: '/courses/',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminCohortsIndexRoute = AdminCohortsIndexRouteImport.update({
+  id: '/cohorts/',
+  path: '/cohorts/',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminBlogIndexRoute = AdminBlogIndexRouteImport.update({
+  id: '/blog/',
+  path: '/blog/',
+  getParentRoute: () => AdminRoute,
+} as any)
 const TeachersPathsSlugRoute = TeachersPathsSlugRouteImport.update({
   id: '/teachers/paths/$slug',
   path: '/teachers/paths/$slug',
@@ -136,11 +210,53 @@ const TeachersCohortsSlugRoute = TeachersCohortsSlugRouteImport.update({
   path: '/teachers/cohorts/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const InstructorPathsPathIdRoute = InstructorPathsPathIdRouteImport.update({
+  id: '/instructor/paths/$pathId',
+  path: '/instructor/paths/$pathId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const InstructorLessonsLessonIdRoute =
+  InstructorLessonsLessonIdRouteImport.update({
+    id: '/instructor/lessons/$lessonId',
+    path: '/instructor/lessons/$lessonId',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const InstructorCoursesCourseIdRoute =
+  InstructorCoursesCourseIdRouteImport.update({
+    id: '/instructor/courses/$courseId',
+    path: '/instructor/courses/$courseId',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const AdminPathsPathIdRoute = AdminPathsPathIdRouteImport.update({
+  id: '/paths/$pathId',
+  path: '/paths/$pathId',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminLessonsLessonIdRoute = AdminLessonsLessonIdRouteImport.update({
+  id: '/lessons/$lessonId',
+  path: '/lessons/$lessonId',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminCoursesCourseIdRoute = AdminCoursesCourseIdRouteImport.update({
+  id: '/courses/$courseId',
+  path: '/courses/$courseId',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminCohortsCohortIdRoute = AdminCohortsCohortIdRouteImport.update({
+  id: '/cohorts/$cohortId',
+  path: '/cohorts/$cohortId',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminBlogPostIdRoute = AdminBlogPostIdRouteImport.update({
+  id: '/blog/$postId',
+  path: '/blog/$postId',
+  getParentRoute: () => AdminRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
-  '/blog': typeof BlogRouteWithChildren
+  '/admin': typeof AdminRouteWithChildren
   '/community': typeof CommunityRoute
   '/dashboard': typeof DashboardRoute
   '/forgot-password': typeof ForgotPasswordRoute
@@ -152,10 +268,29 @@ export interface FileRoutesByFullPath {
   '/search': typeof SearchRoute
   '/verify-email': typeof VerifyEmailRoute
   '/blog/$slug': typeof BlogSlugRoute
+  '/courses/$slug': typeof CoursesSlugRoute
+  '/lessons/$lessonId': typeof LessonsLessonIdRoute
+  '/admin/': typeof AdminIndexRoute
+  '/blog/': typeof BlogIndexRoute
+  '/instructor/': typeof InstructorIndexRoute
   '/teachers/': typeof TeachersIndexRoute
+  '/admin/blog/$postId': typeof AdminBlogPostIdRoute
+  '/admin/cohorts/$cohortId': typeof AdminCohortsCohortIdRoute
+  '/admin/courses/$courseId': typeof AdminCoursesCourseIdRoute
+  '/admin/lessons/$lessonId': typeof AdminLessonsLessonIdRoute
+  '/admin/paths/$pathId': typeof AdminPathsPathIdRoute
+  '/instructor/courses/$courseId': typeof InstructorCoursesCourseIdRoute
+  '/instructor/lessons/$lessonId': typeof InstructorLessonsLessonIdRoute
+  '/instructor/paths/$pathId': typeof InstructorPathsPathIdRoute
   '/teachers/cohorts/$slug': typeof TeachersCohortsSlugRoute
   '/teachers/courses/$slug': typeof TeachersCoursesSlugRoute
   '/teachers/paths/$slug': typeof TeachersPathsSlugRoute
+  '/admin/blog/': typeof AdminBlogIndexRoute
+  '/admin/cohorts/': typeof AdminCohortsIndexRoute
+  '/admin/courses/': typeof AdminCoursesIndexRoute
+  '/admin/paths/': typeof AdminPathsIndexRoute
+  '/instructor/courses/': typeof InstructorCoursesIndexRoute
+  '/instructor/paths/': typeof InstructorPathsIndexRoute
   '/teachers/cohorts/': typeof TeachersCohortsIndexRoute
   '/teachers/courses/': typeof TeachersCoursesIndexRoute
   '/teachers/paths/': typeof TeachersPathsIndexRoute
@@ -163,7 +298,6 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
-  '/blog': typeof BlogRouteWithChildren
   '/community': typeof CommunityRoute
   '/dashboard': typeof DashboardRoute
   '/forgot-password': typeof ForgotPasswordRoute
@@ -175,10 +309,29 @@ export interface FileRoutesByTo {
   '/search': typeof SearchRoute
   '/verify-email': typeof VerifyEmailRoute
   '/blog/$slug': typeof BlogSlugRoute
+  '/courses/$slug': typeof CoursesSlugRoute
+  '/lessons/$lessonId': typeof LessonsLessonIdRoute
+  '/admin': typeof AdminIndexRoute
+  '/blog': typeof BlogIndexRoute
+  '/instructor': typeof InstructorIndexRoute
   '/teachers': typeof TeachersIndexRoute
+  '/admin/blog/$postId': typeof AdminBlogPostIdRoute
+  '/admin/cohorts/$cohortId': typeof AdminCohortsCohortIdRoute
+  '/admin/courses/$courseId': typeof AdminCoursesCourseIdRoute
+  '/admin/lessons/$lessonId': typeof AdminLessonsLessonIdRoute
+  '/admin/paths/$pathId': typeof AdminPathsPathIdRoute
+  '/instructor/courses/$courseId': typeof InstructorCoursesCourseIdRoute
+  '/instructor/lessons/$lessonId': typeof InstructorLessonsLessonIdRoute
+  '/instructor/paths/$pathId': typeof InstructorPathsPathIdRoute
   '/teachers/cohorts/$slug': typeof TeachersCohortsSlugRoute
   '/teachers/courses/$slug': typeof TeachersCoursesSlugRoute
   '/teachers/paths/$slug': typeof TeachersPathsSlugRoute
+  '/admin/blog': typeof AdminBlogIndexRoute
+  '/admin/cohorts': typeof AdminCohortsIndexRoute
+  '/admin/courses': typeof AdminCoursesIndexRoute
+  '/admin/paths': typeof AdminPathsIndexRoute
+  '/instructor/courses': typeof InstructorCoursesIndexRoute
+  '/instructor/paths': typeof InstructorPathsIndexRoute
   '/teachers/cohorts': typeof TeachersCohortsIndexRoute
   '/teachers/courses': typeof TeachersCoursesIndexRoute
   '/teachers/paths': typeof TeachersPathsIndexRoute
@@ -187,7 +340,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
-  '/blog': typeof BlogRouteWithChildren
+  '/admin': typeof AdminRouteWithChildren
   '/community': typeof CommunityRoute
   '/dashboard': typeof DashboardRoute
   '/forgot-password': typeof ForgotPasswordRoute
@@ -199,10 +352,29 @@ export interface FileRoutesById {
   '/search': typeof SearchRoute
   '/verify-email': typeof VerifyEmailRoute
   '/blog/$slug': typeof BlogSlugRoute
+  '/courses/$slug': typeof CoursesSlugRoute
+  '/lessons/$lessonId': typeof LessonsLessonIdRoute
+  '/admin/': typeof AdminIndexRoute
+  '/blog/': typeof BlogIndexRoute
+  '/instructor/': typeof InstructorIndexRoute
   '/teachers/': typeof TeachersIndexRoute
+  '/admin/blog/$postId': typeof AdminBlogPostIdRoute
+  '/admin/cohorts/$cohortId': typeof AdminCohortsCohortIdRoute
+  '/admin/courses/$courseId': typeof AdminCoursesCourseIdRoute
+  '/admin/lessons/$lessonId': typeof AdminLessonsLessonIdRoute
+  '/admin/paths/$pathId': typeof AdminPathsPathIdRoute
+  '/instructor/courses/$courseId': typeof InstructorCoursesCourseIdRoute
+  '/instructor/lessons/$lessonId': typeof InstructorLessonsLessonIdRoute
+  '/instructor/paths/$pathId': typeof InstructorPathsPathIdRoute
   '/teachers/cohorts/$slug': typeof TeachersCohortsSlugRoute
   '/teachers/courses/$slug': typeof TeachersCoursesSlugRoute
   '/teachers/paths/$slug': typeof TeachersPathsSlugRoute
+  '/admin/blog/': typeof AdminBlogIndexRoute
+  '/admin/cohorts/': typeof AdminCohortsIndexRoute
+  '/admin/courses/': typeof AdminCoursesIndexRoute
+  '/admin/paths/': typeof AdminPathsIndexRoute
+  '/instructor/courses/': typeof InstructorCoursesIndexRoute
+  '/instructor/paths/': typeof InstructorPathsIndexRoute
   '/teachers/cohorts/': typeof TeachersCohortsIndexRoute
   '/teachers/courses/': typeof TeachersCoursesIndexRoute
   '/teachers/paths/': typeof TeachersPathsIndexRoute
@@ -212,7 +384,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/about'
-    | '/blog'
+    | '/admin'
     | '/community'
     | '/dashboard'
     | '/forgot-password'
@@ -224,10 +396,29 @@ export interface FileRouteTypes {
     | '/search'
     | '/verify-email'
     | '/blog/$slug'
+    | '/courses/$slug'
+    | '/lessons/$lessonId'
+    | '/admin/'
+    | '/blog/'
+    | '/instructor/'
     | '/teachers/'
+    | '/admin/blog/$postId'
+    | '/admin/cohorts/$cohortId'
+    | '/admin/courses/$courseId'
+    | '/admin/lessons/$lessonId'
+    | '/admin/paths/$pathId'
+    | '/instructor/courses/$courseId'
+    | '/instructor/lessons/$lessonId'
+    | '/instructor/paths/$pathId'
     | '/teachers/cohorts/$slug'
     | '/teachers/courses/$slug'
     | '/teachers/paths/$slug'
+    | '/admin/blog/'
+    | '/admin/cohorts/'
+    | '/admin/courses/'
+    | '/admin/paths/'
+    | '/instructor/courses/'
+    | '/instructor/paths/'
     | '/teachers/cohorts/'
     | '/teachers/courses/'
     | '/teachers/paths/'
@@ -235,7 +426,6 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/about'
-    | '/blog'
     | '/community'
     | '/dashboard'
     | '/forgot-password'
@@ -247,10 +437,29 @@ export interface FileRouteTypes {
     | '/search'
     | '/verify-email'
     | '/blog/$slug'
+    | '/courses/$slug'
+    | '/lessons/$lessonId'
+    | '/admin'
+    | '/blog'
+    | '/instructor'
     | '/teachers'
+    | '/admin/blog/$postId'
+    | '/admin/cohorts/$cohortId'
+    | '/admin/courses/$courseId'
+    | '/admin/lessons/$lessonId'
+    | '/admin/paths/$pathId'
+    | '/instructor/courses/$courseId'
+    | '/instructor/lessons/$lessonId'
+    | '/instructor/paths/$pathId'
     | '/teachers/cohorts/$slug'
     | '/teachers/courses/$slug'
     | '/teachers/paths/$slug'
+    | '/admin/blog'
+    | '/admin/cohorts'
+    | '/admin/courses'
+    | '/admin/paths'
+    | '/instructor/courses'
+    | '/instructor/paths'
     | '/teachers/cohorts'
     | '/teachers/courses'
     | '/teachers/paths'
@@ -258,7 +467,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/about'
-    | '/blog'
+    | '/admin'
     | '/community'
     | '/dashboard'
     | '/forgot-password'
@@ -270,10 +479,29 @@ export interface FileRouteTypes {
     | '/search'
     | '/verify-email'
     | '/blog/$slug'
+    | '/courses/$slug'
+    | '/lessons/$lessonId'
+    | '/admin/'
+    | '/blog/'
+    | '/instructor/'
     | '/teachers/'
+    | '/admin/blog/$postId'
+    | '/admin/cohorts/$cohortId'
+    | '/admin/courses/$courseId'
+    | '/admin/lessons/$lessonId'
+    | '/admin/paths/$pathId'
+    | '/instructor/courses/$courseId'
+    | '/instructor/lessons/$lessonId'
+    | '/instructor/paths/$pathId'
     | '/teachers/cohorts/$slug'
     | '/teachers/courses/$slug'
     | '/teachers/paths/$slug'
+    | '/admin/blog/'
+    | '/admin/cohorts/'
+    | '/admin/courses/'
+    | '/admin/paths/'
+    | '/instructor/courses/'
+    | '/instructor/paths/'
     | '/teachers/cohorts/'
     | '/teachers/courses/'
     | '/teachers/paths/'
@@ -282,7 +510,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
-  BlogRoute: typeof BlogRouteWithChildren
+  AdminRoute: typeof AdminRouteWithChildren
   CommunityRoute: typeof CommunityRoute
   DashboardRoute: typeof DashboardRoute
   ForgotPasswordRoute: typeof ForgotPasswordRoute
@@ -293,10 +521,20 @@ export interface RootRouteChildren {
   RegisterRoute: typeof RegisterRoute
   SearchRoute: typeof SearchRoute
   VerifyEmailRoute: typeof VerifyEmailRoute
+  BlogSlugRoute: typeof BlogSlugRoute
+  CoursesSlugRoute: typeof CoursesSlugRoute
+  LessonsLessonIdRoute: typeof LessonsLessonIdRoute
+  BlogIndexRoute: typeof BlogIndexRoute
+  InstructorIndexRoute: typeof InstructorIndexRoute
   TeachersIndexRoute: typeof TeachersIndexRoute
+  InstructorCoursesCourseIdRoute: typeof InstructorCoursesCourseIdRoute
+  InstructorLessonsLessonIdRoute: typeof InstructorLessonsLessonIdRoute
+  InstructorPathsPathIdRoute: typeof InstructorPathsPathIdRoute
   TeachersCohortsSlugRoute: typeof TeachersCohortsSlugRoute
   TeachersCoursesSlugRoute: typeof TeachersCoursesSlugRoute
   TeachersPathsSlugRoute: typeof TeachersPathsSlugRoute
+  InstructorCoursesIndexRoute: typeof InstructorCoursesIndexRoute
+  InstructorPathsIndexRoute: typeof InstructorPathsIndexRoute
   TeachersCohortsIndexRoute: typeof TeachersCohortsIndexRoute
   TeachersCoursesIndexRoute: typeof TeachersCoursesIndexRoute
   TeachersPathsIndexRoute: typeof TeachersPathsIndexRoute
@@ -374,11 +612,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CommunityRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/blog': {
-      id: '/blog'
-      path: '/blog'
-      fullPath: '/blog'
-      preLoaderRoute: typeof BlogRouteImport
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/about': {
@@ -402,12 +640,47 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TeachersIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/instructor/': {
+      id: '/instructor/'
+      path: '/instructor'
+      fullPath: '/instructor/'
+      preLoaderRoute: typeof InstructorIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/blog/': {
+      id: '/blog/'
+      path: '/blog'
+      fullPath: '/blog/'
+      preLoaderRoute: typeof BlogIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/': {
+      id: '/admin/'
+      path: '/'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AdminIndexRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/lessons/$lessonId': {
+      id: '/lessons/$lessonId'
+      path: '/lessons/$lessonId'
+      fullPath: '/lessons/$lessonId'
+      preLoaderRoute: typeof LessonsLessonIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/courses/$slug': {
+      id: '/courses/$slug'
+      path: '/courses/$slug'
+      fullPath: '/courses/$slug'
+      preLoaderRoute: typeof CoursesSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/blog/$slug': {
       id: '/blog/$slug'
-      path: '/$slug'
+      path: '/blog/$slug'
       fullPath: '/blog/$slug'
       preLoaderRoute: typeof BlogSlugRouteImport
-      parentRoute: typeof BlogRoute
+      parentRoute: typeof rootRouteImport
     }
     '/teachers/paths/': {
       id: '/teachers/paths/'
@@ -430,6 +703,48 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TeachersCohortsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/instructor/paths/': {
+      id: '/instructor/paths/'
+      path: '/instructor/paths'
+      fullPath: '/instructor/paths/'
+      preLoaderRoute: typeof InstructorPathsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/instructor/courses/': {
+      id: '/instructor/courses/'
+      path: '/instructor/courses'
+      fullPath: '/instructor/courses/'
+      preLoaderRoute: typeof InstructorCoursesIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/paths/': {
+      id: '/admin/paths/'
+      path: '/paths'
+      fullPath: '/admin/paths/'
+      preLoaderRoute: typeof AdminPathsIndexRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/courses/': {
+      id: '/admin/courses/'
+      path: '/courses'
+      fullPath: '/admin/courses/'
+      preLoaderRoute: typeof AdminCoursesIndexRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/cohorts/': {
+      id: '/admin/cohorts/'
+      path: '/cohorts'
+      fullPath: '/admin/cohorts/'
+      preLoaderRoute: typeof AdminCohortsIndexRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/blog/': {
+      id: '/admin/blog/'
+      path: '/blog'
+      fullPath: '/admin/blog/'
+      preLoaderRoute: typeof AdminBlogIndexRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/teachers/paths/$slug': {
       id: '/teachers/paths/$slug'
       path: '/teachers/paths/$slug'
@@ -451,23 +766,97 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TeachersCohortsSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/instructor/paths/$pathId': {
+      id: '/instructor/paths/$pathId'
+      path: '/instructor/paths/$pathId'
+      fullPath: '/instructor/paths/$pathId'
+      preLoaderRoute: typeof InstructorPathsPathIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/instructor/lessons/$lessonId': {
+      id: '/instructor/lessons/$lessonId'
+      path: '/instructor/lessons/$lessonId'
+      fullPath: '/instructor/lessons/$lessonId'
+      preLoaderRoute: typeof InstructorLessonsLessonIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/instructor/courses/$courseId': {
+      id: '/instructor/courses/$courseId'
+      path: '/instructor/courses/$courseId'
+      fullPath: '/instructor/courses/$courseId'
+      preLoaderRoute: typeof InstructorCoursesCourseIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/paths/$pathId': {
+      id: '/admin/paths/$pathId'
+      path: '/paths/$pathId'
+      fullPath: '/admin/paths/$pathId'
+      preLoaderRoute: typeof AdminPathsPathIdRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/lessons/$lessonId': {
+      id: '/admin/lessons/$lessonId'
+      path: '/lessons/$lessonId'
+      fullPath: '/admin/lessons/$lessonId'
+      preLoaderRoute: typeof AdminLessonsLessonIdRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/courses/$courseId': {
+      id: '/admin/courses/$courseId'
+      path: '/courses/$courseId'
+      fullPath: '/admin/courses/$courseId'
+      preLoaderRoute: typeof AdminCoursesCourseIdRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/cohorts/$cohortId': {
+      id: '/admin/cohorts/$cohortId'
+      path: '/cohorts/$cohortId'
+      fullPath: '/admin/cohorts/$cohortId'
+      preLoaderRoute: typeof AdminCohortsCohortIdRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/blog/$postId': {
+      id: '/admin/blog/$postId'
+      path: '/blog/$postId'
+      fullPath: '/admin/blog/$postId'
+      preLoaderRoute: typeof AdminBlogPostIdRouteImport
+      parentRoute: typeof AdminRoute
+    }
   }
 }
 
-interface BlogRouteChildren {
-  BlogSlugRoute: typeof BlogSlugRoute
+interface AdminRouteChildren {
+  AdminIndexRoute: typeof AdminIndexRoute
+  AdminBlogPostIdRoute: typeof AdminBlogPostIdRoute
+  AdminCohortsCohortIdRoute: typeof AdminCohortsCohortIdRoute
+  AdminCoursesCourseIdRoute: typeof AdminCoursesCourseIdRoute
+  AdminLessonsLessonIdRoute: typeof AdminLessonsLessonIdRoute
+  AdminPathsPathIdRoute: typeof AdminPathsPathIdRoute
+  AdminBlogIndexRoute: typeof AdminBlogIndexRoute
+  AdminCohortsIndexRoute: typeof AdminCohortsIndexRoute
+  AdminCoursesIndexRoute: typeof AdminCoursesIndexRoute
+  AdminPathsIndexRoute: typeof AdminPathsIndexRoute
 }
 
-const BlogRouteChildren: BlogRouteChildren = {
-  BlogSlugRoute: BlogSlugRoute,
+const AdminRouteChildren: AdminRouteChildren = {
+  AdminIndexRoute: AdminIndexRoute,
+  AdminBlogPostIdRoute: AdminBlogPostIdRoute,
+  AdminCohortsCohortIdRoute: AdminCohortsCohortIdRoute,
+  AdminCoursesCourseIdRoute: AdminCoursesCourseIdRoute,
+  AdminLessonsLessonIdRoute: AdminLessonsLessonIdRoute,
+  AdminPathsPathIdRoute: AdminPathsPathIdRoute,
+  AdminBlogIndexRoute: AdminBlogIndexRoute,
+  AdminCohortsIndexRoute: AdminCohortsIndexRoute,
+  AdminCoursesIndexRoute: AdminCoursesIndexRoute,
+  AdminPathsIndexRoute: AdminPathsIndexRoute,
 }
 
-const BlogRouteWithChildren = BlogRoute._addFileChildren(BlogRouteChildren)
+const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
-  BlogRoute: BlogRouteWithChildren,
+  AdminRoute: AdminRouteWithChildren,
   CommunityRoute: CommunityRoute,
   DashboardRoute: DashboardRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,
@@ -478,10 +867,20 @@ const rootRouteChildren: RootRouteChildren = {
   RegisterRoute: RegisterRoute,
   SearchRoute: SearchRoute,
   VerifyEmailRoute: VerifyEmailRoute,
+  BlogSlugRoute: BlogSlugRoute,
+  CoursesSlugRoute: CoursesSlugRoute,
+  LessonsLessonIdRoute: LessonsLessonIdRoute,
+  BlogIndexRoute: BlogIndexRoute,
+  InstructorIndexRoute: InstructorIndexRoute,
   TeachersIndexRoute: TeachersIndexRoute,
+  InstructorCoursesCourseIdRoute: InstructorCoursesCourseIdRoute,
+  InstructorLessonsLessonIdRoute: InstructorLessonsLessonIdRoute,
+  InstructorPathsPathIdRoute: InstructorPathsPathIdRoute,
   TeachersCohortsSlugRoute: TeachersCohortsSlugRoute,
   TeachersCoursesSlugRoute: TeachersCoursesSlugRoute,
   TeachersPathsSlugRoute: TeachersPathsSlugRoute,
+  InstructorCoursesIndexRoute: InstructorCoursesIndexRoute,
+  InstructorPathsIndexRoute: InstructorPathsIndexRoute,
   TeachersCohortsIndexRoute: TeachersCohortsIndexRoute,
   TeachersCoursesIndexRoute: TeachersCoursesIndexRoute,
   TeachersPathsIndexRoute: TeachersPathsIndexRoute,

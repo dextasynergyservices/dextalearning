@@ -29,5 +29,11 @@
 	"workspaces": [
 		"apps/*",
 		"packages/*"
+	],
+	"trustedDependencies": [
+		"ffmpeg-static",
+		"ffprobe-static",
+		"sharp",
+		"@napi-rs/canvas"
 	]
 }

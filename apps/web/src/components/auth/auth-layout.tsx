@@ -25,16 +25,15 @@ export function AuthLayout({ title, subtitle, children }: AuthLayoutProps) {
 	return (
 		<div className="min-h-screen bg-white lg:grid lg:grid-cols-2">
 			{/* Brand panel — desktop only */}
-			<aside className="relative hidden overflow-hidden bg-gradient-to-br from-[#0b1640] via-[#0a1130] to-[#070a1c] p-12 text-white lg:flex lg:flex-col lg:justify-between">
-				<div className="pointer-events-none absolute inset-0 bg-[radial-gradient(60%_50%_at_30%_0%,rgba(29,78,216,0.35),transparent_70%)]" />
-				<Link to="/" className="relative inline-flex">
+			<aside className="hidden bg-hero-bg p-12 text-white lg:flex lg:flex-col lg:justify-between">
+				<Link to="/" className="inline-flex">
 					<Logo
 						asLink={false}
 						className="text-white"
 						accentClassName="text-brand-accent"
 					/>
 				</Link>
-				<div className="relative">
+				<div>
 					<h2 className="max-w-sm font-display text-4xl leading-tight">
 						{t("common:tagline")}
 					</h2>
@@ -50,7 +49,7 @@ export function AuthLayout({ title, subtitle, children }: AuthLayoutProps) {
 						))}
 					</ul>
 				</div>
-				<p className="relative text-slate-400 text-sm">
+				<p className="text-slate-400 text-sm">
 					© {new Date().getFullYear()} DextaLearning
 				</p>
 			</aside>

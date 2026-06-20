@@ -27,7 +27,6 @@ export interface SampleCourse {
 	isEarnBack: boolean;
 	instructorName: string;
 	instructorTitle: string;
-	gradient: string;
 	outcomes: string[];
 	modules: SampleModule[];
 	faqs: { q: string; a: string }[];
@@ -58,7 +57,6 @@ export const SAMPLE_COURSES: SampleCourse[] = [
 		isEarnBack: false,
 		instructorName: "Dr. Ngozi Eze",
 		instructorTitle: "Learning scientist",
-		gradient: "from-blue-600 to-indigo-800",
 		outcomes: [
 			"Design retrieval-based lessons in any subject",
 			"Run low-stakes quizzes that boost memory, not anxiety",
@@ -106,7 +104,6 @@ export const SAMPLE_COURSES: SampleCourse[] = [
 		isEarnBack: true,
 		instructorName: "Samuel Adeyemi",
 		instructorTitle: "Veteran educator",
-		gradient: "from-emerald-600 to-teal-800",
 		outcomes: [
 			"Establish routines that prevent disruption",
 			"De-escalate conflict with confidence",
@@ -150,7 +147,6 @@ export const SAMPLE_COURSES: SampleCourse[] = [
 		isEarnBack: true,
 		instructorName: "Aisha Bello",
 		instructorTitle: "Assessment lead",
-		gradient: "from-amber-500 to-orange-700",
 		outcomes: [
 			"Write rubrics students understand",
 			"Give feedback that motivates, not deflates",
@@ -187,7 +183,6 @@ export const SAMPLE_COURSES: SampleCourse[] = [
 		isEarnBack: false,
 		instructorName: "Tobi Okonkwo",
 		instructorTitle: "EdTech specialist",
-		gradient: "from-violet-600 to-purple-800",
 		outcomes: [
 			"Choose tools by learning impact, not hype",
 			"Blend digital and offline activities",
@@ -224,7 +219,6 @@ export const SAMPLE_COURSES: SampleCourse[] = [
 		isEarnBack: true,
 		instructorName: "Grace Nwosu",
 		instructorTitle: "School leader",
-		gradient: "from-rose-600 to-pink-800",
 		outcomes: [
 			"Mentor new teachers effectively",
 			"Lead professional development sessions",
@@ -261,7 +255,6 @@ export const SAMPLE_COURSES: SampleCourse[] = [
 		isEarnBack: false,
 		instructorName: "Dr. Ngozi Eze",
 		instructorTitle: "Learning scientist",
-		gradient: "from-cyan-600 to-blue-800",
 		outcomes: [
 			"Frame ability as something that grows",
 			"Design tasks at the right desirable difficulty",
@@ -302,7 +295,6 @@ export interface SamplePath {
 	priceNgn: number;
 	isEarnBack: boolean;
 	enrolled: number;
-	gradient: string;
 }
 
 export const SAMPLE_PATHS: SamplePath[] = [
@@ -324,7 +316,6 @@ export const SAMPLE_PATHS: SamplePath[] = [
 		priceNgn: 30000,
 		isEarnBack: true,
 		enrolled: 1240,
-		gradient: "from-blue-600 to-indigo-800",
 	},
 	{
 		slug: "assessment-and-feedback-pro",
@@ -338,7 +329,6 @@ export const SAMPLE_PATHS: SamplePath[] = [
 		priceNgn: 0,
 		isEarnBack: false,
 		enrolled: 860,
-		gradient: "from-amber-500 to-orange-700",
 	},
 	{
 		slug: "teacher-leadership-track",
@@ -352,7 +342,6 @@ export const SAMPLE_PATHS: SamplePath[] = [
 		priceNgn: 25000,
 		isEarnBack: true,
 		enrolled: 540,
-		gradient: "from-rose-600 to-pink-800",
 	},
 ];
 
@@ -372,7 +361,6 @@ export interface SampleCohort {
 	facilitatorName: string;
 	priceNgn: number;
 	isEarnBack: boolean;
-	gradient: string;
 	courseSlugs: string[];
 	highlights: string[];
 }
@@ -391,7 +379,6 @@ export const SAMPLE_COHORTS: SampleCohort[] = [
 		facilitatorName: "Samuel Adeyemi",
 		priceNgn: 45000,
 		isEarnBack: true,
-		gradient: "from-blue-600 to-indigo-800",
 		courseSlugs: [
 			"classroom-management-foundations",
 			"active-recall-classroom",
@@ -417,7 +404,6 @@ export const SAMPLE_COHORTS: SampleCohort[] = [
 		facilitatorName: "Aisha Bello",
 		priceNgn: 28000,
 		isEarnBack: true,
-		gradient: "from-amber-500 to-orange-700",
 		courseSlugs: ["assessment-that-drives-growth"],
 		highlights: [
 			"Live feedback clinics",
@@ -439,7 +425,6 @@ export const SAMPLE_COHORTS: SampleCohort[] = [
 		facilitatorName: "Grace Nwosu",
 		priceNgn: 0,
 		isEarnBack: false,
-		gradient: "from-emerald-600 to-teal-800",
 		courseSlugs: ["classroom-management-foundations", "motivation-and-mindset"],
 		highlights: [
 			"Weekly mentor sessions",

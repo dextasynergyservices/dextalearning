@@ -7,14 +7,12 @@ COPY apps/api/package.json apps/api/package.json
 COPY apps/web/package.json apps/web/package.json
 COPY packages packages
 
-# Resilient install: persist bun's download cache across retries, cap network
-# concurrency (avoids "Fail extracting tarball" under parallel load on large
-# binaries like @tensorflow/tfjs and sharp), and retry up to 3x on transient
-# registry/IO blips.
-RUN --mount=type=cache,target=/root/.bun/install/cache \
-	for attempt in 1 2 3; do \
-		bun install --frozen-lockfile --network-concurrency=16 \
-			--cache-dir=/root/.bun/install/cache && break; \
+# Resilient install: cap network concurrency (avoids "Fail extracting tarball"
+# under parallel load on large native deps like sharp / @napi-rs/canvas) and
+# retry up to 3x on transient registry/IO blips. No BuildKit cache mount so the
+# Dockerfile stays portable across builders (Railway's Metal builder rejects it).
+RUN for attempt in 1 2 3; do \
+		bun install --frozen-lockfile --network-concurrency=16 && break; \
 		if [ "$attempt" = "3" ]; then \
 			echo "bun install failed after 3 attempts" >&2; \
 			exit 1; \

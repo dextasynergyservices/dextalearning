@@ -1,9 +1,9 @@
 import { Link } from "@tanstack/react-router";
 import { BookOpen, Clock, Users, Waypoints } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { CatalogVisual } from "@/components/catalog/catalog-visual";
 import { formatCompact, formatNgn } from "@/lib/format";
 import type { SamplePath } from "@/lib/sample-data";
-import { cn } from "@/lib/utils";
 
 export function PathCard({ path }: { path: SamplePath }) {
 	const { t } = useTranslation("academy");
@@ -16,22 +16,18 @@ export function PathCard({ path }: { path: SamplePath }) {
 			params={{ slug: path.slug }}
 			className="group flex flex-col overflow-hidden rounded-card border border-slate-200 bg-white shadow-card transition-all hover:-translate-y-1 hover:shadow-card-hover active:scale-[0.99]"
 		>
-			<div
-				className={cn(
-					"flex aspect-[16/9] flex-col justify-between bg-gradient-to-br p-4 text-white",
-					path.gradient,
-				)}
+			<CatalogVisual
+				icon={Waypoints}
+				label={t(`level.${path.level}`)}
+				meta={t("paths.courses_count", { count: courseCount })}
+				tone="accent"
 			>
-				<div className="flex items-center justify-between">
-					<Waypoints className="size-6 text-white/85" />
-					<span className="rounded-pill bg-black/25 px-2.5 py-0.5 font-stats text-xs backdrop-blur-sm">
-						{t(`level.${path.level}`)}
+				{path.isEarnBack ? (
+					<span className="badge-earnback bg-white/90">
+						{t("card.earn_back")}
 					</span>
-				</div>
-				<p className="font-stats text-white/85 text-xs">
-					{t("paths.courses_count", { count: courseCount })}
-				</p>
-			</div>
+				) : null}
+			</CatalogVisual>
 
 			<div className="flex flex-1 flex-col p-4">
 				<h3 className="line-clamp-2 font-display text-base text-slate-900 leading-snug">

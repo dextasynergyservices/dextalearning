@@ -26,9 +26,18 @@
 				"value": "94%",
 				"label": "Completion on Earn-Back courses"
 			},
-			"learners": { "value": "12K+", "label": "Educators learning" },
-			"languages": { "value": "4", "label": "Languages from day one" },
-			"lessons": { "value": "15min", "label": "Max lesson length" }
+			"learners": {
+				"value": "12K+",
+				"label": "Educators learning"
+			},
+			"languages": {
+				"value": "4",
+				"label": "Languages from day one"
+			},
+			"lessons": {
+				"value": "15min",
+				"label": "Max lesson length"
+			}
 		},
 		"cta_title": "Join the movement",
 		"cta_body": "Start free and see what learning the right way feels like.",
@@ -63,7 +72,24 @@
 		"subtitle": "Notes on learning science, teaching, and building DextaLearning.",
 		"read_time": "{{count}} min read",
 		"back": "All posts",
-		"not_found_title": "Post not found",
-		"not_found_body": "This article may have moved or is no longer available."
+		"not_found_title": "Article not found",
+		"not_found_body": "This article may have moved or been unpublished.",
+		"empty": "No articles yet — check back soon.",
+		"all_articles": "All articles",
+		"cta_title": "Put it into practice",
+		"cta_body": "Explore courses built on the science of learning.",
+		"written_by": "Written by"
+	},
+	"contact": {
+		"eyebrow": "Get in touch",
+		"title": "We'd love to hear from you",
+		"subtitle": "Questions, partnerships, or feedback — send us a note and we'll get back to you.",
+		"email_label": "Email us",
+		"email": "hello@dextalearning.com",
+		"community_label": "Join the community",
+		"community_desc": "Learn alongside thousands of others",
+		"support_label": "Help & support",
+		"support_desc": "We usually reply within a day",
+		"follow": "Follow us"
 	}
 }

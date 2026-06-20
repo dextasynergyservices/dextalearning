@@ -37,6 +37,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
 		let status = HttpStatus.INTERNAL_SERVER_ERROR;
 		let message = "An unexpected error occurred";
 		let details: unknown;
+		let customCode: string | undefined;
 
 		if (exception instanceof HttpException) {
 			status = exception.getStatus();
@@ -51,13 +52,18 @@ export class AllExceptionsFilter implements ExceptionFilter {
 				} else if (typeof body.message === "string") {
 					message = body.message;
 				}
+				// A handler may supply a stable machine code + structured details
+				// (e.g. MEDIA_DURATION_EXCEEDED — §13).
+				if (typeof body.code === "string") customCode = body.code;
+				if (body.details !== undefined) details = body.details;
 			}
 		}
 
 		const code =
-			typeof HttpStatus[status] === "string"
+			customCode ??
+			(typeof HttpStatus[status] === "string"
 				? (HttpStatus[status] as string)
-				: "ERROR";
+				: "ERROR");
 
 		if (status >= HttpStatus.INTERNAL_SERVER_ERROR) {
 			this.logger.error(

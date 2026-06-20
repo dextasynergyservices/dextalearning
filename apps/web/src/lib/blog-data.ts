@@ -9,7 +9,6 @@ export interface BlogPost {
 	author: string;
 	date: string;
 	readMinutes: number;
-	gradient: string;
 	body: string[];
 }
 
@@ -23,7 +22,6 @@ export const SAMPLE_POSTS: BlogPost[] = [
 		author: "Dr. Ngozi Eze",
 		date: "2026-05-28",
 		readMinutes: 6,
-		gradient: "from-blue-600 to-indigo-800",
 		body: [
 			"When students re-read their notes, the material feels familiar — and that familiarity tricks us into thinking we've learned it. We haven't. Recognition is not recall.",
 			"Retrieval practice flips this. By trying to pull information out of memory — through a quick quiz, a brain dump, or an exit ticket — you strengthen the pathway that lets you retrieve it again later.",
@@ -39,7 +37,6 @@ export const SAMPLE_POSTS: BlogPost[] = [
 		author: "Aisha Bello",
 		date: "2026-05-14",
 		readMinutes: 5,
-		gradient: "from-amber-500 to-orange-700",
 		body: [
 			"Commitment devices work because we're more motivated to avoid a loss than to chase an equivalent gain. Earn-Back puts that asymmetry to work for learners.",
 			"By setting a personal deadline and committing real value, learners give their future self a reason to show up — even on the days motivation dips.",
@@ -55,7 +52,6 @@ export const SAMPLE_POSTS: BlogPost[] = [
 		author: "Tobi Okonkwo",
 		date: "2026-04-30",
 		readMinutes: 4,
-		gradient: "from-violet-600 to-purple-800",
 		body: [
 			"Working memory is small. When a lesson tries to do too much at once, most of it never makes it into long-term memory.",
 			"Chunking content into focused, 15-minute micro-lessons respects those limits. Each lesson does one thing well, then gives the brain a chance to consolidate.",
@@ -71,7 +67,6 @@ export const SAMPLE_POSTS: BlogPost[] = [
 		author: "Grace Nwosu",
 		date: "2026-04-16",
 		readMinutes: 5,
-		gradient: "from-emerald-600 to-teal-800",
 		body: [
 			"We're wired to learn socially — by observing, discussing, and being held accountable by people we respect.",
 			"Cohorts and peer groups make progress visible and shared. A check-in from your group can do what no reminder notification ever could.",

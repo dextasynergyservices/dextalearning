@@ -16,13 +16,18 @@
 		"cohorts": "Cohorts",
 		"about": "About",
 		"blog": "Blog",
-		"community": "Community"
+		"community": "Community",
+		"contact": "Contact"
 	},
 	"tabs": {
 		"home": "Home",
+		"courses": "Courses",
+		"paths": "Paths",
+		"cohorts": "Cohorts",
 		"explore": "Explore",
 		"search": "Search",
-		"account": "Account"
+		"account": "Account",
+		"more": "More"
 	},
 	"footer": {
 		"tagline": "A behavior-driven Learning Operating System — making deep, lasting learning the default, not the exception.",
@@ -39,5 +44,17 @@
 		"sign_out": "Sign out",
 		"menu": "Account menu",
 		"greeting": "Signed in"
+	},
+	"errors": {
+		"media": {
+			"duration_exceeded": "That file is longer than 15 minutes — please trim it.",
+			"unsupported_format": "That file type isn't supported.",
+			"unsupported_language": "That language isn't supported.",
+			"invalid_caption_format": "That caption file needs valid cue timings, for example 00:00:00.000 --> 00:00:04.000.",
+			"file_required": "Please choose a file."
+		},
+		"content": {
+			"not_publishable": "Some lessons still need content or a transcript before you can publish."
+		}
 	}
 }

@@ -1,30 +1,56 @@
+import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
-	Award,
+	BookOpen,
 	CalendarDays,
-	Check,
-	ChevronRight,
-	Clock,
-	UserRound,
+	GraduationCap,
+	Layers3,
 	Users,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { PublicShell } from "@/components/layout/public-shell";
 import { buttonVariants } from "@/components/ui/button";
-import { formatNgn, formatShortDate } from "@/lib/format";
-import { getCohortBySlug, getCourseBySlug } from "@/lib/sample-data";
+import { Skeleton } from "@/components/ui/skeleton";
+import { formatMoney, getPublicCohort } from "@/lib/content-api";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/teachers/cohorts/$slug")({
 	component: CohortDetailPage,
 });
 
+function dateLabel(iso: string | null): string | null {
+	if (!iso) return null;
+	return new Date(iso).toLocaleDateString(undefined, {
+		day: "numeric",
+		month: "short",
+		year: "numeric",
+	});
+}
+
 function CohortDetailPage() {
 	const { slug } = Route.useParams();
-	const { t, i18n } = useTranslation("academy");
-	const cohort = getCohortBySlug(slug);
+	const { t } = useTranslation(["academy", "authoring", "dashboard"]);
+	const {
+		data: cohort,
+		isPending,
+		isError,
+	} = useQuery({
+		queryKey: ["public-cohort", slug],
+		queryFn: () => getPublicCohort(slug),
+	});
 
-	if (!cohort) {
+	if (isPending) {
+		return (
+			<PublicShell mobileTitle={t("cohorts.title")} mobileShowBack>
+				<div className="mx-auto max-w-5xl space-y-4 px-6 py-10 lg:px-8">
+					<Skeleton className="h-56 rounded-card" />
+					<Skeleton className="h-64 rounded-card" />
+				</div>
+			</PublicShell>
+		);
+	}
+
+	if (isError || !cohort) {
 		return (
 			<PublicShell mobileTitle={t("cohorts.not_found_title")} mobileShowBack>
 				<section className="mx-auto flex min-h-[60vh] max-w-md flex-col items-center justify-center px-6 py-24 text-center">
@@ -46,178 +72,171 @@ function CohortDetailPage() {
 		);
 	}
 
-	const locale = i18n.resolvedLanguage ?? "en";
-	const isFree = cohort.priceNgn === 0;
-	const priceLabel = isFree ? t("card.free") : formatNgn(cohort.priceNgn);
-	const enrollLabel = isFree ? t("detail.enroll_free") : t("detail.enroll");
-	const seatsLeft = Math.max(0, cohort.capacity - cohort.seatsFilled);
-	const fillPct = Math.round((cohort.seatsFilled / cohort.capacity) * 100);
-	const courses = cohort.courseSlugs
-		.map((courseSlug) => getCourseBySlug(courseSlug))
-		.filter((course) => course !== undefined);
-
-	const includes = [
-		{ icon: CalendarDays, text: t("cohorts.weeks", { count: cohort.weeks }) },
-		{ icon: UserRound, text: cohort.facilitatorName },
-		{ icon: Award, text: t("detail.includes_certificate") },
-		{
-			icon: Clock,
-			text: t("cohorts.starts", {
-				date: formatShortDate(cohort.startsAt, locale),
-			}),
-		},
-	];
+	const price = cohort.isFree
+		? t("catalog.free")
+		: formatMoney(cohort.currency, cohort.price ?? 0);
+	const earnBadge = cohort.isEarnBackEligible
+		? cohort.earnBackPercentage && cohort.earnBackPercentage < 100
+			? t("catalog.earnback_pct", { pct: cohort.earnBackPercentage })
+			: t("catalog.earnback")
+		: null;
+	const seatsLeft =
+		cohort.capacity != null
+			? Math.max(0, cohort.capacity - cohort.seatsFilled)
+			: null;
 
 	return (
-		<PublicShell mobileTitle={cohort.title} mobileShowBack>
-			<section
-				className={cn(
-					"relative overflow-hidden bg-gradient-to-br text-white",
-					cohort.gradient,
-				)}
-			>
+		<PublicShell mobileTitle={cohort.title} mobileShowBack hideFooterOnMobile>
+			<section className="relative overflow-hidden bg-hero-bg text-white">
 				<div className="relative mx-auto max-w-7xl px-6 pt-20 pb-12 lg:px-8 lg:pt-32 lg:pb-16">
-					<p className="font-stats font-semibold text-white/80 text-sm uppercase tracking-wide">
-						{t("cohorts.title")}
+					<p className="flex items-center gap-2 font-stats font-semibold text-sm text-white/80 uppercase tracking-wide">
+						<CalendarDays className="size-4" /> {t("cohorts.title")}
 					</p>
 					<h1 className="mt-2 max-w-3xl font-display text-3xl leading-tight tracking-tight sm:text-4xl lg:text-5xl">
 						{cohort.title}
 					</h1>
-					<p className="mt-4 max-w-2xl text-white/85">{cohort.summary}</p>
+					{cohort.description ? (
+						<p className="mt-4 max-w-2xl text-white/85">{cohort.description}</p>
+					) : null}
 					<div className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-white/90">
+						{dateLabel(cohort.startsAt) ? (
+							<span className="inline-flex items-center gap-1">
+								<CalendarDays className="size-4" /> {dateLabel(cohort.startsAt)}
+							</span>
+						) : null}
 						<span className="inline-flex items-center gap-1">
-							<CalendarDays className="size-4" />{" "}
-							{t("cohorts.starts", {
-								date: formatShortDate(cohort.startsAt, locale),
+							<Layers3 className="size-4" />{" "}
+							{t("paths.courses_count", {
+								ns: "authoring",
+								defaultValue: "{{count}} courses",
+								count: cohort.courses.length,
 							})}
 						</span>
-						<span className="inline-flex items-center gap-1">
-							<Clock className="size-4" />{" "}
-							{t("cohorts.weeks", { count: cohort.weeks })}
-						</span>
-						<span className="inline-flex items-center gap-1">
-							<UserRound className="size-4" /> {cohort.facilitatorName}
-						</span>
-						<span className="rounded-pill bg-white/15 px-2.5 py-0.5 font-stats text-xs">
-							{t(`level.${cohort.level}`)}
-						</span>
+						{seatsLeft != null ? (
+							<span className="inline-flex items-center gap-1">
+								<Users className="size-4" />{" "}
+								{t("cohorts.seats_left", {
+									defaultValue: "{{count}} seats left",
+									count: seatsLeft,
+								})}
+							</span>
+						) : null}
 					</div>
 				</div>
 			</section>
 
 			<div className="mx-auto max-w-7xl px-6 lg:grid lg:grid-cols-3 lg:gap-10 lg:px-8">
 				<div className="pt-10 pb-32 lg:col-span-2 lg:pb-10">
-					{/* What's included / highlights */}
 					<h2 className="font-display text-2xl text-slate-900">
-						{t("cohorts.whats_included")}
+						{t("cohorts.courses_title", {
+							ns: "authoring",
+							defaultValue: "Courses in this cohort",
+						})}
 					</h2>
-					<ul className="mt-4 grid gap-3 sm:grid-cols-2">
-						{cohort.highlights.map((highlight) => (
-							<li key={highlight} className="flex items-start gap-2.5">
-								<span className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full bg-success/15 text-success">
-									<Check className="size-3.5" />
+					<div className="mt-4 space-y-3">
+						{cohort.courses.map((cc, index) => (
+							<Link
+								key={cc.course.id}
+								to="/courses/$slug"
+								params={{ slug: cc.course.slug ?? "" }}
+								className="flex items-center gap-3 rounded-card border border-slate-200 bg-white p-4 shadow-card transition-all hover:border-brand-primary/30 hover:shadow-card-hover"
+							>
+								<span className="flex size-9 shrink-0 items-center justify-center rounded-btn bg-brand-primary-light font-stats font-semibold text-brand-primary text-sm">
+									{index + 1}
 								</span>
-								<span className="text-slate-600 text-sm">{highlight}</span>
-							</li>
-						))}
-					</ul>
-
-					{/* Courses covered */}
-					<h2 className="mt-10 font-display text-2xl text-slate-900">
-						{t("cohorts.includes_courses")}
-					</h2>
-					<ol className="mt-4 space-y-3">
-						{courses.map((course, index) => (
-							<li key={course.slug}>
-								<Link
-									to="/teachers/courses/$slug"
-									params={{ slug: course.slug }}
-									className="group flex items-center gap-4 rounded-card border border-slate-200 bg-white p-4 transition-colors hover:border-brand-primary/30"
-								>
-									<span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-brand-primary-light font-stats font-semibold text-brand-primary text-sm">
-										{index + 1}
+								<span className="min-w-0 flex-1">
+									<span className="block truncate font-display text-slate-900">
+										{cc.course.title}
 									</span>
-									<div className="min-w-0 flex-1">
-										<p className="truncate font-medium text-slate-900">
-											{course.title}
-										</p>
-										<p className="text-slate-500 text-xs">
-											{t("card.lessons", { count: course.lessonCount })} ·{" "}
-											{course.durationHours}h
-										</p>
-									</div>
-									<ChevronRight className="size-5 shrink-0 text-slate-300 transition-transform group-hover:translate-x-0.5 group-hover:text-brand-primary" />
-								</Link>
-							</li>
+									{cc.course._count ? (
+										<span className="text-slate-400 text-xs">
+											{t("card.lessons", { count: cc.course._count.modules })}
+										</span>
+									) : null}
+								</span>
+								<BookOpen className="size-4 text-slate-300" />
+							</Link>
 						))}
-					</ol>
+					</div>
+
+					{cohort.instructors.length > 0 ? (
+						<>
+							<h2 className="mt-10 font-display text-2xl text-slate-900">
+								{t("cohorts.instructors", {
+									ns: "authoring",
+									defaultValue: "Instructors",
+								})}
+							</h2>
+							<div className="mt-4 flex flex-wrap gap-3">
+								{cohort.instructors.map((ci) => (
+									<span
+										key={ci.user.id}
+										className="flex items-center gap-2 rounded-pill border border-slate-200 bg-white py-1.5 pr-4 pl-2 text-slate-700 text-sm shadow-card"
+									>
+										<span className="flex size-7 items-center justify-center rounded-full bg-brand-primary-light text-brand-primary">
+											<GraduationCap className="size-4" />
+										</span>
+										{ci.user.name}
+									</span>
+								))}
+							</div>
+						</>
+					) : null}
 				</div>
 
-				{/* Desktop sticky sidebar */}
 				<aside className="hidden lg:block">
 					<div className="sticky top-24 mt-10 rounded-card border border-slate-200 bg-white p-6 shadow-card">
-						<p className="font-display text-3xl text-slate-900">{priceLabel}</p>
-						{cohort.isEarnBack ? (
-							<span className="badge-earnback mt-2">{t("card.earn_back")}</span>
+						<p className="font-display text-3xl text-slate-900">{price}</p>
+						{earnBadge ? (
+							<span className="badge-earnback mt-2">{earnBadge}</span>
 						) : null}
-
-						{/* Seats */}
-						<div className="mt-4">
-							<div className="h-2 overflow-hidden rounded-full bg-slate-100">
-								<div
-									className="h-full rounded-full bg-brand-accent"
-									style={{ width: `${fillPct}%` }}
-								/>
-							</div>
-							<p className="mt-2 inline-flex items-center gap-1 text-amber-600 text-xs">
-								<Users className="size-3.5" />{" "}
-								{t("cohorts.seats_left", { count: seatsLeft })}
+						{dateLabel(cohort.startsAt) ? (
+							<p className="mt-4 flex items-center gap-2 text-slate-600 text-sm">
+								<CalendarDays className="size-4 text-brand-primary" />
+								{t("cohorts.starts", { defaultValue: "Starts" })}{" "}
+								{dateLabel(cohort.startsAt)}
 							</p>
-						</div>
-
+						) : null}
+						{seatsLeft != null ? (
+							<p className="mt-2 flex items-center gap-2 text-slate-600 text-sm">
+								<Users className="size-4 text-brand-primary" />
+								{t("cohorts.seats_left", {
+									defaultValue: "{{count}} seats left",
+									count: seatsLeft,
+								})}
+							</p>
+						) : null}
 						<Link
 							to="/register"
 							className={cn(
 								buttonVariants({ variant: "primary", size: "lg" }),
-								"mt-4 w-full",
+								"mt-5 w-full",
 							)}
 						>
-							{enrollLabel}
+							{t("detail.enroll")}
 						</Link>
-						<h3 className="mt-6 font-display text-slate-900">
-							{t("detail.includes_title")}
-						</h3>
-						<ul className="mt-3 space-y-2.5">
-							{includes.map(({ icon: Icon, text }) => (
-								<li
-									key={text}
-									className="flex items-center gap-3 text-slate-600 text-sm"
-								>
-									<Icon className="size-4 text-brand-primary" /> {text}
-								</li>
-							))}
-						</ul>
 					</div>
 				</aside>
 			</div>
 
-			{/* Native sticky enroll bar (mobile) */}
-			<div className="fixed inset-x-0 bottom-[calc(3.5rem+env(safe-area-inset-bottom))] z-30 flex items-center gap-3 border-slate-200 border-t bg-white/95 px-4 py-3 backdrop-blur-md lg:hidden">
-				<div className="leading-tight">
-					<p className="font-display text-lg text-slate-900">{priceLabel}</p>
-					<p className="text-amber-600 text-xs">
-						{t("cohorts.seats_left", { count: seatsLeft })}
-					</p>
+			<div className="fixed inset-x-0 bottom-[calc(3.65rem+env(safe-area-inset-bottom))] z-40 border-slate-200 border-t bg-white/95 px-4 py-3 shadow-[0_-8px_24px_-18px_rgba(15,23,42,0.35)] backdrop-blur lg:hidden">
+				<div className="mx-auto flex max-w-md items-center gap-3">
+					<div className="min-w-0 flex-1">
+						<p className="truncate font-display text-slate-900">{price}</p>
+						{dateLabel(cohort.startsAt) ? (
+							<span className="text-slate-500 text-xs">
+								{t("cohorts.starts", { defaultValue: "Starts" })}{" "}
+								{dateLabel(cohort.startsAt)}
+							</span>
+						) : null}
+					</div>
+					<Link
+						to="/register"
+						className="inline-flex h-10 items-center justify-center rounded-btn bg-brand-primary px-4 font-semibold text-sm text-white"
+					>
+						{t("detail.enroll")}
+					</Link>
 				</div>
-				<Link
-					to="/register"
-					className={cn(
-						buttonVariants({ variant: "primary", size: "md" }),
-						"ml-auto flex-1",
-					)}
-				>
-					{enrollLabel}
-				</Link>
 			</div>
 		</PublicShell>
 	);

@@ -14,6 +14,8 @@ interface PublicShellProps {
 	mobileTitle?: string;
 	/** Show a back chevron in the mobile app bar. */
 	mobileShowBack?: boolean;
+	/** Keep native mobile learner flows focused; desktop still gets the footer. */
+	hideFooterOnMobile?: boolean;
 }
 
 /**
@@ -51,7 +53,10 @@ export function PublicShell({
 				{children}
 			</motion.main>
 
-			<SiteFooter />
+			{/* Footer is desktop-only; mobile uses the bottom tab bar + More sheet. */}
+			<div className="hidden lg:block">
+				<SiteFooter />
+			</div>
 			<BottomTabBar />
 		</div>
 	);
