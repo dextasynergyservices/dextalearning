@@ -20,6 +20,11 @@ const prisma = new PrismaClient({
 });
 
 const frontendUrl = process.env.FRONTEND_URL ?? "http://localhost:5173";
+const baseURL = process.env.BETTER_AUTH_URL ?? "http://localhost:3000";
+// HTTPS base URL ⇒ production behind TLS, where the web app and API are on
+// different origins. There the session cookie must be SameSite=None + Secure or
+// the browser drops it on the cross-site get-session call. Dev (http) stays Lax.
+const useSecureCookies = baseURL.startsWith("https://");
 
 /**
  * Better Auth instance (blueprint §5.5): email/password + Google OAuth, with a
@@ -32,15 +37,31 @@ export const auth = betterAuth({
 	secret:
 		process.env.BETTER_AUTH_SECRET ??
 		"dev-only-secret-change-me-minimum-32-characters",
-	baseURL: process.env.BETTER_AUTH_URL ?? "http://localhost:3000",
+	baseURL,
 	trustedOrigins: frontendUrl.split(",").map((origin) => origin.trim()),
 	database: prismaAdapter(prisma, { provider: "postgresql" }),
-	// Our PK columns are UUID with a `gen_random_uuid()` default — let the
-	// database generate the ids instead of Better Auth's string ids.
 	advanced: {
+		// Our PK columns are UUID with a `gen_random_uuid()` default — let the
+		// database generate the ids instead of Better Auth's string ids.
 		database: {
 			generateId: false,
 		},
+		useSecureCookies,
+		// Cross-origin session cookie in production (see `useSecureCookies`). Set
+		// COOKIE_DOMAIN=".yourdomain.com" to share the cookie across app./api.
+		// subdomains of one root domain (recommended over two unrelated domains).
+		...(useSecureCookies
+			? {
+					defaultCookieAttributes: {
+						sameSite: "none" as const,
+						secure: true,
+						httpOnly: true,
+						...(process.env.COOKIE_DOMAIN
+							? { domain: process.env.COOKIE_DOMAIN }
+							: {}),
+					},
+				}
+			: {}),
 	},
 	emailAndPassword: {
 		enabled: true,

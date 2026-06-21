@@ -17,6 +17,10 @@ async function bootstrap() {
 	const frontendUrl = process.env.FRONTEND_URL ?? "http://localhost:5173";
 	const port = Number(process.env.PORT ?? 3000);
 
+	// Behind Railway's TLS-terminating proxy: trust X-Forwarded-* so the app
+	// treats requests as HTTPS (correct protocol + Secure-cookie handling).
+	app.set("trust proxy", 1);
+
 	app.setGlobalPrefix("api/v1");
 	app.enableCors({
 		origin: frontendUrl.split(",").map((origin) => origin.trim()),
