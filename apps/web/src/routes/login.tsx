@@ -1,5 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { Loader2 } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
@@ -22,7 +22,6 @@ export const Route = createFileRoute("/login")({ component: LoginPage });
 
 function LoginPage() {
 	const { t } = useTranslation("auth");
-	const navigate = useNavigate();
 	const {
 		register,
 		handleSubmit,
@@ -46,15 +45,16 @@ function LoginPage() {
 		}
 
 		toast.success(t("toasts.logged_in"));
-		// Hydrate the reactive useSession() store BEFORE navigating. Without this
-		// the destination's RequireAuth / role gate still sees the pre-login null
-		// session and bounces us back to /login (the "have to log in twice" bug).
-		// Do NOT remove — read the role from the freshly fetched session.
+		// Confirm the session is established + read the role, then HARD-navigate so
+		// the destination loads fresh WITH the new session cookie. This sidesteps
+		// the reactive useSession() store race that otherwise leaves users stuck on
+		// /login until a second attempt. Hard nav (not SPA) is the reliable fix —
+		// don't replace with navigate(); it reintroduces the race.
 		const fresh = await authClient.getSession();
 		const role = (
 			(fresh?.data?.user ?? data?.user) as { role?: string } | undefined
 		)?.role;
-		navigate({ to: homeForRole(role) });
+		window.location.assign(homeForRole(role));
 	};
 
 	return (
