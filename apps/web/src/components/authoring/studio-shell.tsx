@@ -1,3 +1,4 @@
+import { useQuery } from "@tanstack/react-query";
 import {
 	Link,
 	useLocation,
@@ -12,9 +13,12 @@ import {
 	ChevronLeft,
 	GraduationCap,
 	LayoutDashboard,
+	Library,
 	LogOut,
 	MoreHorizontal,
 	Newspaper,
+	PanelLeftClose,
+	PanelLeftOpen,
 	Settings,
 	ShieldCheck,
 	Sparkles,
@@ -25,6 +29,8 @@ import { type ComponentType, type ReactNode, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { RequireAuth } from "@/components/auth/require-auth";
 import { signOut, useSession } from "@/lib/auth-client";
+import { getFeatureRequests } from "@/lib/content-api";
+import { useAvatar } from "@/lib/use-avatar";
 import { cn } from "@/lib/utils";
 
 interface NavItem {
@@ -50,6 +56,11 @@ const INSTRUCTOR_NAV: NavItem[] = [
 		icon: BookOpen,
 	},
 	{ to: "/instructor/paths", labelKey: "studio.nav.paths", icon: Waypoints },
+	{
+		to: "/learn/mine",
+		labelKey: "studio.nav.my_learning",
+		icon: Library,
+	},
 	{ labelKey: "studio.nav.analytics", icon: BarChart3, soon: true },
 	{ labelKey: "studio.nav.settings", icon: Settings, soon: true },
 ];
@@ -69,6 +80,11 @@ const ADMIN_NAV: NavItem[] = [
 	{ to: "/admin/paths", labelKey: "studio.nav.paths", icon: Waypoints },
 	{ to: "/admin/cohorts", labelKey: "studio.nav.cohorts", icon: CalendarDays },
 	{ to: "/admin/blog", labelKey: "studio.nav.blog", icon: Newspaper },
+	{
+		to: "/admin/integrity",
+		labelKey: "studio.nav.integrity",
+		icon: ShieldCheck,
+	},
 	{ labelKey: "studio.nav.users", icon: UsersRound, soon: true },
 	{ labelKey: "studio.nav.analytics", icon: BarChart3, soon: true },
 	{ labelKey: "studio.nav.settings", icon: Settings, soon: true },
@@ -87,6 +103,11 @@ const MOBILE_INSTRUCTOR_TABS: NavItem[] = [
 		icon: BookOpen,
 	},
 	{ to: "/instructor/paths", labelKey: "studio.nav.paths", icon: Waypoints },
+	{
+		to: "/learn/mine",
+		labelKey: "studio.nav.my_learning",
+		icon: Library,
+	},
 ];
 
 const MOBILE_ADMIN_TABS: NavItem[] = [
@@ -153,6 +174,7 @@ function StudioGate({
 }) {
 	const { t } = useTranslation("authoring");
 	const { data: session } = useSession();
+	const avatar = useAvatar();
 	const navigate = useNavigate();
 	const router = useRouter();
 	const location = useLocation();
@@ -161,6 +183,15 @@ function StudioGate({
 		area === "admin"
 			? role === "admin"
 			: role === "instructor" || role === "admin";
+	// Admin-only: pending instructor feature requests, surfaced as a header badge.
+	const { data: featureReqs } = useQuery({
+		queryKey: ["feature-requests"],
+		queryFn: getFeatureRequests,
+		enabled: area === "admin" && role === "admin",
+	});
+	const pendingFeature = (featureReqs ?? []).filter(
+		(r) => !r.isFeatured,
+	).length;
 	const sidebarNav = area === "admin" ? ADMIN_NAV : INSTRUCTOR_NAV;
 	const mobileTabs =
 		area === "admin" ? MOBILE_ADMIN_TABS : MOBILE_INSTRUCTOR_TABS;
@@ -176,6 +207,22 @@ function StudioGate({
 	]);
 	const showBack = !rootPaths.has(location.pathname);
 	const [moreOpen, setMoreOpen] = useState(false);
+	// Desktop sidebar collapse (icon-only), persisted across sessions.
+	const [collapsed, setCollapsed] = useState(
+		() =>
+			typeof localStorage !== "undefined" &&
+			localStorage.getItem("dexta-studio-collapsed") === "1",
+	);
+	const toggleCollapsed = () =>
+		setCollapsed((value) => {
+			const next = !value;
+			try {
+				localStorage.setItem("dexta-studio-collapsed", next ? "1" : "0");
+			} catch {
+				// storage disabled — collapse still works for the session.
+			}
+			return next;
+		});
 	const primaryTos = new Set(mobileTabs.map((tab) => tab.to));
 	const moreItems = sidebarNav.filter(
 		(item) => !(item.to && primaryTos.has(item.to)),
@@ -191,16 +238,16 @@ function StudioGate({
 
 	if (!allowed) {
 		return (
-			<div className="flex min-h-screen flex-col items-center justify-center gap-3 bg-slate-50 px-6 text-center">
-				<GraduationCap className="size-10 text-slate-300" />
-				<p className="font-display text-slate-900 text-xl">
+			<div className="flex min-h-screen flex-col items-center justify-center gap-3 bg-background px-6 text-center">
+				<GraduationCap className="size-10 text-muted-foreground" />
+				<p className="font-display text-foreground text-xl">
 					{t(
 						area === "admin"
 							? "studio.admin_only_title"
 							: "studio.instructors_only_title",
 					)}
 				</p>
-				<p className="max-w-sm text-slate-500">
+				<p className="max-w-sm text-muted-foreground">
 					{t(
 						area === "admin"
 							? "studio.admin_only_body"
@@ -215,46 +262,89 @@ function StudioGate({
 	}
 
 	return (
-		<div className="min-h-screen bg-slate-50">
-			<aside className="fixed inset-y-0 left-0 z-30 hidden w-72 flex-col border-slate-200 border-r bg-white lg:flex">
-				<div className="border-slate-100 border-b px-5 py-5">
-					<div className="flex items-center gap-3">
-						<span className="flex size-10 items-center justify-center rounded-btn bg-brand-primary text-white">
-							{area === "admin" ? (
-								<ShieldCheck className="size-5" />
-							) : (
-								<Sparkles className="size-5" />
-							)}
-						</span>
-						<div className="leading-tight">
-							<p className="font-display text-slate-900 text-lg">
-								DextaLearning
-							</p>
-							<p className="font-stats font-semibold text-brand-primary text-[0.7rem] uppercase">
-								{t(
-									area === "admin"
-										? "studio.admin_label"
-										: "studio.creator_label",
+		<div className="min-h-screen bg-background">
+			<aside
+				className={cn(
+					"fixed inset-y-0 left-0 z-30 hidden flex-col border-border border-r bg-card transition-[width] duration-200 lg:flex",
+					collapsed ? "w-20" : "w-72",
+				)}
+			>
+				<div
+					className={cn(
+						"flex items-center border-border border-b py-4",
+						collapsed ? "justify-center px-3" : "justify-between px-5",
+					)}
+				>
+					{!collapsed ? (
+						<div className="flex min-w-0 items-center gap-3">
+							<span className="flex size-10 shrink-0 items-center justify-center rounded-btn bg-brand-primary text-white">
+								{area === "admin" ? (
+									<ShieldCheck className="size-5" />
+								) : (
+									<Sparkles className="size-5" />
 								)}
-							</p>
+							</span>
+							<div className="min-w-0 leading-tight">
+								<p className="truncate font-display text-foreground text-lg">
+									DextaLearning
+								</p>
+								<p className="font-stats font-semibold text-brand-primary text-[0.7rem] uppercase">
+									{t(
+										area === "admin"
+											? "studio.admin_label"
+											: "studio.creator_label",
+									)}
+								</p>
+							</div>
 						</div>
-					</div>
+					) : null}
+					<button
+						type="button"
+						onClick={toggleCollapsed}
+						title={t("studio.nav.collapse", {
+							defaultValue: "Collapse sidebar",
+						})}
+						aria-label={t("studio.nav.collapse", {
+							defaultValue: "Collapse sidebar",
+						})}
+						className="flex size-9 shrink-0 items-center justify-center rounded-btn text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+					>
+						{collapsed ? (
+							<PanelLeftOpen className="size-5" />
+						) : (
+							<PanelLeftClose className="size-5" />
+						)}
+					</button>
 				</div>
 
-				<nav className="flex-1 space-y-1 px-3 py-4">
+				<nav className="scrollbar-thin min-h-0 flex-1 space-y-1 overflow-y-auto px-3 py-4">
 					{sidebarNav.map(({ to, labelKey, icon: Icon, soon, exact }) => {
 						const cls = cn(
-							"flex items-center gap-3 rounded-btn px-3 py-2.5 font-medium text-sm transition-colors",
+							"flex items-center rounded-btn py-2.5 font-medium text-sm transition-colors",
+							collapsed ? "justify-center px-0" : "gap-3 px-3",
 							soon
-								? "text-slate-400"
-								: "text-slate-600 hover:bg-brand-primary-light hover:text-brand-primary",
+								? "text-muted-foreground"
+								: "text-muted-foreground hover:bg-brand-primary-light hover:text-brand-primary",
 						);
-						const inner = (
+						const showBadge = to === "/admin/courses" && pendingFeature > 0;
+						const inner = collapsed ? (
+							<span key={labelKey} className="relative">
+								<Icon className="size-[1.15rem]" />
+								{showBadge ? (
+									<span className="-right-1.5 -top-1.5 absolute size-2.5 rounded-full bg-amber-500" />
+								) : null}
+							</span>
+						) : (
 							<>
 								<Icon className="size-[1.15rem]" />
 								<span className="flex-1">{t(labelKey)}</span>
+								{showBadge ? (
+									<span className="flex min-w-[1.2rem] items-center justify-center rounded-full bg-amber-500 px-1.5 py-0.5 font-stats font-bold text-[0.65rem] text-white">
+										{pendingFeature}
+									</span>
+								) : null}
 								{soon ? (
-									<span className="rounded-pill bg-slate-100 px-2 py-0.5 font-stats text-[0.6rem] text-slate-500 uppercase">
+									<span className="rounded-pill bg-muted px-2 py-0.5 font-stats text-[0.6rem] text-muted-foreground uppercase">
 										{t("studio.soon")}
 									</span>
 								) : null}
@@ -266,6 +356,7 @@ function StudioGate({
 								to={to}
 								activeOptions={{ exact: Boolean(exact) }}
 								className={cls}
+								title={collapsed ? t(labelKey) : undefined}
 								activeProps={{
 									className: "bg-brand-primary-light text-brand-primary",
 								}}
@@ -273,50 +364,80 @@ function StudioGate({
 								{inner}
 							</Link>
 						) : (
-							<span key={labelKey} className={cls} aria-disabled>
+							<span
+								key={labelKey}
+								className={cls}
+								title={collapsed ? t(labelKey) : undefined}
+								aria-disabled
+							>
 								{inner}
 							</span>
 						);
 					})}
 				</nav>
 
-				<div className="border-slate-100 border-t p-3">
-					<div className="rounded-card bg-slate-50 p-3">
-						<div className="flex items-center gap-3">
-							<span className="flex size-10 items-center justify-center rounded-full bg-brand-primary font-semibold text-sm text-white">
+				<div className="border-border border-t p-3">
+					<Link
+						to={area === "admin" ? "/admin/profile" : "/instructor/profile"}
+						className={cn(
+							"flex items-center rounded-card bg-muted transition-colors hover:bg-accent",
+							collapsed ? "justify-center p-2" : "gap-3 p-3",
+						)}
+						title={t("studio.nav.edit_profile", {
+							defaultValue: "Edit profile",
+						})}
+					>
+						{avatar ? (
+							<img
+								src={avatar}
+								alt=""
+								className="size-10 shrink-0 rounded-full object-cover"
+							/>
+						) : (
+							<span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-brand-primary font-semibold text-sm text-white">
 								{initials(session?.user.name)}
 							</span>
+						)}
+						{!collapsed ? (
 							<div className="min-w-0 flex-1 leading-tight">
-								<p className="truncate font-medium text-slate-900 text-sm">
+								<p className="truncate font-medium text-foreground text-sm">
 									{session?.user.name}
 								</p>
-								<p className="text-[0.7rem] text-slate-500 capitalize">
+								<p className="text-[0.7rem] text-muted-foreground capitalize">
 									{role}
 								</p>
 							</div>
-						</div>
-					</div>
+						) : null}
+					</Link>
 					<Link
 						to="/dashboard"
-						className="mt-2 flex items-center gap-3 rounded-btn px-3 py-2 text-slate-600 text-sm transition-colors hover:bg-slate-100"
+						className={cn(
+							"mt-2 flex items-center rounded-btn py-2 text-muted-foreground text-sm transition-colors hover:bg-accent",
+							collapsed ? "justify-center px-0" : "gap-3 px-3",
+						)}
+						title={collapsed ? t("studio.nav.learner") : undefined}
 					>
-						<GraduationCap className="size-[1.15rem] text-slate-400" />
-						{t("studio.nav.learner")}
+						<GraduationCap className="size-[1.15rem] shrink-0 text-muted-foreground" />
+						{!collapsed ? t("studio.nav.learner") : null}
 					</Link>
 					<button
 						type="button"
 						onClick={handleSignOut}
-						className="flex w-full items-center gap-3 rounded-btn px-3 py-2 text-slate-600 text-sm transition-colors hover:bg-error/5 hover:text-error"
+						className={cn(
+							"flex w-full items-center rounded-btn py-2 text-muted-foreground text-sm transition-colors hover:bg-error/5 hover:text-error",
+							collapsed ? "justify-center px-0" : "gap-3 px-3",
+						)}
+						title={collapsed ? t("studio.nav.sign_out") : undefined}
 					>
-						<LogOut className="size-[1.15rem]" />
-						{t("studio.nav.sign_out")}
+						<LogOut className="size-[1.15rem] shrink-0" />
+						{!collapsed ? t("studio.nav.sign_out") : null}
 					</button>
 				</div>
 			</aside>
 
-			<div className="lg:pl-72">
+			<div className={collapsed ? "lg:pl-20" : "lg:pl-72"}>
 				<header
-					className="sticky top-0 z-20 border-slate-200 border-b bg-white/90 backdrop-blur-md"
+					className="sticky top-0 z-20 border-border border-b bg-card/90 backdrop-blur-md"
 					style={{ paddingTop: "env(safe-area-inset-top)" }}
 				>
 					<div className="flex min-h-14 items-center gap-3 px-4 py-2 lg:min-h-16 lg:px-8">
@@ -325,7 +446,7 @@ function StudioGate({
 								type="button"
 								onClick={() => router.history.back()}
 								aria-label={t("studio.nav.back")}
-								className="flex size-10 shrink-0 items-center justify-center rounded-btn bg-slate-100 text-slate-700 transition-colors hover:bg-brand-primary-light hover:text-brand-primary"
+								className="flex size-10 shrink-0 items-center justify-center rounded-btn bg-muted text-foreground transition-colors hover:bg-brand-primary-light hover:text-brand-primary"
 							>
 								<ChevronLeft className="size-5" />
 							</button>
@@ -338,7 +459,7 @@ function StudioGate({
 										: "studio.creator_label",
 								)}
 							</p>
-							<h1 className="truncate font-display text-slate-900 text-lg lg:text-xl">
+							<h1 className="truncate font-display text-foreground text-lg lg:text-xl">
 								{title}
 							</h1>
 						</div>
@@ -358,7 +479,7 @@ function StudioGate({
 
 			<nav
 				aria-label="Primary"
-				className="fixed inset-x-0 bottom-0 z-40 border-slate-200 border-t bg-white shadow-[0_-4px_20px_-8px_rgba(15,23,42,0.18)] lg:hidden"
+				className="fixed inset-x-0 bottom-0 z-40 border-border border-t bg-card shadow-[0_-4px_20px_-8px_rgba(15,23,42,0.18)] lg:hidden"
 				style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
 			>
 				<ul className="mx-auto flex max-w-md items-stretch justify-around">
@@ -373,18 +494,25 @@ function StudioGate({
 									<>
 										<span
 											className={cn(
-												"flex h-8 w-12 items-center justify-center rounded-full transition-colors",
+												"relative flex h-8 w-12 items-center justify-center rounded-full transition-colors",
 												isActive
 													? "bg-brand-primary-light text-brand-primary"
-													: "text-slate-500 group-hover:text-slate-700",
+													: "text-muted-foreground group-hover:text-foreground",
 											)}
 										>
 											<Icon className="size-5" />
+											{to === "/admin/courses" && pendingFeature > 0 ? (
+												<span className="-top-0.5 absolute right-1.5 flex min-w-[1.05rem] items-center justify-center rounded-full bg-amber-500 px-1 font-stats font-bold text-[0.6rem] text-white">
+													{pendingFeature}
+												</span>
+											) : null}
 										</span>
 										<span
 											className={cn(
 												"font-stats text-[0.62rem] font-semibold tracking-wide uppercase",
-												isActive ? "text-brand-primary" : "text-slate-500",
+												isActive
+													? "text-brand-primary"
+													: "text-muted-foreground",
 											)}
 										>
 											{t(labelKey)}
@@ -405,7 +533,7 @@ function StudioGate({
 									"flex h-8 w-12 items-center justify-center rounded-full transition-colors",
 									moreActive
 										? "bg-brand-primary-light text-brand-primary"
-										: "text-slate-500",
+										: "text-muted-foreground",
 								)}
 							>
 								<MoreHorizontal className="size-5" />
@@ -413,7 +541,7 @@ function StudioGate({
 							<span
 								className={cn(
 									"font-stats text-[0.62rem] font-semibold tracking-wide uppercase",
-									moreActive ? "text-brand-primary" : "text-slate-500",
+									moreActive ? "text-brand-primary" : "text-muted-foreground",
 								)}
 							>
 								{t("studio.nav.more", { defaultValue: "More" })}
@@ -441,12 +569,20 @@ function StudioGate({
 							animate={{ y: 0 }}
 							exit={{ y: "100%" }}
 							transition={{ type: "spring", stiffness: 380, damping: 38 }}
-							className="absolute inset-x-0 bottom-0 rounded-t-card border-slate-200 border-t bg-white shadow-modal"
+							drag="y"
+							dragConstraints={{ top: 0, bottom: 0 }}
+							dragElastic={{ top: 0, bottom: 0.5 }}
+							onDragEnd={(_, info) => {
+								if (info.offset.y > 90 || info.velocity.y > 600) {
+									setMoreOpen(false);
+								}
+							}}
+							className="absolute inset-x-0 bottom-0 touch-none rounded-t-card border-border border-t bg-card shadow-modal"
 							style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
 						>
 							<div className="mx-auto max-w-md p-3">
-								<div className="mx-auto mb-2 h-1 w-10 rounded-full bg-slate-200" />
-								<p className="px-3 py-1 font-stats font-semibold text-slate-400 text-xs uppercase">
+								<div className="mx-auto mb-2 h-1.5 w-10 cursor-grab rounded-full bg-border active:cursor-grabbing" />
+								<p className="px-3 py-1 font-stats font-semibold text-muted-foreground text-xs uppercase">
 									{t("studio.nav.more", { defaultValue: "More" })}
 								</p>
 								{moreItems.map(({ to, labelKey, icon: Icon }) =>
@@ -455,33 +591,55 @@ function StudioGate({
 											key={labelKey}
 											to={to}
 											onClick={() => setMoreOpen(false)}
-											className="flex items-center gap-3 rounded-btn px-3 py-3 font-medium text-slate-700 transition-colors hover:bg-slate-50"
+											className="flex items-center gap-3 rounded-btn px-3 py-3 font-medium text-foreground transition-colors hover:bg-accent"
 											activeProps={{
 												className: "bg-brand-primary-light text-brand-primary",
 											}}
 										>
-											<Icon className="size-5 text-slate-400" />
+											<Icon className="size-5 text-muted-foreground" />
 											{t(labelKey)}
 										</Link>
 									) : (
 										<span
 											key={labelKey}
-											className="flex items-center gap-3 rounded-btn px-3 py-3 text-slate-400"
+											className="flex items-center gap-3 rounded-btn px-3 py-3 text-muted-foreground"
 										>
 											<Icon className="size-5" />
 											<span className="flex-1">{t(labelKey)}</span>
-											<span className="rounded-pill bg-slate-100 px-2 py-0.5 font-stats text-[0.6rem] uppercase">
+											<span className="rounded-pill bg-muted px-2 py-0.5 font-stats text-[0.6rem] uppercase">
 												{t("studio.soon")}
 											</span>
 										</span>
 									),
 								)}
 								<Link
+									to={
+										area === "admin" ? "/admin/profile" : "/instructor/profile"
+									}
+									onClick={() => setMoreOpen(false)}
+									className="flex items-center gap-3 rounded-btn px-3 py-3 font-medium text-foreground transition-colors hover:bg-accent"
+								>
+									{avatar ? (
+										<img
+											src={avatar}
+											alt=""
+											className="size-9 shrink-0 rounded-full object-cover"
+										/>
+									) : (
+										<span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-brand-primary font-semibold text-sm text-white">
+											{initials(session?.user.name)}
+										</span>
+									)}
+									{t("studio.nav.edit_profile", {
+										defaultValue: "Edit profile",
+									})}
+								</Link>
+								<Link
 									to="/dashboard"
 									onClick={() => setMoreOpen(false)}
-									className="flex items-center gap-3 rounded-btn px-3 py-3 font-medium text-slate-700 transition-colors hover:bg-slate-50"
+									className="flex items-center gap-3 rounded-btn px-3 py-3 font-medium text-foreground transition-colors hover:bg-accent"
 								>
-									<GraduationCap className="size-5 text-slate-400" />
+									<GraduationCap className="size-5 text-muted-foreground" />
 									{t("studio.nav.learner")}
 								</Link>
 								<button

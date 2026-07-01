@@ -52,6 +52,54 @@
 	"done": {
 		"title": "You're all set!",
 		"subtitle": "Welcome to DextaLearning — let's start learning.",
-		"cta": "Go to my dashboard"
+		"cta": "Go to my dashboard",
+		"with_picks": "Welcome to DextaLearning — here are a few courses to get you started.",
+		"browse": "Browse all courses"
+	},
+	"save_error": "Couldn't save your preferences — you can update them later.",
+	"aside": {
+		"learner_title": "Let's personalize your learning",
+		"learner_subtitle": "A few quick questions so we can tailor courses, pace and reminders to you.",
+		"instructor_title": "Welcome to the Creator Studio",
+		"instructor_subtitle": "Set up your instructor profile so learners know who they're learning from."
+	},
+	"whatsapp": {
+		"title": "Study reminders on WhatsApp",
+		"subtitle": "Optional — add your number to get gentle nudges so you keep your streak.",
+		"placeholder": "e.g. +234 801 234 5678",
+		"optin": "Send me study reminders on WhatsApp",
+		"optin_hint": "You can turn this off anytime in settings."
+	},
+	"instructor": {
+		"welcome_title": "You're an instructor now 🎉",
+		"welcome_subtitle": "Here's what you can do in the Creator Studio:",
+		"points": {
+			"create": "Create courses, learning paths and live cohorts with video, audio, PDF and text lessons.",
+			"earn": "Earn from your content with the Earn-Back model — learners are rewarded for finishing, you're paid for teaching.",
+			"publish": "Publish whenever you're ready — no approval needed to start authoring."
+		},
+		"profile_title": "Build your instructor profile",
+		"profile_subtitle": "This is your public presence on every course you teach. You can refine it later.",
+		"headline": "Headline",
+		"headline_ph": "e.g. Senior Product Designer & Educator",
+		"bio": "Short bio",
+		"bio_ph": "Tell learners about your experience and what you teach…",
+		"expertise": "Areas of expertise",
+		"areas": {
+			"technology": "Technology",
+			"business": "Business",
+			"design": "Design",
+			"data": "Data & AI",
+			"languages": "Languages",
+			"science": "Science",
+			"arts": "Arts",
+			"health": "Health",
+			"education": "Education",
+			"personal": "Personal growth"
+		},
+		"enter_studio": "Enter the Studio",
+		"ready_title": "Your studio is ready",
+		"ready_subtitle": "Jump in and create your first course — it only takes a few minutes to get started.",
+		"payout_note": "💡 Set up your payout account later from Settings — you can publish and accrue earnings before then."
 	}
 }

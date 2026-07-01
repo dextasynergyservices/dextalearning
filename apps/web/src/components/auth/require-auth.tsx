@@ -20,7 +20,7 @@ export function RequireAuth({ children }: { children: ReactNode }) {
 
 	if (isPending) {
 		return (
-			<div className="flex min-h-screen items-center justify-center bg-slate-50">
+			<div className="flex min-h-screen items-center justify-center bg-muted">
 				<Loader2 className="size-6 animate-spin text-brand-primary" />
 			</div>
 		);

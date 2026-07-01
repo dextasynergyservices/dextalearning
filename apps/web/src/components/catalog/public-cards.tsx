@@ -3,7 +3,6 @@ import {
 	ArrowRight,
 	BookOpen,
 	CalendarDays,
-	Clock3,
 	Layers3,
 	Users,
 	Waypoints,
@@ -15,15 +14,24 @@ import {
 	type PublishedCourse,
 	type PublishedPath,
 } from "@/lib/content-api";
+import { htmlToText } from "@/lib/rich-text";
 import { CommercialBadge } from "./commercial-badge";
 
 const CARD =
-	"group flex flex-col overflow-hidden rounded-card border border-slate-200 bg-white shadow-card transition-all hover:-translate-y-1 hover:shadow-card-hover";
+	"group flex flex-col overflow-hidden rounded-card border border-border bg-card shadow-card transition-all hover:-translate-y-1 hover:shadow-card-hover active:scale-[0.99]";
 
 function useCardLabels() {
 	const { t } = useTranslation(["academy", "authoring", "dashboard"]);
 	return {
-		view: t("home.view_course", { ns: "dashboard" }),
+		viewCourse: t("home.view_course", { ns: "dashboard" }),
+		viewPath: t("home.view_path", {
+			ns: "dashboard",
+			defaultValue: "View path",
+		}),
+		viewCohort: t("home.view_cohort", {
+			ns: "dashboard",
+			defaultValue: "View cohort",
+		}),
 		price: (c: { isFree: boolean; currency: string; price: number | null }) =>
 			c.isFree ? t("catalog.free") : formatMoney(c.currency, c.price ?? 0),
 		t,
@@ -43,7 +51,7 @@ export function PublicCourseCard({ course }: { course: PublishedCourse }) {
 	const l = useCardLabels();
 	return (
 		<Link to="/courses/$slug" params={{ slug: course.slug }} className={CARD}>
-			<div className="relative aspect-[16/8] overflow-hidden bg-slate-100">
+			<div className="relative aspect-[16/8] overflow-hidden bg-muted">
 				{course.thumbnailUrl ? (
 					<img
 						src={course.thumbnailUrl}
@@ -63,26 +71,26 @@ export function PublicCourseCard({ course }: { course: PublishedCourse }) {
 				/>
 			</div>
 			<div className="flex flex-1 flex-col p-4">
-				<h3 className="line-clamp-2 font-display text-slate-900">
+				<h3 className="line-clamp-2 font-display text-foreground">
 					{course.title}
 				</h3>
 				{course.description ? (
-					<p className="mt-1 line-clamp-2 text-slate-500 text-sm">
-						{course.description}
+					<p className="mt-1 line-clamp-2 text-muted-foreground text-sm">
+						{htmlToText(course.description)}
 					</p>
 				) : null}
-				<span className="mt-1.5 text-slate-400 text-xs">
+				<span className="mt-1.5 text-muted-foreground text-xs">
 					{l.t("courses.modules", {
 						ns: "authoring",
 						count: course._count.modules,
 					})}
 				</span>
 				<div className="mt-auto flex items-center justify-between pt-3">
-					<span className="font-stats font-bold text-slate-900 text-sm">
+					<span className="font-stats font-bold text-foreground text-sm">
 						{l.price(course)}
 					</span>
 					<span className="flex items-center gap-1 font-semibold text-brand-primary text-sm transition-all group-hover:gap-1.5">
-						{l.view}
+						{l.viewCourse}
 						<ArrowRight className="size-4" />
 					</span>
 				</div>
@@ -99,7 +107,7 @@ export function PublicPathCard({ path }: { path: PublishedPath }) {
 			params={{ slug: path.slug }}
 			className={CARD}
 		>
-			<div className="relative aspect-[16/8] overflow-hidden bg-slate-100">
+			<div className="relative aspect-[16/8] overflow-hidden bg-muted">
 				{path.thumbnailUrl ? (
 					<img
 						src={path.thumbnailUrl}
@@ -119,15 +127,15 @@ export function PublicPathCard({ path }: { path: PublishedPath }) {
 				/>
 			</div>
 			<div className="flex flex-1 flex-col p-4">
-				<h3 className="line-clamp-2 font-display text-slate-900">
+				<h3 className="line-clamp-2 font-display text-foreground">
 					{path.title}
 				</h3>
 				{path.outcomeStatement || path.description ? (
-					<p className="mt-1 line-clamp-2 text-slate-500 text-sm">
-						{path.outcomeStatement || path.description}
+					<p className="mt-1 line-clamp-2 text-muted-foreground text-sm">
+						{htmlToText(path.outcomeStatement || path.description)}
 					</p>
 				) : null}
-				<div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-slate-400 text-xs">
+				<div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-muted-foreground text-xs">
 					<span className="flex items-center gap-1">
 						<Layers3 className="size-3.5" />
 						{l.t("paths.courses_count", {
@@ -135,22 +143,19 @@ export function PublicPathCard({ path }: { path: PublishedPath }) {
 							count: path._count.pathCourses,
 						})}
 					</span>
-					{path.estimatedHours ? (
+					{path.estimatedDuration ? (
 						<span className="flex items-center gap-1">
-							<Clock3 className="size-3.5" />
-							{l.t("paths.hours", {
-								ns: "authoring",
-								count: path.estimatedHours,
-							})}
+							<CalendarDays className="size-3.5" />
+							{path.estimatedDuration}
 						</span>
 					) : null}
 				</div>
 				<div className="mt-auto flex items-center justify-between pt-3">
-					<span className="font-stats font-bold text-slate-900 text-sm">
+					<span className="font-stats font-bold text-foreground text-sm">
 						{l.price(path)}
 					</span>
 					<span className="flex items-center gap-1 font-semibold text-brand-primary text-sm transition-all group-hover:gap-1.5">
-						{l.view}
+						{l.viewPath}
 						<ArrowRight className="size-4" />
 					</span>
 				</div>
@@ -165,7 +170,7 @@ export function PublicCohortCard({ cohort }: { cohort: PublishedCohort }) {
 		<Link
 			to="/teachers/cohorts/$slug"
 			params={{ slug: cohort.slug }}
-			className="group flex flex-col rounded-card border border-slate-200 bg-white p-5 shadow-card transition-all hover:-translate-y-1 hover:shadow-card-hover"
+			className="group flex flex-col rounded-card border border-border bg-card p-5 shadow-card transition-all hover:-translate-y-1 hover:shadow-card-hover"
 		>
 			<div className="flex items-start justify-between gap-2">
 				<span className="flex size-11 items-center justify-center rounded-btn bg-brand-primary-light text-brand-primary">
@@ -177,15 +182,15 @@ export function PublicCohortCard({ cohort }: { cohort: PublishedCohort }) {
 					earnBackPercentage={cohort.earnBackPercentage}
 				/>
 			</div>
-			<h3 className="mt-3 line-clamp-2 font-display text-slate-900">
+			<h3 className="mt-3 line-clamp-2 font-display text-foreground">
 				{cohort.title}
 			</h3>
 			{cohort.description ? (
-				<p className="mt-1 line-clamp-2 text-slate-500 text-sm">
+				<p className="mt-1 line-clamp-2 text-muted-foreground text-sm">
 					{cohort.description}
 				</p>
 			) : null}
-			<div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-slate-400 text-xs">
+			<div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-muted-foreground text-xs">
 				{startLabel(cohort.startsAt) ? (
 					<span className="flex items-center gap-1">
 						<CalendarDays className="size-3.5" />
@@ -204,11 +209,11 @@ export function PublicCohortCard({ cohort }: { cohort: PublishedCohort }) {
 				) : null}
 			</div>
 			<div className="mt-auto flex items-center justify-between pt-3">
-				<span className="font-stats font-bold text-slate-900 text-sm">
+				<span className="font-stats font-bold text-foreground text-sm">
 					{l.price(cohort)}
 				</span>
 				<span className="flex items-center gap-1 font-semibold text-brand-primary text-sm transition-all group-hover:gap-1.5">
-					{l.view}
+					{l.viewCohort}
 					<ArrowRight className="size-4" />
 				</span>
 			</div>

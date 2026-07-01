@@ -13,6 +13,7 @@ import { useTranslation } from "react-i18next";
 import { PublicCourseCard } from "@/components/catalog/public-cards";
 import { PublicShell } from "@/components/layout/public-shell";
 import { buttonVariants } from "@/components/ui/button";
+import { EmptyState } from "@/components/ui/empty-state";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useReveal } from "@/hooks/use-reveal";
 import { getPublishedCourses } from "@/lib/content-api";
@@ -66,7 +67,7 @@ function TeacherAcademyPage() {
 						initial={{ opacity: 0, y: 20 }}
 						animate={{ opacity: 1, y: 0 }}
 						transition={{ duration: 0.6, delay: 0.15 }}
-						className="mx-auto mt-5 max-w-2xl text-base text-slate-300 sm:text-lg"
+						className="mx-auto mt-5 max-w-2xl text-base text-muted-foreground sm:text-lg"
 					>
 						{t("landing.subtitle")}
 					</motion.p>
@@ -99,7 +100,7 @@ function TeacherAcademyPage() {
 			>
 				<h2
 					data-reveal
-					className="text-center font-display text-2xl tracking-tight text-slate-900 sm:text-3xl"
+					className="text-center font-display text-2xl tracking-tight text-foreground sm:text-3xl"
 				>
 					{t("landing.explore_title")}
 				</h2>
@@ -109,15 +110,15 @@ function TeacherAcademyPage() {
 							key={key}
 							to={to}
 							data-reveal={idx % 2 === 0 ? "left" : "right"}
-							className="group rounded-card border border-slate-200 bg-white p-6 shadow-card transition-all hover:-translate-y-1 hover:border-brand-primary/30 hover:shadow-card-hover active:scale-[0.99]"
+							className="group rounded-card border border-border bg-card p-6 shadow-card transition-all hover:-translate-y-1 hover:border-brand-primary/30 hover:shadow-card-hover active:scale-[0.99]"
 						>
 							<span className="flex size-12 items-center justify-center rounded-btn bg-brand-primary-light text-brand-primary transition-colors group-hover:bg-brand-primary group-hover:text-white">
 								<Icon className="size-6" />
 							</span>
-							<h3 className="mt-4 font-display text-lg text-slate-900">
+							<h3 className="mt-4 font-display text-lg text-foreground">
 								{t(`landing.${key}_name`)}
 							</h3>
-							<p className="mt-1.5 text-sm leading-relaxed text-slate-500">
+							<p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
 								{t(`landing.${key}_desc`)}
 							</p>
 							<span className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-brand-primary group-hover:gap-2">
@@ -129,12 +130,12 @@ function TeacherAcademyPage() {
 			</section>
 
 			{/* Featured courses */}
-			<section ref={featuredRef} className="bg-slate-50">
+			<section ref={featuredRef} className="bg-muted">
 				<div className="mx-auto max-w-7xl px-6 py-12 lg:px-8 lg:py-20">
 					<div className="flex items-center justify-between">
 						<h2
 							data-reveal
-							className="font-display text-2xl tracking-tight text-slate-900 sm:text-3xl"
+							className="font-display text-2xl tracking-tight text-foreground sm:text-3xl"
 						>
 							{t("landing.featured")}
 						</h2>
@@ -161,14 +162,13 @@ function TeacherAcademyPage() {
 							))}
 						</div>
 					) : (
-						<div className="mt-8 rounded-card border border-slate-200 border-dashed bg-white py-16 text-center">
-							<BookOpen className="mx-auto size-8 text-slate-300" />
-							<p className="mt-3 text-slate-500">
-								{t("landing.featured_empty", {
-									defaultValue: "New courses are on the way — check back soon.",
-								})}
-							</p>
-						</div>
+						<EmptyState
+							className="mt-8"
+							icon={BookOpen}
+							title={t("landing.featured_empty", {
+								defaultValue: "New courses are on the way — check back soon.",
+							})}
+						/>
 					)}
 				</div>
 			</section>

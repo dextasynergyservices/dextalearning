@@ -56,5 +56,11 @@
 		"content": {
 			"not_publishable": "Some lessons still need content or transcript before you fit publish."
 		}
+	},
+	"theme": {
+		"label": "Theme",
+		"light": "Light",
+		"dark": "Dark",
+		"system": "System"
 	}
 }

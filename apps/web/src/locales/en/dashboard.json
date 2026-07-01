@@ -4,7 +4,8 @@
 		"explore": "Explore",
 		"search": "Search",
 		"leaderboard": "Awards",
-		"profile": "Profile"
+		"profile": "Profile",
+		"my_learning": "My Learning"
 	},
 	"home": {
 		"greeting": "Welcome back",
@@ -41,7 +42,9 @@
 			}
 		},
 		"view_course": "View course",
-		"empty_courses": "No courses are published yet. Check back soon!"
+		"empty_courses": "No courses are published yet. Check back soon!",
+		"view_path": "View path",
+		"view_cohort": "View cohort"
 	},
 	"lesson": {
 		"title": "Lesson",
@@ -88,6 +91,36 @@
 		"more": "More",
 		"name": "Name",
 		"email": "Email",
-		"role": "Role"
+		"role": "Role",
+		"first_name": "First name",
+		"last_name": "Last name",
+		"other_names": "Other names (optional)",
+		"phone": "Phone (WhatsApp)",
+		"phone_hint": "Optional — for WhatsApp study reminders.",
+		"phone_unverified": "Not verified — used for study reminders.",
+		"verified": "Verified",
+		"email_locked": "Email can't be changed.",
+		"save": "Save changes",
+		"saved": "Profile saved.",
+		"not_verified": "Not verified"
+	},
+	"my": {
+		"title": "My Learning",
+		"empty": "Start a course and it'll show up here so you can continue anytime.",
+		"browse": "Browse courses",
+		"in_progress": "Continue learning",
+		"completed_section": "Completed",
+		"completed": "Completed",
+		"done": "Done",
+		"percent": "{{n}}%",
+		"view_all": "View all",
+		"type_course": "Course",
+		"type_path": "Path",
+		"type_cohort": "Cohort",
+		"subtitle": "Pick up where you left off and track your wins.",
+		"empty_title": "Nothing here yet",
+		"resume": "Pick up where you left off",
+		"continue": "Continue",
+		"more_in_progress": "More in progress"
 	}
 }

@@ -66,15 +66,28 @@ export class MediaService {
 		@Inject(CAPTION_QUEUE) private readonly captionQueue: Queue,
 	) {}
 
-	/** Loads a lesson and asserts the user may edit it (owns the course / admin). */
+	/**
+	 * Loads a lesson and asserts the user may edit it. A normal lesson is owned
+	 * via its course creator; a standalone **intro lesson** (no module) is owned
+	 * via the path/cohort it introduces.
+	 */
 	private async loadEditableLesson(lessonId: string, user: AuthenticatedUser) {
 		const lesson = await this.prisma.lesson.findUnique({
 			where: { id: lessonId },
-			include: { module: { include: { course: true } } },
+			include: {
+				module: { include: { course: true } },
+				introForPath: { select: { createdBy: true } },
+				introForCohort: { select: { createdBy: true } },
+			},
 		});
 		if (!lesson) throw new NotFoundException("Lesson not found");
-		if (user.role !== "admin" && lesson.module.course.createdBy !== user.id) {
-			throw new ForbiddenException("You do not own this course");
+		const ownerId =
+			lesson.module?.course.createdBy ??
+			lesson.introForPath?.createdBy ??
+			lesson.introForCohort?.createdBy ??
+			null;
+		if (user.role !== "admin" && ownerId !== user.id) {
+			throw new ForbiddenException("You do not own this content");
 		}
 		return lesson;
 	}
@@ -443,11 +456,21 @@ export class MediaService {
 		lessonId: string,
 		user: AuthenticatedUser,
 		text: string,
+		cues?: { start: number; end: number; text: string }[],
 	) {
 		await this.loadEditableLesson(lessonId, user);
+		// Timed cues are the authoritative transcript when supplied — the flat
+		// `transcriptText` (publish gate + AI source) is derived from them so the
+		// two never drift. A plain-text save clears any timing (untimed mode).
+		const timed = cues && cues.length > 0;
+		const flatText = timed ? cues.map((c) => c.text.trim()).join("\n") : text;
 		const updated = await this.prisma.lesson.update({
 			where: { id: lessonId },
-			data: { transcriptText: text, transcriptUploadedAt: new Date() },
+			data: {
+				transcriptText: flatText,
+				transcriptCuesJson: timed ? cues : Prisma.DbNull,
+				transcriptUploadedAt: new Date(),
+			},
 			select: { id: true, transcriptUploadedAt: true },
 		});
 		this.events.emit(ContentEvents.TranscriptUpdated, {
@@ -456,16 +479,72 @@ export class MediaService {
 		return updated;
 	}
 
+	/**
+	 * Public playback for a path/cohort INTRO lesson — no auth/enrolment. Serves
+	 * the token only when the lesson is the intro of a published path or open
+	 * cohort; otherwise indistinguishable from "not found".
+	 */
+	async getIntroMediaToken(lessonId: string) {
+		const lesson = await this.prisma.lesson.findUnique({
+			where: { id: lessonId },
+			include: {
+				introForPath: { select: { status: true } },
+				introForCohort: { select: { status: true } },
+			},
+		});
+		const open =
+			lesson?.introForPath?.status === "published" ||
+			lesson?.introForCohort?.status === "open";
+		if (!lesson || !open) throw new NotFoundException("Intro not available");
+		return this.buildMediaToken(lesson, lessonId);
+	}
+
 	/** Presigned playback bundle (§12.6). Auth required; enrolment gating lands with payments. */
 	async getMediaToken(lessonId: string, _user: AuthenticatedUser) {
 		const lesson = await this.prisma.lesson.findUnique({
 			where: { id: lessonId },
 		});
 		if (!lesson) throw new NotFoundException("Lesson not found");
+		return this.buildMediaToken(lesson, lessonId);
+	}
 
+	/**
+	 * Public playback for a FREE-PREVIEW lesson (§2.4) — no auth/enrolment. Only
+	 * serves the token when the lesson is flagged preview and its course is
+	 * published; otherwise it is indistinguishable from "not found".
+	 */
+	async getPreviewMediaToken(lessonId: string) {
+		const lesson = await this.prisma.lesson.findUnique({
+			where: { id: lessonId },
+			include: { module: { select: { course: { select: { status: true } } } } },
+		});
+		if (!lesson?.isPreview || lesson.module?.course?.status !== "published") {
+			throw new NotFoundException("Preview not available");
+		}
+		return this.buildMediaToken(lesson, lessonId);
+	}
+
+	private async buildMediaToken(
+		lesson: {
+			contentType: string | null;
+			captionKeysJson: unknown;
+			videoKeysJson: unknown;
+			audioKey: string | null;
+			contentText: string | null;
+			transcriptText: string | null;
+			transcriptCuesJson: unknown;
+			videoDurationSec: number | null;
+			audioDurationSec: number | null;
+		},
+		lessonId: string,
+	) {
 		const captionUrls = await this.signCaptions(
 			(lesson.captionKeysJson as Record<string, string | null>) ?? {},
 		);
+		const transcriptCues =
+			(lesson.transcriptCuesJson as
+				| { start: number; end: number; text: string }[]
+				| null) ?? null;
 
 		if (lesson.contentType === "video") {
 			const videoKeys = (lesson.videoKeysJson as Record<string, string>) ?? {};
@@ -482,6 +561,7 @@ export class MediaService {
 				defaultQuality: "480p",
 				captionUrls,
 				transcriptText: lesson.transcriptText,
+				transcriptCues,
 				duration: lesson.videoDurationSec,
 			};
 		}
@@ -494,6 +574,7 @@ export class MediaService {
 					: null,
 				captionUrls,
 				transcriptText: lesson.transcriptText,
+				transcriptCues,
 				duration: lesson.audioDurationSec,
 			};
 		}

@@ -40,14 +40,14 @@ export function SiteHeader({ dark = false }: { dark?: boolean }) {
 			className={cn(
 				"fixed inset-x-0 top-0 z-50 hidden transition-colors duration-300 lg:block",
 				scrolled
-					? "border-b border-slate-200 bg-white/90 backdrop-blur-md"
+					? "border-b border-border bg-card/90 backdrop-blur-md"
 					: "border-b border-transparent",
 			)}
 		>
 			<div className="mx-auto flex h-18 max-w-7xl items-center justify-between px-8">
 				<Logo
 					accentClassName={onDark ? "text-brand-accent" : "text-brand-primary"}
-					className={onDark ? "text-white" : "text-slate-900"}
+					className={onDark ? "text-white" : "text-foreground"}
 				/>
 
 				<nav aria-label="Primary" className="flex items-center gap-1">
@@ -59,7 +59,7 @@ export function SiteHeader({ dark = false }: { dark?: boolean }) {
 								"rounded-btn px-3.5 py-2 text-sm font-medium transition-colors",
 								onDark
 									? "text-slate-200 hover:bg-white/10 hover:text-white"
-									: "text-slate-600 hover:bg-slate-100 hover:text-slate-900",
+									: "text-muted-foreground hover:bg-accent hover:text-foreground",
 							)}
 							activeProps={{
 								className: onDark ? "text-white" : "text-brand-primary",

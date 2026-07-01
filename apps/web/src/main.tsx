@@ -21,6 +21,9 @@ const router = createRouter({
 	context: { queryClient },
 	defaultPreload: "intent",
 	scrollRestoration: true,
+	// Cross-fade route changes via the View Transitions API for a native-app
+	// feel (disabled automatically under prefers-reduced-motion, see index.css).
+	defaultViewTransition: true,
 });
 
 declare module "@tanstack/react-router" {

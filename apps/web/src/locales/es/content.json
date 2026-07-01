@@ -68,6 +68,7 @@
 		"cta_button": "Unirme a la comunidad"
 	},
 	"blog": {
+		"badge": "Blog",
 		"title": "El blog de DextaLearning",
 		"subtitle": "Notas sobre la ciencia del aprendizaje, la enseñanza y la construcción de DextaLearning.",
 		"read_time": "{{count}} min de lectura",

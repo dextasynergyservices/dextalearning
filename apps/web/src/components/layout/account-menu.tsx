@@ -9,7 +9,9 @@ import {
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { homeForRole, signOut, useSession } from "@/lib/auth-client";
+import { useAvatar } from "@/lib/use-avatar";
 import { cn } from "@/lib/utils";
 
 function initialsOf(name?: string | null): string {
@@ -33,6 +35,7 @@ function initialsOf(name?: string | null): string {
 export function AccountMenu({ onDark = false }: { onDark?: boolean }) {
 	const { t } = useTranslation("common");
 	const { data: session } = useSession();
+	const avatar = useAvatar();
 	const navigate = useNavigate();
 	const [open, setOpen] = useState(false);
 	const containerRef = useRef<HTMLDivElement>(null);
@@ -84,12 +87,12 @@ export function AccountMenu({ onDark = false }: { onDark?: boolean }) {
 				aria-label={t("account.menu")}
 				className={cn(
 					"flex items-center gap-1.5 rounded-full p-0.5 pr-2 transition-colors",
-					onDark ? "hover:bg-white/10" : "hover:bg-slate-100",
+					onDark ? "hover:bg-white/10" : "hover:bg-accent",
 				)}
 			>
-				{user.image ? (
+				{avatar ? (
 					<img
-						src={user.image}
+						src={avatar}
 						alt=""
 						className="size-8 rounded-full object-cover"
 					/>
@@ -102,7 +105,7 @@ export function AccountMenu({ onDark = false }: { onDark?: boolean }) {
 					className={cn(
 						"size-4 transition-transform",
 						open && "rotate-180",
-						onDark ? "text-white/80" : "text-slate-400",
+						onDark ? "text-white/80" : "text-muted-foreground",
 					)}
 				/>
 			</button>
@@ -115,13 +118,15 @@ export function AccountMenu({ onDark = false }: { onDark?: boolean }) {
 						animate={{ opacity: 1, y: 0, scale: 1 }}
 						exit={{ opacity: 0, y: -6, scale: 0.97 }}
 						transition={{ duration: 0.16, ease: "easeOut" }}
-						className="absolute right-0 z-50 mt-2 w-60 overflow-hidden rounded-card border border-slate-200 bg-white shadow-card-hover"
+						className="absolute right-0 z-50 mt-2 w-60 overflow-hidden rounded-card border border-border bg-popover shadow-card-hover"
 					>
-						<div className="border-slate-100 border-b px-4 py-3">
-							<p className="truncate font-display text-slate-900 text-sm">
+						<div className="border-border border-b px-4 py-3">
+							<p className="truncate font-display text-foreground text-sm">
 								{user.name}
 							</p>
-							<p className="truncate text-slate-500 text-xs">{user.email}</p>
+							<p className="truncate text-muted-foreground text-xs">
+								{user.email}
+							</p>
 						</div>
 						<div className="p-1.5">
 							{items.map(({ to, label, icon: Icon }) => (
@@ -130,14 +135,20 @@ export function AccountMenu({ onDark = false }: { onDark?: boolean }) {
 									to={to}
 									onClick={() => setOpen(false)}
 									role="menuitem"
-									className="flex items-center gap-3 rounded-btn px-3 py-2 text-slate-600 text-sm transition-colors hover:bg-slate-50 hover:text-slate-900"
+									className="flex items-center gap-3 rounded-btn px-3 py-2 text-muted-foreground text-sm transition-colors hover:bg-accent hover:text-foreground"
 								>
-									<Icon className="size-4 text-slate-400" />
+									<Icon className="size-4 text-muted-foreground" />
 									{label}
 								</Link>
 							))}
 						</div>
-						<div className="border-slate-100 border-t p-1.5">
+						<div className="flex items-center justify-between gap-2 border-border border-t px-4 py-2.5">
+							<span className="text-muted-foreground text-sm">
+								{t("theme.label", { defaultValue: "Theme" })}
+							</span>
+							<ThemeToggle />
+						</div>
+						<div className="border-border border-t p-1.5">
 							<button
 								type="button"
 								onClick={handleSignOut}

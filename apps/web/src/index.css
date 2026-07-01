@@ -135,6 +135,19 @@
 	--sidebar-accent-foreground: oklch(0.985 0 0);
 	--sidebar-border: oklch(1 0 0 / 10%);
 	--sidebar-ring: oklch(0.556 0 0);
+	/* Brand-tint surfaces (icon chips, soft badges) get darker fills in dark mode
+	   so the light blue/amber panels don't glare — the brand-primary/accent
+	   colours themselves stay vivid for buttons. */
+	--color-brand-primary-light: color-mix(
+		in oklab,
+		var(--color-brand-primary) 26%,
+		#0a0a0a
+	);
+	--color-brand-accent-light: color-mix(
+		in oklab,
+		var(--color-brand-accent) 26%,
+		#0a0a0a
+	);
 }
 
 @layer base {
@@ -153,6 +166,99 @@
 	body {
 		max-width: 100%;
 		overflow-x: clip;
+	}
+
+	/* App-wide keyboard focus ring. `:focus-visible` only triggers for keyboard
+	   (and other non-pointer) interaction, so mouse clicks stay ring-free while
+	   keyboard users get a clear, consistent indicator on every interactive
+	   element — links, inputs, cards, custom controls. Components may still
+	   override with their own ring (e.g. the Button cva). */
+	a:focus-visible,
+	button:focus-visible,
+	input:focus-visible,
+	select:focus-visible,
+	textarea:focus-visible,
+	summary:focus-visible,
+	[tabindex]:focus-visible,
+	[role="button"]:focus-visible,
+	[role="link"]:focus-visible,
+	[role="tab"]:focus-visible {
+		outline: none;
+		box-shadow:
+			0 0 0 2px var(--background),
+			0 0 0 4px var(--color-brand-primary);
+		border-radius: var(--radius-sm);
+	}
+}
+
+/* ── Route view transitions ──────────────────────────────────────────────────
+   A gentle cross-fade between pages (TanStack Router `defaultViewTransition`),
+   so navigation feels like a native app rather than a hard cut. ───────────── */
+@keyframes vt-fade-in {
+	from {
+		opacity: 0;
+		transform: translateY(8px);
+	}
+}
+@keyframes vt-fade-out {
+	to {
+		opacity: 0;
+	}
+}
+::view-transition-old(root) {
+	animation: vt-fade-out 160ms ease both;
+}
+::view-transition-new(root) {
+	animation: vt-fade-in 220ms ease both;
+}
+
+/* ── Reduced motion ──────────────────────────────────────────────────────────
+   Honour the OS "reduce motion" setting app-wide: near-instant CSS animations /
+   transitions, no smooth scroll, and skip the view-transition animations.
+   (Framer Motion is handled separately via <MotionConfig reducedMotion="user">.)
+   ──────────────────────────────────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+	*,
+	*::before,
+	*::after {
+		/* biome-ignore lint/complexity/noImportantStyles: must override Tailwind duration utilities (higher specificity than `*`) — canonical reduced-motion reset */
+		animation-duration: 0.01ms !important;
+		/* biome-ignore lint/complexity/noImportantStyles: same — canonical reduced-motion reset */
+		animation-iteration-count: 1 !important;
+		/* biome-ignore lint/complexity/noImportantStyles: same — canonical reduced-motion reset */
+		transition-duration: 0.01ms !important;
+		/* biome-ignore lint/complexity/noImportantStyles: same — canonical reduced-motion reset */
+		scroll-behavior: auto !important;
+	}
+	::view-transition-old(root),
+	::view-transition-new(root) {
+		/* biome-ignore lint/complexity/noImportantStyles: disable page transition under reduced motion */
+		animation: none !important;
+	}
+}
+
+/* ── Thin, themed scrollbar ───────────────────────────────────────────────────
+   A slim, subtle scrollbar (token-coloured, rounded, brightens on hover) for
+   scroll containers like the Studio sidebar — far cleaner than the chunky
+   default. ─────────────────────────────────────────────────────────────────── */
+@layer utilities {
+	.scrollbar-thin {
+		scrollbar-width: thin;
+		scrollbar-color: var(--border) transparent;
+	}
+	.scrollbar-thin::-webkit-scrollbar {
+		width: 6px;
+		height: 6px;
+	}
+	.scrollbar-thin::-webkit-scrollbar-track {
+		background: transparent;
+	}
+	.scrollbar-thin::-webkit-scrollbar-thumb {
+		background-color: var(--border);
+		border-radius: 9999px;
+	}
+	.scrollbar-thin:hover::-webkit-scrollbar-thumb {
+		background-color: var(--muted-foreground);
 	}
 }
 

@@ -26,7 +26,7 @@ export function PasswordField({
 		<div>
 			<label
 				htmlFor={inputId}
-				className="mb-1.5 block font-medium text-slate-700 text-sm"
+				className="mb-1.5 block font-medium text-foreground text-sm"
 			>
 				{label}
 			</label>
@@ -37,10 +37,10 @@ export function PasswordField({
 					type={show ? "text" : "password"}
 					aria-invalid={error ? true : undefined}
 					className={cn(
-						"h-12 w-full rounded-input border bg-white pr-11 pl-3.5 text-slate-900 text-sm outline-none transition-colors placeholder:text-slate-400 focus:ring-2",
+						"h-12 w-full rounded-input border bg-card pr-11 pl-3.5 text-foreground text-sm outline-none transition-colors placeholder:text-muted-foreground focus:ring-2",
 						error
 							? "border-error focus:border-error focus:ring-error/20"
-							: "border-slate-200 focus:border-brand-primary focus:ring-brand-primary/20",
+							: "border-border focus:border-brand-primary focus:ring-brand-primary/20",
 						className,
 					)}
 					{...props}
@@ -49,13 +49,13 @@ export function PasswordField({
 					type="button"
 					onClick={() => setShow((value) => !value)}
 					aria-label={t(show ? "hide_password" : "show_password")}
-					className="-translate-y-1/2 absolute top-1/2 right-2.5 flex size-8 items-center justify-center rounded-full text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600"
+					className="-translate-y-1/2 absolute top-1/2 right-2.5 flex size-8 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-accent hover:text-muted-foreground"
 				>
 					{show ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
 				</button>
 			</div>
 			{hint && !error ? (
-				<p className="mt-1.5 text-slate-400 text-xs">{hint}</p>
+				<p className="mt-1.5 text-muted-foreground text-xs">{hint}</p>
 			) : null}
 			{error ? (
 				<p className="mt-1.5 text-error text-sm" role="alert">

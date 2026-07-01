@@ -23,6 +23,11 @@ const optionalPhone = z
 		"errors.phone_invalid",
 	);
 
+const otpCodeSchema = z
+	.string()
+	.length(6, "errors.code_length")
+	.regex(/^[0-9]+$/, "errors.code_length");
+
 export const registerSchema = z
 	.object({
 		firstName: z.string().min(1, "errors.first_name_required"),
@@ -32,6 +37,11 @@ export const registerSchema = z
 		phone: optionalPhone,
 		password: passwordSchema,
 		confirmPassword: z.string().min(1, "errors.confirm_required"),
+		// No `.default()` here — a default makes zod's input/output types diverge
+		// (role optional in, required out), which the zodResolver/useForm generic
+		// can't reconcile. The form already sets an initial value via `useForm`'s
+		// own `defaultValues: { role: "learner" }`.
+		role: z.enum(["learner", "instructor"]),
 	})
 	.refine((data) => data.password === data.confirmPassword, {
 		message: "errors.password_mismatch",
@@ -50,11 +60,21 @@ export type LoginValues = z.infer<typeof loginSchema>;
 export const forgotSchema = z.object({ email: emailSchema });
 export type ForgotValues = z.infer<typeof forgotSchema>;
 
+export const resetPasswordSchema = z
+	.object({
+		code: otpCodeSchema,
+		password: passwordSchema,
+		confirmPassword: z.string().min(1, "errors.confirm_required"),
+	})
+	.refine((data) => data.password === data.confirmPassword, {
+		message: "errors.password_mismatch",
+		path: ["confirmPassword"],
+	});
+
+export type ResetPasswordValues = z.infer<typeof resetPasswordSchema>;
+
 export const verifySchema = z.object({
-	code: z
-		.string()
-		.length(6, "errors.code_length")
-		.regex(/^[0-9]+$/, "errors.code_length"),
+	code: otpCodeSchema,
 });
 
 export type VerifyValues = z.infer<typeof verifySchema>;

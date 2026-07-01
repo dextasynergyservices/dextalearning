@@ -24,11 +24,11 @@ export function PagePlaceholder({ tKey }: { tKey: string }) {
 			<p className="mt-6 font-stats text-sm font-semibold tracking-wider text-brand-primary uppercase">
 				{eyebrow}
 			</p>
-			<h1 className="mt-3 font-display text-3xl tracking-tight text-slate-900 sm:text-4xl">
+			<h1 className="mt-3 font-display text-3xl tracking-tight text-foreground sm:text-4xl">
 				{t(`${tKey}.title`)}
 			</h1>
 			{description ? (
-				<p className="mt-4 text-lg text-slate-500">{description}</p>
+				<p className="mt-4 text-lg text-muted-foreground">{description}</p>
 			) : null}
 			<Link
 				to="/"

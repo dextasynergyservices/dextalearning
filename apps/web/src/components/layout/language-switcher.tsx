@@ -39,7 +39,7 @@ export function LanguageSwitcher({
 					"flex h-10 items-center gap-1 rounded-full px-2 transition-colors active:scale-95",
 					onDark
 						? "text-white hover:bg-white/10"
-						: "text-slate-600 hover:bg-slate-100",
+						: "text-muted-foreground hover:bg-accent",
 					className,
 				)}
 			>
@@ -53,7 +53,7 @@ export function LanguageSwitcher({
 					className="cursor-pointer appearance-none bg-transparent pr-0.5 font-stats font-medium text-xs outline-none"
 				>
 					{SUPPORTED_LANGUAGES.map((lng) => (
-						<option key={lng} value={lng} className="text-slate-900">
+						<option key={lng} value={lng} className="text-foreground">
 							{LANGUAGE_SHORT[lng] ?? lng}
 						</option>
 					))}
@@ -65,11 +65,11 @@ export function LanguageSwitcher({
 	return (
 		<label
 			className={cn(
-				"inline-flex items-center gap-2 rounded-btn border border-slate-200 bg-white px-3 py-1.5 text-slate-600 text-sm transition-colors focus-within:border-brand-primary",
+				"inline-flex items-center gap-2 rounded-btn border border-border bg-card px-3 py-1.5 text-muted-foreground text-sm transition-colors focus-within:border-brand-primary",
 				className,
 			)}
 		>
-			<Globe className="size-4 text-slate-400" />
+			<Globe className="size-4 text-muted-foreground" />
 			<span className="sr-only">Language</span>
 			<select
 				value={i18n.resolvedLanguage}

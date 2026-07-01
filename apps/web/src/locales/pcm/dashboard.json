@@ -4,7 +4,8 @@
 		"explore": "Explore",
 		"search": "Search",
 		"leaderboard": "Awards",
-		"profile": "Profile"
+		"profile": "Profile",
+		"my_learning": "My Learning"
 	},
 	"home": {
 		"greeting": "Welcome back",
@@ -41,7 +42,9 @@
 			}
 		},
 		"view_course": "View course",
-		"empty_courses": "No course don publish yet. Check back soon!"
+		"empty_courses": "No course don publish yet. Check back soon!",
+		"view_path": "View path",
+		"view_cohort": "View cohort"
 	},
 	"lesson": {
 		"title": "Lesson",
@@ -88,6 +91,36 @@
 		"more": "More",
 		"name": "Name",
 		"email": "Email",
-		"role": "Role"
+		"role": "Role",
+		"first_name": "First name",
+		"last_name": "Last name",
+		"other_names": "Other names (optional)",
+		"phone": "Phone (WhatsApp)",
+		"phone_hint": "Optional — for WhatsApp study reminders.",
+		"phone_unverified": "No verify yet — we dey use am for study reminders.",
+		"verified": "Verified",
+		"email_locked": "You no fit change email.",
+		"save": "Save changes",
+		"saved": "Profile don save.",
+		"not_verified": "No verify"
+	},
+	"my": {
+		"title": "My Learning",
+		"empty": "Start one course and e go show here so you fit continue anytime.",
+		"browse": "Browse courses",
+		"in_progress": "Continue learning",
+		"completed_section": "Completed",
+		"completed": "Done",
+		"done": "Done",
+		"percent": "{{n}}%",
+		"view_all": "See all",
+		"type_course": "Course",
+		"type_path": "Path",
+		"type_cohort": "Cohort",
+		"subtitle": "Continue from where you stop and see wetin you don finish.",
+		"empty_title": "Nothing dey here yet",
+		"resume": "Continue from where you stop",
+		"continue": "Continue",
+		"more_in_progress": "Other ones wey you dey do"
 	}
 }

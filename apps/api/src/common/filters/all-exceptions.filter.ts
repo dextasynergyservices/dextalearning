@@ -21,7 +21,6 @@ interface ErrorEnvelope {
 
 /**
  * Catches every unhandled exception and serialises it into the standard error
- * envelope documented in blueprint §5.10:
  *   { success: false, error: { code, message, details?, requestId } }
  */
 @Catch()
@@ -53,7 +52,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
 					message = body.message;
 				}
 				// A handler may supply a stable machine code + structured details
-				// (e.g. MEDIA_DURATION_EXCEEDED — §13).
+				// (e.g. MEDIA_DURATION_EXCEEDED).
 				if (typeof body.code === "string") customCode = body.code;
 				if (body.details !== undefined) details = body.details;
 			}

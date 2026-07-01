@@ -113,6 +113,18 @@ export class PathsController {
 		return this.paths.publishPath(user, id);
 	}
 
+	@Post(":id/intro")
+	@ApiOperation({ summary: "Create (or get) the path's intro/preview lesson" })
+	createIntro(@CurrentUser() user: AuthenticatedUser, @Param("id") id: string) {
+		return this.paths.createIntro(user, id);
+	}
+
+	@Delete(":id/intro")
+	@ApiOperation({ summary: "Remove the path's intro/preview lesson" })
+	removeIntro(@CurrentUser() user: AuthenticatedUser, @Param("id") id: string) {
+		return this.paths.removeIntro(user, id);
+	}
+
 	@Post(":id/courses")
 	@ApiOperation({ summary: "Append a course to the path" })
 	addCourse(

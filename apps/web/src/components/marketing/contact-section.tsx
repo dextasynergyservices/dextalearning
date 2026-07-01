@@ -51,17 +51,17 @@ export function ContactSection({ className }: { className?: string }) {
 	return (
 		<section
 			id="contact"
-			className={cn("scroll-mt-24 bg-slate-50 py-14 lg:py-20", className)}
+			className={cn("scroll-mt-24 bg-muted py-14 lg:py-20", className)}
 		>
 			<div className="mx-auto max-w-5xl px-6 lg:px-8">
 				<div className="text-center">
 					<p className="font-stats font-semibold text-brand-primary text-xs uppercase tracking-wider">
 						{t("contact.eyebrow")}
 					</p>
-					<h2 className="mt-2 font-display text-3xl text-slate-900 tracking-tight sm:text-4xl">
+					<h2 className="mt-2 font-display text-3xl text-foreground tracking-tight sm:text-4xl">
 						{t("contact.title")}
 					</h2>
-					<p className="mx-auto mt-3 max-w-xl text-slate-500">
+					<p className="mx-auto mt-3 max-w-xl text-muted-foreground">
 						{t("contact.subtitle")}
 					</p>
 				</div>
@@ -73,14 +73,16 @@ export function ContactSection({ className }: { className?: string }) {
 								<span className="flex size-11 items-center justify-center rounded-btn bg-brand-primary-light text-brand-primary transition-colors group-hover:bg-brand-primary group-hover:text-white">
 									<card.icon className="size-5" />
 								</span>
-								<p className="mt-4 font-display text-slate-900">{card.label}</p>
-								<p className="mt-1 break-words text-slate-500 text-sm">
+								<p className="mt-4 font-display text-foreground">
+									{card.label}
+								</p>
+								<p className="mt-1 break-words text-muted-foreground text-sm">
 									{card.value}
 								</p>
 							</>
 						);
 						const cls =
-							"group flex flex-col rounded-card border border-slate-200 bg-white p-5 shadow-card transition-all hover:-translate-y-1 hover:border-brand-primary/30 hover:shadow-card-hover";
+							"group flex flex-col rounded-card border border-border bg-card p-5 shadow-card transition-all hover:-translate-y-1 hover:border-brand-primary/30 hover:shadow-card-hover";
 						return "to" in card && card.to ? (
 							<Link key={card.label} to={card.to} className={cls}>
 								{inner}
@@ -94,7 +96,7 @@ export function ContactSection({ className }: { className?: string }) {
 				</div>
 
 				<div className="mt-10 flex flex-col items-center gap-3">
-					<p className="font-stats font-semibold text-slate-400 text-xs uppercase tracking-wider">
+					<p className="font-stats font-semibold text-muted-foreground text-xs uppercase tracking-wider">
 						{t("contact.follow")}
 					</p>
 					<div className="flex items-center gap-2">
@@ -105,7 +107,7 @@ export function ContactSection({ className }: { className?: string }) {
 								target="_blank"
 								rel="noreferrer"
 								aria-label={label}
-								className="flex size-10 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 transition-colors hover:border-brand-primary hover:text-brand-primary"
+								className="flex size-10 items-center justify-center rounded-full border border-border bg-card text-muted-foreground transition-colors hover:border-brand-primary hover:text-brand-primary"
 							>
 								<Icon className="size-4" />
 							</a>

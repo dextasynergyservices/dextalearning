@@ -1,6 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import {
 	IsEmail,
+	IsIn,
 	IsNotEmpty,
 	IsOptional,
 	IsString,
@@ -54,4 +55,12 @@ export class RegisterDto {
 	@IsString()
 	@Match("password", { message: "Passwords do not match" })
 	confirmPassword!: string;
+
+	@ApiPropertyOptional({
+		enum: ["learner", "instructor"],
+		description: "Self-service roles only; clamped server-side.",
+	})
+	@IsOptional()
+	@IsIn(["learner", "instructor"])
+	role?: "learner" | "instructor";
 }

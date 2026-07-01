@@ -2,6 +2,7 @@ import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useRef, useState } from "react";
+import { scheduleScrollTriggerRefresh } from "@/lib/scroll-trigger-refresh";
 
 gsap.registerPlugin(useGSAP, ScrollTrigger);
 
@@ -43,6 +44,10 @@ export function useCountUp(
 					);
 				},
 			});
+
+			// See scheduleScrollTriggerRefresh: recompute once this route's
+			// layout has truly settled so the count-up doesn't get stuck at 0.
+			scheduleScrollTriggerRefresh();
 		},
 		{ scope: ref },
 	);

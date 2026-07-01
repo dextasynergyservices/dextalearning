@@ -133,7 +133,7 @@ export class MediaController {
 		@CurrentUser() user: AuthenticatedUser,
 		@Body() dto: UpdateTranscriptDto,
 	) {
-		return this.media.updateTranscript(lessonId, user, dto.text);
+		return this.media.updateTranscript(lessonId, user, dto.text, dto.cues);
 	}
 
 	@Get(":lessonId/media-token")
@@ -146,6 +146,22 @@ export class MediaController {
 		@CurrentUser() user: AuthenticatedUser,
 	) {
 		return this.media.getMediaToken(lessonId, user);
+	}
+
+	@Get(":lessonId/preview-media-token")
+	@ApiOperation({
+		summary: "Public playback for a free-preview lesson (no auth — §2.4)",
+	})
+	getPreviewMediaToken(@Param("lessonId") lessonId: string) {
+		return this.media.getPreviewMediaToken(lessonId);
+	}
+
+	@Get(":lessonId/intro-media-token")
+	@ApiOperation({
+		summary: "Public playback for a path/cohort intro lesson (no auth)",
+	})
+	getIntroMediaToken(@Param("lessonId") lessonId: string) {
+		return this.media.getIntroMediaToken(lessonId);
 	}
 
 	@Get(":lessonId/media-status")

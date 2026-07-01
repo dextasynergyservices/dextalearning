@@ -49,7 +49,8 @@
 		"clear": "Effacer les filtres",
 		"earnback_pct": "{{pct}} % remboursable",
 		"earnback": "Remboursable",
-		"free": "Gratuit"
+		"free": "Gratuit",
+		"load_more": "Voir plus"
 	},
 	"detail": {
 		"back": "Retour",
@@ -88,7 +89,32 @@
 		"includes_transcript": "Transcriptions et sous-titres en 4 langues",
 		"minutes": "{{count}} min",
 		"not_found_title": "Cours introuvable",
-		"not_found_body": "Ce cours a peut-être été déplacé ou n'est plus disponible."
+		"not_found_body": "Ce cours a peut-être été déplacé ou n'est plus disponible.",
+		"continue_learning": "Continuer l'apprentissage",
+		"close": "Fermer",
+		"start_learning": "Commencer",
+		"progress_complete": "{{percent}} % terminé",
+		"path_journey_body": "Suivez chaque cours dans l'ordre pour terminer le parcours.",
+		"optional": "Facultatif",
+		"of_content": "de contenu",
+		"path_includes_title": "Ce parcours comprend",
+		"enrolled": "Vous êtes inscrit !",
+		"preview_watch": "Voir l'aperçu gratuit",
+		"free": "Gratuit",
+		"preview_count": "{{count}} leçons en aperçu gratuit avant de vous inscrire.",
+		"preview_watch_path": "Voir l'aperçu du parcours",
+		"preview_watch_cohort": "Voir l'aperçu de la cohorte",
+		"instructor": "Votre instructeur",
+		"view_profile": "Voir le profil complet",
+		"courses_by": "Cours de {{name}}",
+		"no_courses_title": "Aucun cours publié pour l'instant",
+		"no_courses_body": "Revenez bientôt pour de nouveaux cours.",
+		"instructor_missing_title": "Instructeur introuvable",
+		"instructor_missing_body": "Ce profil d'instructeur n'est pas disponible.",
+		"paths_by": "Parcours de {{name}}",
+		"cohorts_by": "Cohortes de {{name}}",
+		"no_content_title": "Rien de publié pour le moment",
+		"no_content_body": "Revenez bientôt pour du nouveau contenu."
 	},
 	"paths": {
 		"title": "Parcours d'apprentissage",
@@ -137,5 +163,22 @@
 		"section_courses": "Cours",
 		"section_paths": "Parcours d'apprentissage",
 		"section_cohorts": "Cohortes"
+	},
+	"lesson": {
+		"transcript_synced": "Synchro"
+	},
+	"featured": {
+		"courses": "Cours à la une",
+		"paths": "Parcours à la une",
+		"cohorts": "Cohortes à la une",
+		"see_all": "Voir tout"
+	},
+	"recommended": {
+		"courses": "Cours recommandés",
+		"paths": "Parcours recommandés",
+		"cohorts": "Cohortes recommandées",
+		"because_collab": "Parce que les apprenants inscrits à vos cours se sont aussi inscrits à ceux-ci",
+		"because_collab_paths": "Parce que les apprenants inscrits à vos parcours se sont aussi inscrits à ceux-ci",
+		"because_collab_cohorts": "Parce que les apprenants ayant rejoint vos cohortes ont aussi rejoint celles-ci"
 	}
 }

@@ -125,7 +125,7 @@ function ChangeBadge({ value }: { value: number }) {
 				{Math.abs(value)}
 			</span>
 		);
-	return <Minus className="size-3.5 text-slate-300" />;
+	return <Minus className="size-3.5 text-muted-foreground" />;
 }
 
 const PODIUM_META: Record<
@@ -140,7 +140,7 @@ const PODIUM_META: Record<
 	},
 	2: {
 		ring: "ring-slate-300",
-		bar: "bg-slate-100",
+		bar: "bg-muted",
 		badge: "bg-slate-400",
 		height: "h-14 sm:h-16",
 	},
@@ -179,10 +179,12 @@ function AwardsPage() {
 		<LearnerShell title={t("leaderboard.title")}>
 			<div className="space-y-6 pt-5 lg:pt-6">
 				<div>
-					<h2 className="font-display text-2xl text-slate-900 sm:text-3xl">
+					<h2 className="font-display text-2xl text-foreground sm:text-3xl">
 						{t("leaderboard.title")}
 					</h2>
-					<p className="mt-1 text-slate-500">{t("leaderboard.subtitle")}</p>
+					<p className="mt-1 text-muted-foreground">
+						{t("leaderboard.subtitle")}
+					</p>
 				</div>
 
 				{/* Preview banner */}
@@ -204,7 +206,7 @@ function AwardsPage() {
 									"relative inline-flex shrink-0 items-center gap-1.5 rounded-pill border px-3.5 py-2 font-medium text-sm transition-colors",
 									active
 										? "border-brand-primary text-white"
-										: "border-slate-200 bg-white text-slate-600 hover:border-brand-primary/40 hover:text-slate-900",
+										: "border-border bg-card text-muted-foreground hover:border-brand-primary/40 hover:text-foreground",
 								)}
 							>
 								{active ? (
@@ -233,8 +235,8 @@ function AwardsPage() {
 						className="space-y-6"
 					>
 						{/* Podium */}
-						<section className="rounded-card border border-slate-200 bg-white p-5 shadow-card sm:p-6">
-							<p className="mb-4 font-stats font-semibold text-slate-400 text-xs uppercase tracking-wide">
+						<section className="rounded-card border border-border bg-card p-5 shadow-card sm:p-6">
+							<p className="mb-4 font-stats font-semibold text-muted-foreground text-xs uppercase tracking-wide">
 								{t("leaderboard.this_week")}
 							</p>
 							<div className="grid grid-cols-3 items-end gap-3 sm:gap-5">
@@ -274,7 +276,7 @@ function AwardsPage() {
 													{entry.rank}
 												</span>
 											</div>
-											<p className="mt-3 max-w-full truncate text-center font-medium text-slate-900 text-xs sm:text-sm">
+											<p className="mt-3 max-w-full truncate text-center font-medium text-foreground text-xs sm:text-sm">
 												{entry.isYou ? t("leaderboard.you") : entry.name}
 											</p>
 											<p className="font-stats font-bold text-brand-primary text-sm sm:text-base">
@@ -296,7 +298,7 @@ function AwardsPage() {
 						{/* Your position */}
 						{you ? (
 							<section>
-								<p className="mb-2 px-1 font-stats font-semibold text-slate-400 text-xs uppercase tracking-wide">
+								<p className="mb-2 px-1 font-stats font-semibold text-muted-foreground text-xs uppercase tracking-wide">
 									{t("leaderboard.your_position")}
 								</p>
 								<div className="flex items-center gap-3 rounded-card border-2 border-brand-primary/30 bg-brand-primary-light/40 p-4 shadow-card sm:gap-4">
@@ -309,10 +311,10 @@ function AwardsPage() {
 										className="size-11 text-sm"
 									/>
 									<div className="min-w-0 flex-1">
-										<p className="truncate font-display text-slate-900">
+										<p className="truncate font-display text-foreground">
 											{t("leaderboard.you")}
 										</p>
-										<p className="text-slate-500 text-xs">
+										<p className="text-muted-foreground text-xs">
 											{you.points.toLocaleString()} {t("leaderboard.pts")}
 										</p>
 									</div>
@@ -333,10 +335,10 @@ function AwardsPage() {
 										"flex items-center gap-3 rounded-card border p-3.5 sm:gap-4",
 										entry.isYou
 											? "border-brand-primary/30 bg-brand-primary-light/30"
-											: "border-slate-200 bg-white shadow-card",
+											: "border-border bg-card shadow-card",
 									)}
 								>
-									<span className="w-7 text-center font-stats font-bold text-slate-400 text-sm">
+									<span className="w-7 text-center font-stats font-bold text-muted-foreground text-sm">
 										{entry.rank}
 									</span>
 									<Avatar
@@ -345,10 +347,10 @@ function AwardsPage() {
 										className="size-10 text-sm"
 									/>
 									<div className="min-w-0 flex-1">
-										<p className="truncate font-medium text-slate-900 text-sm">
+										<p className="truncate font-medium text-foreground text-sm">
 											{entry.isYou ? t("leaderboard.you") : entry.name}
 										</p>
-										<p className="font-stats text-slate-400 text-xs">
+										<p className="font-stats text-muted-foreground text-xs">
 											{entry.points.toLocaleString()} {t("leaderboard.pts")}
 										</p>
 									</div>

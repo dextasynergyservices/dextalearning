@@ -2,6 +2,7 @@ import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useRef } from "react";
+import { scheduleScrollTriggerRefresh } from "@/lib/scroll-trigger-refresh";
 
 gsap.registerPlugin(useGSAP, ScrollTrigger);
 
@@ -56,6 +57,16 @@ export function useReveal<T extends HTMLElement = HTMLDivElement>() {
 				scrollTrigger: {
 					trigger: el,
 					start: "top 82%",
+					// Fire at most once: a section near/at the fold can sit right on
+					// the trigger boundary before layout has fully settled (fonts,
+					// the view-transition cross-fade). scheduleScrollTriggerRefresh
+					// below corrects the position once things settle, but WITHOUT
+					// `once`, that later refresh can also flip an already-revealed
+					// section back to hidden if it recalculates the boundary as
+					// "not yet reached" — with no further scroll event left to ever
+					// re-trigger it. `once` makes that flip impossible: the instant
+					// it correctly fires, GSAP kills the trigger for good.
+					once: true,
 				},
 			});
 
@@ -87,6 +98,11 @@ export function useReveal<T extends HTMLElement = HTMLDivElement>() {
 					...trigger(),
 				});
 			}
+
+			// Recompute trigger positions once this route's layout has truly
+			// settled (client-side nav, the view-transition cross-fade, late
+			// fonts) — see scheduleScrollTriggerRefresh for why this is needed.
+			scheduleScrollTriggerRefresh();
 		},
 		{ scope },
 	);

@@ -52,6 +52,54 @@
 	"done": {
 		"title": "Everything don set!",
 		"subtitle": "Welcome to DextaLearning — make we start learning.",
-		"cta": "Go to my dashboard"
+		"cta": "Go to my dashboard",
+		"with_picks": "Welcome to DextaLearning — see some courses wey you fit start with.",
+		"browse": "Browse all courses"
+	},
+	"save_error": "We no fit save your choices — you fit update am later.",
+	"aside": {
+		"learner_title": "Make we personalize your learning",
+		"learner_subtitle": "Small questions so we fit arrange courses, pace and reminders for you.",
+		"instructor_title": "Welcome to the Creator Studio",
+		"instructor_subtitle": "Set up your instructor profile so learners go sabi who dey teach dem."
+	},
+	"whatsapp": {
+		"title": "Study reminders for WhatsApp",
+		"subtitle": "Optional — add your number make we dey remind you small small.",
+		"placeholder": "e.g. +234 801 234 5678",
+		"optin": "Send me study reminders for WhatsApp",
+		"optin_hint": "You fit off am anytime for settings."
+	},
+	"instructor": {
+		"welcome_title": "You don be instructor now 🎉",
+		"welcome_subtitle": "Na wetin you fit do for the Creator Studio:",
+		"points": {
+			"create": "Create courses, learning paths and live cohorts with video, audio, PDF and text lessons.",
+			"earn": "Earn from your content with the Earn-Back model — learners dey get reward for finishing, you dey collect for teaching.",
+			"publish": "Publish anytime you ready — no approval needed to start."
+		},
+		"profile_title": "Build your instructor profile",
+		"profile_subtitle": "Na your public face for every course wey you teach. You fit adjust am later.",
+		"headline": "Headline",
+		"headline_ph": "e.g. Senior Product Designer & Educator",
+		"bio": "Short bio",
+		"bio_ph": "Tell learners about your experience and wetin you dey teach…",
+		"expertise": "Areas of expertise",
+		"areas": {
+			"technology": "Technology",
+			"business": "Business",
+			"design": "Design",
+			"data": "Data & AI",
+			"languages": "Languages",
+			"science": "Science",
+			"arts": "Arts",
+			"health": "Health",
+			"education": "Education",
+			"personal": "Personal growth"
+		},
+		"enter_studio": "Enter the Studio",
+		"ready_title": "Your studio don ready",
+		"ready_subtitle": "Enter go create your first course — e no go take you many minutes.",
+		"payout_note": "💡 Set up your payout account later for Settings — you fit publish and dey gather earnings before then."
 	}
 }

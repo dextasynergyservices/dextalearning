@@ -32,7 +32,7 @@ export function PublicShell({
 	const solidMobileBar = Boolean(mobileTitle);
 
 	return (
-		<div className="flex min-h-screen flex-col bg-white">
+		<div className="flex min-h-screen flex-col bg-background">
 			<SiteHeader dark={darkHeader} />
 			<MobileAppBar
 				title={mobileTitle}

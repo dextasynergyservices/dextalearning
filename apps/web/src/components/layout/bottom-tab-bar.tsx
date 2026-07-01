@@ -61,7 +61,7 @@ export function BottomTabBar() {
 		<>
 			<nav
 				aria-label="Primary"
-				className="fixed inset-x-0 bottom-0 z-50 border-slate-200 border-t bg-white shadow-[0_-4px_20px_-8px_rgba(15,23,42,0.18)] lg:hidden"
+				className="fixed inset-x-0 bottom-0 z-50 border-border border-t bg-card shadow-[0_-4px_20px_-8px_rgba(15,23,42,0.18)] lg:hidden"
 				style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
 			>
 				<ul className="mx-auto flex max-w-md items-stretch justify-around">
@@ -79,7 +79,7 @@ export function BottomTabBar() {
 												"flex h-8 w-12 items-center justify-center rounded-full transition-colors",
 												isActive
 													? "bg-brand-primary-light text-brand-primary"
-													: "text-slate-500 group-hover:text-slate-700",
+													: "text-muted-foreground group-hover:text-foreground",
 											)}
 										>
 											<Icon className="size-5" />
@@ -87,7 +87,9 @@ export function BottomTabBar() {
 										<span
 											className={cn(
 												"font-stats text-[0.62rem] font-semibold tracking-wide uppercase",
-												isActive ? "text-brand-primary" : "text-slate-500",
+												isActive
+													? "text-brand-primary"
+													: "text-muted-foreground",
 											)}
 										>
 											{t(`tabs.${labelKey}`)}
@@ -108,7 +110,7 @@ export function BottomTabBar() {
 									"flex h-8 w-12 items-center justify-center rounded-full transition-colors",
 									moreActive
 										? "bg-brand-primary-light text-brand-primary"
-										: "text-slate-500",
+										: "text-muted-foreground",
 								)}
 							>
 								<MoreHorizontal className="size-5" />
@@ -116,7 +118,7 @@ export function BottomTabBar() {
 							<span
 								className={cn(
 									"font-stats text-[0.62rem] font-semibold tracking-wide uppercase",
-									moreActive ? "text-brand-primary" : "text-slate-500",
+									moreActive ? "text-brand-primary" : "text-muted-foreground",
 								)}
 							>
 								{t("tabs.more")}
@@ -143,12 +145,20 @@ export function BottomTabBar() {
 							animate={{ y: 0 }}
 							exit={{ y: "100%" }}
 							transition={{ type: "spring", stiffness: 380, damping: 38 }}
-							className="absolute inset-x-0 bottom-0 rounded-t-card border-slate-200 border-t bg-white shadow-modal"
+							drag="y"
+							dragConstraints={{ top: 0, bottom: 0 }}
+							dragElastic={{ top: 0, bottom: 0.5 }}
+							onDragEnd={(_, info) => {
+								if (info.offset.y > 90 || info.velocity.y > 600) {
+									setMoreOpen(false);
+								}
+							}}
+							className="absolute inset-x-0 bottom-0 touch-none rounded-t-card border-border border-t bg-card shadow-modal"
 							style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
 						>
 							<div className="mx-auto max-w-md p-3">
-								<div className="mx-auto mb-2 h-1 w-10 rounded-full bg-slate-200" />
-								<p className="px-3 py-1 font-stats font-semibold text-slate-400 text-xs uppercase tracking-wide">
+								<div className="mx-auto mb-2 h-1.5 w-10 cursor-grab rounded-full bg-border active:cursor-grabbing" />
+								<p className="px-3 py-1 font-stats font-semibold text-muted-foreground text-xs uppercase tracking-wide">
 									{t("tabs.more")}
 								</p>
 								{MORE_ITEMS.map(({ to, hash, labelKey, icon: Icon }) => (
@@ -157,7 +167,7 @@ export function BottomTabBar() {
 										to={to}
 										hash={hash}
 										onClick={() => setMoreOpen(false)}
-										className="flex items-center gap-3 rounded-btn px-3 py-3.5 font-medium text-slate-700 transition-colors hover:bg-slate-50 active:bg-slate-100"
+										className="flex items-center gap-3 rounded-btn px-3 py-3.5 font-medium text-foreground transition-colors hover:bg-accent active:bg-accent"
 									>
 										<span className="flex size-9 items-center justify-center rounded-full bg-brand-primary-light text-brand-primary">
 											<Icon className="size-5" />

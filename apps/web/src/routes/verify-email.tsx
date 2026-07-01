@@ -96,7 +96,7 @@ function VerifyEmailPage() {
 				>
 					{t("verify.resend")}
 				</button>
-				<Link to="/register" className="text-slate-500 hover:underline">
+				<Link to="/register" className="text-muted-foreground hover:underline">
 					{t("verify.change_email")}
 				</Link>
 			</div>

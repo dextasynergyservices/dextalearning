@@ -49,6 +49,12 @@ export interface MediaEncoderPort {
 	): Promise<Buffer>;
 	/** Encode audio to AAC 128 kbps, loudness-normalised to -16 LUFS (§12.3). */
 	encodeAudioAac(input: Buffer, sourceExt: string): Promise<Buffer>;
+	/**
+	 * Extract a small, mono, low-bitrate AAC track from any audio/video source —
+	 * used to feed lesson media to the AI cheaply (speech only, no video frames),
+	 * keeping the request well under inline-upload limits.
+	 */
+	extractAudioForAi(input: Buffer, sourceExt: string): Promise<Buffer>;
 	/** Convert an uploaded `.srt` caption to `.vtt` (§12.4). */
 	convertSrtToVtt(srt: Buffer): Promise<Buffer>;
 	/** Rasterise each PDF page to a WebP image (§4.2 — no-download PDF viewing). */

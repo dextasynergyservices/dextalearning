@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import {
@@ -7,13 +7,26 @@ import {
 	CalendarDays,
 	CheckCircle2,
 	ShieldCheck,
+	Sparkles,
 	Waypoints,
 } from "lucide-react";
 import type { ComponentType } from "react";
 import { useTranslation } from "react-i18next";
+import { toast } from "sonner";
 import { StudioShell } from "@/components/authoring/studio-shell";
+import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { listCohorts, listMyCourses, listMyPaths } from "@/lib/content-api";
+import {
+	type CourseDetail,
+	type FeatureRequestItem,
+	getFeatureRequests,
+	listCohorts,
+	listMyCourses,
+	listMyPaths,
+	type PathDetail,
+	updateCourse,
+	updatePath,
+} from "@/lib/content-api";
 
 export const Route = createFileRoute("/admin/")({
 	component: AdminDashboardPage,
@@ -47,17 +60,17 @@ function AdminDashboardPage() {
 					initial={{ opacity: 0, y: 14 }}
 					animate={{ opacity: 1, y: 0 }}
 					transition={{ duration: 0.34 }}
-					className="rounded-card border border-brand-primary/15 bg-white p-4 shadow-card sm:p-6"
+					className="rounded-card border border-brand-primary/15 bg-card p-4 shadow-card sm:p-6"
 				>
 					<div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
 						<div>
 							<p className="font-stats font-semibold text-brand-primary text-xs uppercase">
 								{t("admin.eyebrow")}
 							</p>
-							<h2 className="mt-2 font-display text-2xl text-slate-900 sm:text-3xl">
+							<h2 className="mt-2 font-display text-2xl text-foreground sm:text-3xl">
 								{t("admin.heading")}
 							</h2>
-							<p className="mt-2 max-w-2xl text-slate-600 text-sm leading-relaxed">
+							<p className="mt-2 max-w-2xl text-muted-foreground text-sm leading-relaxed">
 								{t("admin.body")}
 							</p>
 						</div>
@@ -94,12 +107,14 @@ function AdminDashboardPage() {
 					/>
 				</div>
 
+				<FeatureRequests />
+
 				{/* Portfolio: courses, paths, cohorts at a glance */}
 				<section>
-					<p className="font-display text-slate-900 text-xl">
+					<p className="font-display text-foreground text-xl">
 						{t("admin.portfolio_title")}
 					</p>
-					<p className="mt-1 text-slate-500 text-sm">
+					<p className="mt-1 text-muted-foreground text-sm">
 						{t("admin.portfolio_body")}
 					</p>
 					<div className="mt-4 grid gap-4 lg:grid-cols-3">
@@ -132,12 +147,12 @@ function AdminDashboardPage() {
 
 				{/* Recent courses + guardrail */}
 				<section className="grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
-					<div className="rounded-card border border-slate-200 bg-white shadow-card">
-						<div className="border-slate-100 border-b px-4 py-4 sm:px-5">
-							<p className="font-display text-xl text-slate-900">
+					<div className="rounded-card border border-border bg-card shadow-card">
+						<div className="border-border border-b px-4 py-4 sm:px-5">
+							<p className="font-display text-xl text-foreground">
 								{t("admin.content_title")}
 							</p>
-							<p className="mt-1 text-slate-500 text-sm">
+							<p className="mt-1 text-muted-foreground text-sm">
 								{t("admin.content_body")}
 							</p>
 						</div>
@@ -153,16 +168,16 @@ function AdminDashboardPage() {
 										key={course.id}
 										to="/admin/courses/$courseId"
 										params={{ courseId: course.id }}
-										className="group flex items-center gap-3 px-4 py-3 transition-colors hover:bg-slate-50 sm:px-5"
+										className="group flex items-center gap-3 px-4 py-3 transition-colors hover:bg-accent sm:px-5"
 									>
 										<span className="flex size-10 shrink-0 items-center justify-center rounded-btn bg-brand-primary-light text-brand-primary">
 											<BookOpen className="size-5" />
 										</span>
 										<span className="min-w-0 flex-1">
-											<span className="line-clamp-1 font-medium text-slate-900 text-sm">
+											<span className="line-clamp-1 font-medium text-foreground text-sm">
 												{course.title}
 											</span>
-											<span className="mt-0.5 text-slate-500 text-xs">
+											<span className="mt-0.5 text-muted-foreground text-xs">
 												{t("courses.modules", { count: course._count.modules })}
 											</span>
 										</span>
@@ -177,32 +192,32 @@ function AdminDashboardPage() {
 												? t("courses.published")
 												: t("courses.draft")}
 										</span>
-										<ArrowRight className="size-4 text-slate-300 group-hover:text-brand-primary" />
+										<ArrowRight className="size-4 text-muted-foreground group-hover:text-brand-primary" />
 									</Link>
 								))
 							) : (
-								<p className="p-6 text-center text-slate-500 text-sm">
+								<p className="p-6 text-center text-muted-foreground text-sm">
 									{t("admin.empty_content")}
 								</p>
 							)}
 						</div>
 					</div>
 
-					<div className="rounded-card border border-brand-accent/25 bg-white p-4 shadow-card sm:p-5">
+					<div className="rounded-card border border-brand-accent/25 bg-card p-4 shadow-card sm:p-5">
 						<span className="flex size-10 items-center justify-center rounded-btn bg-brand-accent-light text-brand-accent">
 							<ShieldCheck className="size-5" />
 						</span>
-						<p className="mt-4 font-display text-lg text-slate-900">
+						<p className="mt-4 font-display text-lg text-foreground">
 							{t("admin.guardrail_title")}
 						</p>
-						<p className="mt-2 text-slate-600 text-sm leading-relaxed">
+						<p className="mt-2 text-muted-foreground text-sm leading-relaxed">
 							{t("admin.guardrail_body")}
 						</p>
-						<div className="mt-4 rounded-btn border border-slate-200 bg-slate-50 p-3">
-							<p className="font-stats font-semibold text-slate-500 text-xs uppercase">
+						<div className="mt-4 rounded-btn border border-border bg-muted p-3">
+							<p className="font-stats font-semibold text-muted-foreground text-xs uppercase">
 								{t("admin.needs_attention")}
 							</p>
-							<p className="mt-1 font-display text-2xl text-slate-900">
+							<p className="mt-1 font-display text-2xl text-foreground">
 								{drafts.length}
 							</p>
 						</div>
@@ -210,6 +225,105 @@ function AdminDashboardPage() {
 				</section>
 			</div>
 		</StudioShell>
+	);
+}
+
+/** Admin queue: approve / dismiss instructor "feature me" requests (§4.1). */
+function FeatureRequests() {
+	const { t } = useTranslation("authoring");
+	const qc = useQueryClient();
+	const { data } = useQuery({
+		queryKey: ["feature-requests"],
+		queryFn: getFeatureRequests,
+	});
+
+	// Explicit type argument: the ternary returns `Promise<CourseDetail> |
+	// Promise<PathDetail>`, which useMutation's inference can't collapse into a
+	// single TData on its own.
+	const act = useMutation<
+		CourseDetail | PathDetail,
+		Error,
+		{ item: FeatureRequestItem; feature: boolean }
+	>({
+		mutationFn: ({
+			item,
+			feature,
+		}: {
+			item: FeatureRequestItem;
+			feature: boolean;
+		}) => {
+			const body = feature ? { isFeatured: true } : { featureRequested: false };
+			return item.type === "course"
+				? updateCourse(item.id, body)
+				: updatePath(item.id, body);
+		},
+		onSuccess: (_res, { feature }) => {
+			qc.invalidateQueries({ queryKey: ["feature-requests"] });
+			qc.invalidateQueries({ queryKey: ["featured"] });
+			toast.success(
+				feature
+					? t("feature_requests.approved", { defaultValue: "Featured" })
+					: t("feature_requests.dismissed", { defaultValue: "Dismissed" }),
+			);
+		},
+		onError: (e) => toast.error(e.message),
+	});
+
+	const pending = (data ?? []).filter((r) => !r.isFeatured);
+	if (pending.length === 0) return null;
+
+	return (
+		<section className="rounded-card border border-amber-300 bg-amber-50/60 p-4 shadow-card sm:p-5">
+			<div className="flex items-center gap-2">
+				<Sparkles className="size-5 text-amber-600" />
+				<h2 className="font-display text-lg text-foreground">
+					{t("feature_requests.title", { defaultValue: "Feature requests" })}
+				</h2>
+				<span className="rounded-pill bg-amber-200 px-2 py-0.5 font-stats font-semibold text-amber-800 text-xs">
+					{pending.length}
+				</span>
+			</div>
+			<p className="mt-0.5 text-muted-foreground text-sm">
+				{t("feature_requests.body", {
+					defaultValue:
+						"Instructors asking to appear in the homepage carousel.",
+				})}
+			</p>
+			<div className="mt-3 space-y-2">
+				{pending.map((item) => (
+					<div
+						key={`${item.type}-${item.id}`}
+						className="flex items-center gap-3 rounded-card border border-border bg-card px-4 py-3"
+					>
+						<span className="min-w-0 flex-1">
+							<span className="block truncate font-medium text-foreground text-sm">
+								{item.title}
+							</span>
+							<span className="font-stats text-muted-foreground text-xs uppercase">
+								{t(`feature_requests.${item.type}`, {
+									defaultValue: item.type,
+								})}
+							</span>
+						</span>
+						<Button
+							size="sm"
+							onClick={() => act.mutate({ item, feature: true })}
+							disabled={act.isPending}
+						>
+							{t("feature_requests.approve", { defaultValue: "Feature" })}
+						</Button>
+						<Button
+							size="sm"
+							variant="ghost"
+							onClick={() => act.mutate({ item, feature: false })}
+							disabled={act.isPending}
+						>
+							{t("feature_requests.dismiss", { defaultValue: "Dismiss" })}
+						</Button>
+					</div>
+				))}
+			</div>
+		</section>
 	);
 }
 
@@ -225,7 +339,7 @@ function AdminStat({
 	return (
 		<motion.div
 			whileHover={{ y: -2 }}
-			className="rounded-card border border-slate-200 bg-white p-4 shadow-card"
+			className="rounded-card border border-border bg-card p-4 shadow-card"
 		>
 			<span className="flex size-9 items-center justify-center rounded-btn bg-brand-primary-light text-brand-primary">
 				<Icon className="size-4" />
@@ -233,11 +347,11 @@ function AdminStat({
 			{value === null ? (
 				<Skeleton className="mt-4 h-7 w-16 rounded-btn" />
 			) : (
-				<p className="mt-3 font-stats font-bold text-2xl text-slate-900">
+				<p className="mt-3 font-stats font-bold text-2xl text-foreground">
 					{value}
 				</p>
 			)}
-			<p className="text-slate-500 text-xs">{label}</p>
+			<p className="text-muted-foreground text-xs">{label}</p>
 		</motion.div>
 	);
 }
@@ -261,7 +375,7 @@ function PortfolioCard({
 	return (
 		<Link
 			to={to}
-			className="group flex flex-col rounded-card border border-slate-200 bg-white p-5 shadow-card transition-all hover:-translate-y-1 hover:border-brand-primary/30 hover:shadow-card-hover"
+			className="group flex flex-col rounded-card border border-border bg-card p-5 shadow-card transition-all hover:-translate-y-1 hover:border-brand-primary/30 hover:shadow-card-hover"
 		>
 			<div className="flex items-center justify-between">
 				<span className="flex size-11 items-center justify-center rounded-btn bg-brand-primary-light text-brand-primary">
@@ -270,13 +384,13 @@ function PortfolioCard({
 				{count === null ? (
 					<Skeleton className="h-8 w-10 rounded-btn" />
 				) : (
-					<span className="font-stats font-bold text-3xl text-slate-900">
+					<span className="font-stats font-bold text-3xl text-foreground">
 						{count}
 					</span>
 				)}
 			</div>
-			<p className="mt-4 font-display text-lg text-slate-900">{title}</p>
-			<p className="mt-1 text-slate-500 text-sm">
+			<p className="mt-4 font-display text-lg text-foreground">{title}</p>
+			<p className="mt-1 text-muted-foreground text-sm">
 				{subValue} {sub.toLowerCase()}
 			</p>
 			<span className="mt-4 flex items-center gap-1 font-semibold text-brand-primary text-sm transition-all group-hover:gap-1.5">

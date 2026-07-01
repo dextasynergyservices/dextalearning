@@ -3,6 +3,7 @@ import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useRef } from "react";
 import { useTranslation } from "react-i18next";
+import { scheduleScrollTriggerRefresh } from "@/lib/scroll-trigger-refresh";
 
 gsap.registerPlugin(useGSAP, ScrollTrigger);
 
@@ -34,7 +35,12 @@ export function PlatformHubVisual() {
 			}
 
 			gsap
-				.timeline({ scrollTrigger: { trigger: root, start: "top 80%" } })
+				// `once` so a later position refresh (needed to correct pre-settle
+				// measurements) can never flip an already-drawn-in diagram back to
+				// hidden — see the matching note in useReveal.
+				.timeline({
+					scrollTrigger: { trigger: root, start: "top 80%", once: true },
+				})
 				.from("[data-core]", {
 					scale: 0,
 					transformOrigin: "center",
@@ -57,6 +63,10 @@ export function PlatformHubVisual() {
 					},
 					"-=0.4",
 				);
+
+			// See scheduleScrollTriggerRefresh: recompute once this route's
+			// layout has truly settled so the diagram doesn't get stuck hidden.
+			scheduleScrollTriggerRefresh();
 		},
 		{ scope },
 	);

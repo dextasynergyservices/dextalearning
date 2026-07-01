@@ -1,5 +1,12 @@
 import { Link } from "@tanstack/react-router";
-import { Compass, House, Search, Trophy, UserRound } from "lucide-react";
+import {
+	Compass,
+	House,
+	Library,
+	Search,
+	Trophy,
+	UserRound,
+} from "lucide-react";
 import type { ComponentType, ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { RequireAuth } from "@/components/auth/require-auth";
@@ -15,10 +22,11 @@ interface LearnerTab {
 	exact?: boolean;
 }
 
+// Dashboard-focused bottom nav (§9.5). Discovery (Explore/Search) lives in the
+// header so the tabs stay about the learner's own journey.
 const LEARNER_TABS: LearnerTab[] = [
 	{ to: "/dashboard", key: "home", icon: House, exact: true },
-	{ to: "/teachers/courses", key: "explore", icon: Compass },
-	{ to: "/search", key: "search", icon: Search },
+	{ to: "/learn/mine", key: "my_learning", icon: Library },
 	{ to: "/leaderboard", key: "leaderboard", icon: Trophy },
 	{ to: "/profile", key: "profile", icon: UserRound },
 ];
@@ -43,20 +51,20 @@ export function LearnerShell({
 
 	return (
 		<RequireAuth>
-			<div className="flex min-h-screen flex-col bg-slate-50">
+			<div className="flex min-h-screen flex-col bg-background">
 				<header
-					className="sticky top-0 z-40 border-slate-200 border-b bg-white/90 backdrop-blur-md"
+					className="sticky top-0 z-40 border-border border-b bg-card/90 backdrop-blur-md"
 					style={{ paddingTop: "env(safe-area-inset-top)" }}
 				>
 					<div className="mx-auto flex h-14 max-w-5xl items-center justify-between px-4 lg:h-16 lg:px-6">
-						<Logo className="text-xl text-slate-900" />
+						<Logo className="text-xl text-foreground" />
 						<nav className="hidden items-center gap-1 lg:flex">
 							{DESKTOP_TABS.map(({ to, key, exact }) => (
 								<Link
 									key={to}
 									to={to}
 									activeOptions={{ exact: Boolean(exact) }}
-									className="rounded-btn px-3.5 py-2 font-medium text-slate-600 text-sm transition-colors hover:bg-slate-100"
+									className="rounded-btn px-3.5 py-2 font-medium text-muted-foreground text-sm transition-colors hover:bg-accent"
 									activeProps={{
 										className: "bg-brand-primary-light text-brand-primary",
 									}}
@@ -66,6 +74,20 @@ export function LearnerShell({
 							))}
 						</nav>
 						<div className="flex items-center gap-1.5">
+							<Link
+								to="/teachers/courses"
+								aria-label={t("nav.explore")}
+								className="flex size-9 items-center justify-center rounded-btn text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+							>
+								<Compass className="size-5" />
+							</Link>
+							<Link
+								to="/search"
+								aria-label={t("nav.search")}
+								className="flex size-9 items-center justify-center rounded-btn text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+							>
+								<Search className="size-5" />
+							</Link>
 							<LanguageSwitcher compact />
 							<AccountMenu />
 						</div>
@@ -79,7 +101,7 @@ export function LearnerShell({
 
 				<nav
 					aria-label="Primary"
-					className="fixed inset-x-0 bottom-0 z-50 border-slate-200 border-t bg-white shadow-[0_-4px_20px_-8px_rgba(15,23,42,0.18)] lg:hidden"
+					className="fixed inset-x-0 bottom-0 z-50 border-border border-t bg-card shadow-[0_-4px_20px_-8px_rgba(15,23,42,0.18)] lg:hidden"
 					style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
 				>
 					<ul className="mx-auto flex max-w-md items-stretch justify-around">
@@ -97,7 +119,7 @@ export function LearnerShell({
 													"flex h-8 w-12 items-center justify-center rounded-full transition-colors",
 													isActive
 														? "bg-brand-primary-light text-brand-primary"
-														: "text-slate-500 group-hover:text-slate-700",
+														: "text-muted-foreground group-hover:text-foreground",
 												)}
 											>
 												<Icon className="size-5" />
@@ -105,7 +127,9 @@ export function LearnerShell({
 											<span
 												className={cn(
 													"font-stats text-[0.62rem] font-semibold tracking-wide uppercase",
-													isActive ? "text-brand-primary" : "text-slate-500",
+													isActive
+														? "text-brand-primary"
+														: "text-muted-foreground",
 												)}
 											>
 												{t(`nav.${key}`)}

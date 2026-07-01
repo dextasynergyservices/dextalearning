@@ -1,3 +1,4 @@
+import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import {
@@ -17,12 +18,24 @@ import {
 } from "lucide-react";
 import type { ComponentType, ReactNode } from "react";
 import { useTranslation } from "react-i18next";
+import { Carousel } from "@/components/catalog/carousel";
+import {
+	PublicCohortCard,
+	PublicCourseCard,
+	PublicPathCard,
+} from "@/components/catalog/public-cards";
 import { PublicShell } from "@/components/layout/public-shell";
 import { LearningScienceVisual } from "@/components/marketing/learning-science-visual";
 import { PlatformHubVisual } from "@/components/marketing/platform-hub-visual";
 import { buttonVariants } from "@/components/ui/button";
 import { useCountUp } from "@/hooks/use-count-up";
 import { useReveal } from "@/hooks/use-reveal";
+import { useSession } from "@/lib/auth-client";
+import {
+	type FeaturedCatalog,
+	getFeatured,
+	getRecommended,
+} from "@/lib/content-api";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/")({
@@ -35,11 +48,184 @@ function LandingPage() {
 			<Hero />
 			<Principles />
 			<Academies />
+			<Featured />
+			<Recommended />
 			<HowItWorks />
 			<Stories />
 			<StatsStrip />
 			<CtaBand />
 		</PublicShell>
+	);
+}
+
+/** Shared homepage shelves (carousels) for Featured / Recommended. */
+function CatalogShelves({
+	queryKey,
+	queryFn,
+	titles,
+	personalizedNotes,
+	bg = "bg-muted",
+}: {
+	queryKey: string;
+	queryFn: () => Promise<FeaturedCatalog>;
+	titles: { courses: string; paths: string; cohorts: string };
+	/** Per-shelf subtitle shown only when that shelf is personalised. */
+	personalizedNotes?: { courses: string; paths: string; cohorts: string };
+	bg?: string;
+}) {
+	const { data } = useQuery({ queryKey: [queryKey], queryFn });
+
+	if (
+		!data ||
+		(data.courses.length === 0 &&
+			data.paths.length === 0 &&
+			data.cohorts.length === 0)
+	) {
+		return null;
+	}
+
+	return (
+		<section className={cn("py-14 lg:py-20", bg)}>
+			<div className="mx-auto max-w-7xl space-y-12 px-6 lg:px-8">
+				{data.courses.length > 0 ? (
+					<Shelf
+						title={titles.courses}
+						subtitle={
+							data.personalized?.courses
+								? personalizedNotes?.courses
+								: undefined
+						}
+						seeAllTo="/teachers/courses"
+					>
+						<Carousel
+							items={data.courses}
+							getKey={(c) => c.id}
+							render={(course) => <PublicCourseCard course={course} />}
+						/>
+					</Shelf>
+				) : null}
+				{data.paths.length > 0 ? (
+					<Shelf
+						title={titles.paths}
+						subtitle={
+							data.personalized?.paths ? personalizedNotes?.paths : undefined
+						}
+						seeAllTo="/teachers/paths"
+					>
+						<Carousel
+							items={data.paths}
+							getKey={(p) => p.id}
+							render={(path) => <PublicPathCard path={path} />}
+						/>
+					</Shelf>
+				) : null}
+				{data.cohorts.length > 0 ? (
+					<Shelf
+						title={titles.cohorts}
+						subtitle={
+							data.personalized?.cohorts
+								? personalizedNotes?.cohorts
+								: undefined
+						}
+						seeAllTo="/teachers/cohorts"
+					>
+						<Carousel
+							items={data.cohorts}
+							getKey={(c) => c.id}
+							render={(cohort) => <PublicCohortCard cohort={cohort} />}
+						/>
+					</Shelf>
+				) : null}
+			</div>
+		</section>
+	);
+}
+
+/** Curated "Featured" shelves — admin-approved content. */
+function Featured() {
+	const { t } = useTranslation("academy");
+	return (
+		<CatalogShelves
+			queryKey="featured"
+			queryFn={getFeatured}
+			titles={{
+				courses: t("featured.courses", { defaultValue: "Featured courses" }),
+				paths: t("featured.paths", { defaultValue: "Featured paths" }),
+				cohorts: t("featured.cohorts", { defaultValue: "Featured cohorts" }),
+			}}
+		/>
+	);
+}
+
+/** "Recommended" shelves — personalised when signed in, else popular. */
+function Recommended() {
+	const { t } = useTranslation("academy");
+	const { data: session } = useSession();
+	return (
+		<CatalogShelves
+			queryKey={`recommended-${session?.user?.id ?? "anon"}`}
+			queryFn={getRecommended}
+			bg="bg-background"
+			personalizedNotes={{
+				courses: t("recommended.because_collab", {
+					defaultValue:
+						"Because learners who enrolled in your courses also enrolled in these",
+				}),
+				paths: t("recommended.because_collab_paths", {
+					defaultValue:
+						"Because learners who enrolled in your paths also enrolled in these",
+				}),
+				cohorts: t("recommended.because_collab_cohorts", {
+					defaultValue:
+						"Because learners who joined your cohorts also joined these",
+				}),
+			}}
+			titles={{
+				courses: t("recommended.courses", {
+					defaultValue: "Recommended courses",
+				}),
+				paths: t("recommended.paths", { defaultValue: "Recommended paths" }),
+				cohorts: t("recommended.cohorts", {
+					defaultValue: "Recommended cohorts",
+				}),
+			}}
+		/>
+	);
+}
+
+function Shelf({
+	title,
+	subtitle,
+	seeAllTo,
+	children,
+}: {
+	title: string;
+	subtitle?: string;
+	seeAllTo: "/teachers/courses" | "/teachers/paths" | "/teachers/cohorts";
+	children: ReactNode;
+}) {
+	const { t } = useTranslation("academy");
+	return (
+		<div>
+			<div className="mb-4 flex items-end justify-between gap-4">
+				<div className="min-w-0">
+					<h2 className="font-display text-2xl text-foreground sm:text-3xl">
+						{title}
+					</h2>
+					{subtitle ? (
+						<p className="mt-1 text-muted-foreground text-sm">{subtitle}</p>
+					) : null}
+				</div>
+				<Link
+					to={seeAllTo}
+					className="flex shrink-0 items-center gap-1 font-semibold text-brand-primary text-sm transition-all hover:gap-1.5"
+				>
+					{t("featured.see_all", { defaultValue: "See all" })}
+					<ArrowRight className="size-4" />
+				</Link>
+			</div>
+			{children}
+		</div>
 	);
 }
 
@@ -226,11 +412,11 @@ function Principles() {
 				</p>
 				<h2
 					data-reveal
-					className="mt-3 font-display text-3xl tracking-tight text-slate-900 sm:text-4xl"
+					className="mt-3 font-display text-3xl tracking-tight text-foreground sm:text-4xl"
 				>
 					{t("principles.title")}
 				</h2>
-				<p data-reveal className="mt-4 text-lg text-slate-500">
+				<p data-reveal className="mt-4 text-lg text-muted-foreground">
 					{t("principles.subtitle")}
 				</p>
 			</div>
@@ -245,15 +431,15 @@ function Principles() {
 					<div
 						key={key}
 						data-reveal={i % 2 === 0 ? "left" : "right"}
-						className="group rounded-card border border-slate-200 bg-white p-7 shadow-card transition-all hover:-translate-y-1 hover:shadow-card-hover"
+						className="group rounded-card border border-border bg-card p-7 shadow-card transition-all hover:-translate-y-1 hover:shadow-card-hover"
 					>
 						<span className="flex size-12 items-center justify-center rounded-btn bg-brand-primary-light text-brand-primary transition-colors group-hover:bg-brand-primary group-hover:text-white">
 							<Icon className="size-6" />
 						</span>
-						<h3 className="mt-5 font-display text-xl text-slate-900">
+						<h3 className="mt-5 font-display text-xl text-foreground">
 							{t(`principles.items.${key}.title`)}
 						</h3>
-						<p className="mt-2 text-sm leading-relaxed text-slate-500">
+						<p className="mt-2 text-sm leading-relaxed text-muted-foreground">
 							{t(`principles.items.${key}.body`)}
 						</p>
 					</div>
@@ -277,16 +463,16 @@ const ACADEMY_ITEMS: {
 function Academies() {
 	const { t } = useTranslation("landing");
 	return (
-		<RevealSection className="bg-slate-50">
+		<RevealSection className="bg-muted">
 			<div className="mx-auto max-w-7xl px-6 py-10 lg:px-8 lg:py-14">
 				<div className="mx-auto max-w-2xl text-center">
 					<h2
 						data-reveal
-						className="font-display text-3xl tracking-tight text-slate-900 sm:text-4xl"
+						className="font-display text-3xl tracking-tight text-foreground sm:text-4xl"
 					>
 						{t("academies.title")}
 					</h2>
-					<p data-reveal className="mt-4 text-lg text-slate-500">
+					<p data-reveal className="mt-4 text-lg text-muted-foreground">
 						{t("academies.subtitle")}
 					</p>
 				</div>
@@ -302,24 +488,24 @@ function Academies() {
 							key={key}
 							data-reveal="scale"
 							className={cn(
-								"flex flex-col rounded-card border bg-white p-7 shadow-card transition-all",
+								"flex flex-col rounded-card border bg-card p-7 shadow-card transition-all",
 								open
 									? "border-brand-primary/30 hover:-translate-y-1 hover:shadow-card-hover"
-									: "border-slate-200",
+									: "border-border",
 							)}
 						>
 							<div className="flex items-center justify-between">
-								<span className="flex size-11 items-center justify-center rounded-btn bg-slate-900 text-white">
+								<span className="flex size-11 items-center justify-center rounded-btn bg-foreground text-background">
 									<Icon className="size-5" />
 								</span>
 								<span className={open ? "badge-open" : "badge-soon"}>
 									{open ? t("academies.open") : t("academies.soon")}
 								</span>
 							</div>
-							<h3 className="mt-5 font-display text-lg text-slate-900">
+							<h3 className="mt-5 font-display text-lg text-foreground">
 								{t(`academies.items.${key}.name`)}
 							</h3>
-							<p className="mt-2 flex-1 text-sm leading-relaxed text-slate-500">
+							<p className="mt-2 flex-1 text-sm leading-relaxed text-muted-foreground">
 								{t(`academies.items.${key}.blurb`)}
 							</p>
 							{open ? (
@@ -330,7 +516,7 @@ function Academies() {
 									{t("academies.enter")} <ArrowRight className="size-4" />
 								</Link>
 							) : (
-								<span className="mt-5 text-sm font-medium text-slate-400">
+								<span className="mt-5 text-sm font-medium text-muted-foreground">
 									{t("academies.coming")}
 								</span>
 							)}
@@ -355,7 +541,7 @@ function HowItWorks() {
 			<div className="mx-auto max-w-2xl text-center">
 				<h2
 					data-reveal
-					className="font-display text-3xl tracking-tight text-slate-900 sm:text-4xl"
+					className="font-display text-3xl tracking-tight text-foreground sm:text-4xl"
 				>
 					{t("how.title")}
 				</h2>
@@ -370,10 +556,10 @@ function HowItWorks() {
 						<span className="font-display text-5xl text-brand-primary/15">
 							{n}
 						</span>
-						<h3 className="mt-2 font-display text-xl text-slate-900">
+						<h3 className="mt-2 font-display text-xl text-foreground">
 							{t(`how.items.${key}.title`)}
 						</h3>
-						<p className="mt-2 text-sm leading-relaxed text-slate-500">
+						<p className="mt-2 text-sm leading-relaxed text-muted-foreground">
 							{t(`how.items.${key}.body`)}
 						</p>
 					</div>
@@ -388,44 +574,45 @@ const STORY_KEYS = ["one", "two", "three"];
 function Stories() {
 	const { t } = useTranslation("landing");
 	return (
-		<RevealSection className="bg-slate-50">
+		<RevealSection className="bg-muted">
 			<div className="mx-auto max-w-7xl px-6 py-10 lg:px-8 lg:py-14">
 				<div className="mx-auto max-w-2xl text-center">
 					<h2
 						data-reveal
-						className="font-display text-3xl tracking-tight text-slate-900 sm:text-4xl"
+						className="font-display text-3xl tracking-tight text-foreground sm:text-4xl"
 					>
 						{t("stories.title")}
 					</h2>
 				</div>
-				<div className="mt-10 grid gap-6 lg:grid-cols-3">
-					{STORY_KEYS.map((key, i) => (
-						<figure
-							key={key}
-							data-reveal={i === 0 ? "left" : i === 2 ? "right" : ""}
-							className="flex flex-col rounded-card border border-slate-200 bg-white p-7 shadow-card transition-all hover:-translate-y-0.5 hover:shadow-card-hover"
-						>
-							<Quote className="size-7 text-brand-accent" />
-							<blockquote className="mt-4 flex-1 text-slate-700">
-								"{t(`stories.items.${key}.quote`)}"
-							</blockquote>
-							<figcaption className="mt-6 flex items-center gap-1">
-								<div>
-									<p className="font-semibold text-slate-900">
-										{t(`stories.items.${key}.name`)}
-									</p>
-									<p className="text-sm text-slate-500">
-										{t(`stories.items.${key}.role`)}
-									</p>
-								</div>
-								<div className="ml-auto flex text-brand-accent">
-									{[0, 1, 2, 3, 4].map((i) => (
-										<Star key={i} className="size-4 fill-current" />
-									))}
-								</div>
-							</figcaption>
-						</figure>
-					))}
+				<div className="mt-10">
+					<Carousel
+						items={STORY_KEYS}
+						getKey={(key) => key}
+						itemClassName="w-[85%] sm:w-[48%] lg:w-[32%]"
+						render={(key) => (
+							<figure className="flex h-full flex-col rounded-card border border-border bg-card p-7 shadow-card transition-all hover:-translate-y-0.5 hover:shadow-card-hover">
+								<Quote className="size-7 text-brand-accent" />
+								<blockquote className="mt-4 flex-1 text-foreground">
+									"{t(`stories.items.${key}.quote`)}"
+								</blockquote>
+								<figcaption className="mt-6 flex items-center gap-1">
+									<div>
+										<p className="font-semibold text-foreground">
+											{t(`stories.items.${key}.name`)}
+										</p>
+										<p className="text-sm text-muted-foreground">
+											{t(`stories.items.${key}.role`)}
+										</p>
+									</div>
+									<div className="ml-auto flex text-brand-accent">
+										{[0, 1, 2, 3, 4].map((s) => (
+											<Star key={s} className="size-4 fill-current" />
+										))}
+									</div>
+								</figcaption>
+							</figure>
+						)}
+					/>
 				</div>
 			</div>
 		</RevealSection>

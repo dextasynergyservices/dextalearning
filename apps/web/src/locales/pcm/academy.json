@@ -49,7 +49,8 @@
 		"clear": "Clear filter",
 		"earnback_pct": "{{pct}}% Earn-Back",
 		"earnback": "Earn-Back",
-		"free": "Free"
+		"free": "Free",
+		"load_more": "Load more"
 	},
 	"detail": {
 		"back": "Back",
@@ -88,7 +89,32 @@
 		"includes_transcript": "Transcripts & captions for 4 languages",
 		"minutes": "{{count}} min",
 		"not_found_title": "We no see this course",
-		"not_found_body": "This course fit don move or e no dey available again."
+		"not_found_body": "This course fit don move or e no dey available again.",
+		"continue_learning": "Continue learning",
+		"close": "Close",
+		"start_learning": "Start learning",
+		"progress_complete": "{{percent}}% don complete",
+		"path_journey_body": "Do each course one by one to finish the path.",
+		"optional": "Optional",
+		"of_content": "of content",
+		"path_includes_title": "Dis path get",
+		"enrolled": "You don enroll!",
+		"preview_watch": "Watch free preview",
+		"free": "Free",
+		"preview_count": "{{count}} lessons you fit preview free before you enroll.",
+		"preview_watch_path": "Watch path preview",
+		"preview_watch_cohort": "Watch cohort preview",
+		"instructor": "Your instructor",
+		"view_profile": "View full profile",
+		"courses_by": "Courses by {{name}}",
+		"no_courses_title": "No published courses yet",
+		"no_courses_body": "Check back soon for new courses.",
+		"instructor_missing_title": "We no see this instructor",
+		"instructor_missing_body": "This instructor profile no dey available.",
+		"paths_by": "Paths by {{name}}",
+		"cohorts_by": "Cohorts by {{name}}",
+		"no_content_title": "Nothing dey published yet",
+		"no_content_body": "Check back soon for new content."
 	},
 	"paths": {
 		"title": "Learning Paths",
@@ -137,5 +163,22 @@
 		"section_courses": "Courses",
 		"section_paths": "Learning Paths",
 		"section_cohorts": "Cohorts"
+	},
+	"lesson": {
+		"transcript_synced": "Synced"
+	},
+	"featured": {
+		"courses": "Featured courses",
+		"paths": "Featured paths",
+		"cohorts": "Featured cohorts",
+		"see_all": "See all"
+	},
+	"recommended": {
+		"courses": "Recommended courses",
+		"paths": "Recommended paths",
+		"cohorts": "Recommended cohorts",
+		"because_collab": "Because learners wey enroll for your courses also enroll for these",
+		"because_collab_paths": "Because learners wey enroll for your paths also enroll for these",
+		"because_collab_cohorts": "Because learners wey join your cohorts also join these"
 	}
 }

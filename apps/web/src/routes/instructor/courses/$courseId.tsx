@@ -7,6 +7,7 @@ import {
 	CheckCircle2,
 	ChevronRight,
 	CircleAlert,
+	Clock3,
 	FileStack,
 	Loader2,
 	Plus,
@@ -17,10 +18,13 @@ import type { ComponentType } from "react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
+import { AssessmentLauncher } from "@/components/authoring/assessment-launcher";
 import { CourseSettingsPanel } from "@/components/authoring/course-settings-panel";
+import { ProjectsSection } from "@/components/authoring/projects-section";
 import { StudioShell } from "@/components/authoring/studio-shell";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { EmptyState } from "@/components/ui/empty-state";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ApiError } from "@/lib/api";
 import {
@@ -33,6 +37,7 @@ import {
 	publishCourse,
 	reorderLessons,
 } from "@/lib/content-api";
+import { contentLengthLabel, contentMinutes } from "@/lib/duration";
 
 export const Route = createFileRoute("/instructor/courses/$courseId")({
 	component: InstructorCourseEditorRoute,
@@ -170,17 +175,17 @@ export function CourseEditorPage({
 						initial={{ opacity: 0, y: 14 }}
 						animate={{ opacity: 1, y: 0 }}
 						transition={{ duration: 0.34 }}
-						className="rounded-card border border-brand-primary/15 bg-white p-4 shadow-card sm:p-6"
+						className="rounded-card border border-brand-primary/15 bg-card p-4 shadow-card sm:p-6"
 					>
 						<div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
 							<div>
 								<p className="font-stats font-semibold text-brand-primary text-xs uppercase">
 									{t("editor.builder_eyebrow")}
 								</p>
-								<h2 className="mt-2 font-display text-2xl text-slate-900 sm:text-3xl">
+								<h2 className="mt-2 font-display text-2xl text-foreground sm:text-3xl">
 									{course.title}
 								</h2>
-								<p className="mt-2 max-w-2xl text-slate-600 text-sm leading-relaxed">
+								<p className="mt-2 max-w-2xl text-muted-foreground text-sm leading-relaxed">
 									{t("editor.builder_body")}
 								</p>
 							</div>
@@ -250,9 +255,7 @@ export function CourseEditorPage({
 					))}
 
 					{course.modules.length === 0 ? (
-						<p className="rounded-card border border-slate-200 border-dashed bg-white py-12 text-center text-slate-400">
-							{t("editor.no_modules")}
-						</p>
+						<EmptyState title={t("editor.no_modules")} />
 					) : null}
 
 					<form
@@ -260,13 +263,13 @@ export function CourseEditorPage({
 							e.preventDefault();
 							if (moduleTitle.trim()) addModule.mutate();
 						}}
-						className="flex flex-col gap-3 rounded-card border border-slate-200 bg-white p-4 shadow-card sm:flex-row"
+						className="flex flex-col gap-3 rounded-card border border-border bg-card p-4 shadow-card sm:flex-row"
 					>
 						<input
 							value={moduleTitle}
 							onChange={(e) => setModuleTitle(e.target.value)}
 							placeholder={t("editor.module_placeholder")}
-							className="h-11 flex-1 rounded-input border border-slate-200 px-3.5 outline-none focus:border-brand-primary"
+							className="h-11 flex-1 rounded-input border border-border px-3.5 outline-none focus:border-brand-primary"
 						/>
 						<Button
 							type="submit"
@@ -277,6 +280,30 @@ export function CourseEditorPage({
 							{t("editor.add_module")}
 						</Button>
 					</form>
+
+					<section className="rounded-card border border-border bg-card p-4 shadow-card sm:p-6">
+						<h2 className="font-display text-lg text-foreground">
+							{t("assessment.final_title", {
+								defaultValue: "Final assessment",
+							})}
+						</h2>
+						<p className="mt-0.5 mb-3 text-muted-foreground text-sm">
+							{t("assessment.final_subtitle", {
+								defaultValue:
+									"Learners must pass this to complete the course and trigger Earn-Back.",
+							})}
+						</p>
+						<AssessmentLauncher
+							scope="course_final"
+							parent={{ courseId }}
+							area={area}
+							createLabel={t("assessment.create_final", {
+								defaultValue: "Create final assessment",
+							})}
+						/>
+					</section>
+
+					<ProjectsSection scope="course" parent={{ courseId }} area={area} />
 				</div>
 			)}
 			<ConfirmDialog
@@ -306,12 +333,12 @@ function EditorStat({
 	label: string;
 }) {
 	return (
-		<div className="rounded-btn border border-slate-200 bg-slate-50 p-3">
+		<div className="rounded-btn border border-border bg-muted p-3">
 			<Icon className="size-4 text-brand-primary" />
-			<p className="mt-2 font-stats font-bold text-xl text-slate-900">
+			<p className="mt-2 font-stats font-bold text-xl text-foreground">
 				{value}
 			</p>
-			<p className="text-slate-500 text-xs leading-tight">{label}</p>
+			<p className="text-muted-foreground text-xs leading-tight">{label}</p>
 		</div>
 	);
 }
@@ -327,6 +354,7 @@ function ModuleCard({
 }) {
 	const { t } = useTranslation("authoring");
 	const [lessonTitle, setLessonTitle] = useState("");
+	const modLabel = contentLengthLabel(t, contentMinutes(module.lessons));
 
 	const addLesson = useMutation({
 		mutationFn: () => createLesson(module.id, { title: lessonTitle.trim() }),
@@ -360,14 +388,23 @@ function ModuleCard({
 	};
 
 	return (
-		<section className="overflow-hidden rounded-card border border-slate-200 bg-white shadow-card">
-			<div className="flex items-center justify-between gap-2 bg-slate-50 px-4 py-3">
-				<h2 className="font-display text-slate-900">{module.title}</h2>
+		<section className="overflow-hidden rounded-card border border-border bg-card shadow-card">
+			<div className="flex items-center justify-between gap-2 bg-muted px-4 py-3">
+				<div className="flex min-w-0 items-center gap-2.5">
+					<h2 className="truncate font-display text-foreground">
+						{module.title}
+					</h2>
+					{modLabel ? (
+						<span className="flex shrink-0 items-center gap-1 rounded-pill bg-card px-2 py-0.5 font-stats text-muted-foreground text-xs">
+							<Clock3 className="size-3.5" /> {modLabel}
+						</span>
+					) : null}
+				</div>
 				<button
 					type="button"
 					aria-label={t("editor.delete")}
 					onClick={() => removeModule.mutate()}
-					className="flex size-8 items-center justify-center rounded-btn text-slate-400 transition-colors hover:bg-error/5 hover:text-error"
+					className="flex size-8 items-center justify-center rounded-btn text-muted-foreground transition-colors hover:bg-error/5 hover:text-error"
 				>
 					<Trash2 className="size-4" />
 				</button>
@@ -382,7 +419,7 @@ function ModuleCard({
 								aria-label="Move up"
 								disabled={index === 0 || reorder.isPending}
 								onClick={() => move(index, -1)}
-								className="flex size-5 items-center justify-center rounded text-slate-400 transition-colors hover:text-brand-primary disabled:opacity-30"
+								className="flex size-5 items-center justify-center rounded text-muted-foreground transition-colors hover:text-brand-primary disabled:opacity-30"
 							>
 								<ArrowUp className="size-3.5" />
 							</button>
@@ -393,7 +430,7 @@ function ModuleCard({
 									index === module.lessons.length - 1 || reorder.isPending
 								}
 								onClick={() => move(index, 1)}
-								className="flex size-5 items-center justify-center rounded text-slate-400 transition-colors hover:text-brand-primary disabled:opacity-30"
+								className="flex size-5 items-center justify-center rounded text-muted-foreground transition-colors hover:text-brand-primary disabled:opacity-30"
 							>
 								<ArrowDown className="size-3.5" />
 							</button>
@@ -405,37 +442,51 @@ function ModuleCard({
 									: "/instructor/lessons/$lessonId"
 							}
 							params={{ lessonId: lesson.id }}
-							className="flex flex-1 items-center gap-3 rounded-btn px-2 py-2 transition-colors hover:bg-slate-50"
+							className="flex flex-1 items-center gap-3 rounded-btn px-2 py-2 transition-colors hover:bg-accent"
 						>
 							{lesson.transcriptText ? (
 								<CheckCircle2 className="size-4 text-success" />
 							) : (
-								<span className="size-4 rounded-full border-2 border-slate-200" />
+								<span className="size-4 rounded-full border-2 border-border" />
 							)}
-							<span className="flex-1 text-slate-700 text-sm">
+							<span className="flex-1 text-foreground text-sm">
 								{lesson.title}
 							</span>
-							<span className="text-slate-400 text-xs uppercase">
+							<span className="text-muted-foreground text-xs uppercase">
 								{lesson.contentType ?? "—"}
 							</span>
-							<ChevronRight className="size-4 text-slate-300" />
+							<ChevronRight className="size-4 text-muted-foreground" />
 						</Link>
 					</li>
 				))}
 			</ul>
+
+			<div className="border-border border-t p-3">
+				<p className="mb-2 font-medium text-muted-foreground text-xs uppercase">
+					{t("assessment.module_title", { defaultValue: "Module assessment" })}
+				</p>
+				<AssessmentLauncher
+					scope="module"
+					parent={{ moduleId: module.id }}
+					area={area}
+					createLabel={t("assessment.create_module", {
+						defaultValue: "Add module assessment",
+					})}
+				/>
+			</div>
 
 			<form
 				onSubmit={(e) => {
 					e.preventDefault();
 					if (lessonTitle.trim()) addLesson.mutate();
 				}}
-				className="flex gap-2 border-slate-100 border-t p-3"
+				className="flex gap-2 border-border border-t p-3"
 			>
 				<input
 					value={lessonTitle}
 					onChange={(e) => setLessonTitle(e.target.value)}
 					placeholder={t("editor.lesson_placeholder")}
-					className="h-10 flex-1 rounded-input border border-slate-200 px-3 text-sm outline-none focus:border-brand-primary"
+					className="h-10 flex-1 rounded-input border border-border px-3 text-sm outline-none focus:border-brand-primary"
 				/>
 				<Button
 					type="submit"

@@ -137,7 +137,7 @@ function BlogEditorPage() {
 						) : (
 							<Rocket className="size-4" />
 						)}
-						{t("editor.publish")}
+						{t("blog.publish", { defaultValue: "Publish post" })}
 					</Button>
 				</div>
 			}
@@ -149,18 +149,18 @@ function BlogEditorPage() {
 				</div>
 			) : (
 				<div className="space-y-6">
-					<section className="rounded-card border border-slate-200 bg-white p-4 shadow-card sm:p-6">
+					<section className="rounded-card border border-border bg-card p-4 shadow-card sm:p-6">
 						<div className="grid gap-5 lg:grid-cols-[280px_1fr]">
 							{/* Cover */}
 							<div>
-								<p className="mb-2 font-medium text-slate-700 text-sm">
+								<p className="mb-2 font-medium text-foreground text-sm">
 									{t("blog.cover", { defaultValue: "Cover image" })}
 								</p>
 								<button
 									type="button"
 									onClick={() => fileRef.current?.click()}
 									className={cn(
-										"group relative flex aspect-video w-full items-center justify-center overflow-hidden rounded-card border-2 border-slate-200 border-dashed bg-slate-50 transition-colors hover:border-brand-primary/50",
+										"group relative flex aspect-video w-full items-center justify-center overflow-hidden rounded-card border-2 border-border border-dashed bg-muted transition-colors hover:border-brand-primary/50",
 										coverUrl && "border-solid",
 									)}
 								>
@@ -171,7 +171,7 @@ function BlogEditorPage() {
 											className="size-full object-cover"
 										/>
 									) : (
-										<span className="flex flex-col items-center gap-1 text-slate-400">
+										<span className="flex flex-col items-center gap-1 text-muted-foreground">
 											<ImagePlus className="size-6" />
 											<span className="text-xs">
 												{t("settings.thumb_hint", {
@@ -202,18 +202,18 @@ function BlogEditorPage() {
 							{/* Meta */}
 							<div className="space-y-4">
 								<label className="block">
-									<span className="mb-1.5 block font-medium text-slate-700 text-sm">
+									<span className="mb-1.5 block font-medium text-foreground text-sm">
 										{t("blog.field_title", { defaultValue: "Title" })}
 									</span>
 									<input
 										value={title}
 										onChange={(e) => setTitle(e.target.value)}
-										className="h-11 w-full rounded-input border border-slate-200 px-3.5 text-slate-900 outline-none focus:border-brand-primary"
+										className="h-11 w-full rounded-input border border-border px-3.5 text-foreground outline-none focus:border-brand-primary"
 									/>
 								</label>
 								<div className="grid gap-4 sm:grid-cols-2">
 									<label className="block">
-										<span className="mb-1.5 block font-medium text-slate-700 text-sm">
+										<span className="mb-1.5 block font-medium text-foreground text-sm">
 											{t("blog.category", { defaultValue: "Category" })}
 										</span>
 										<input
@@ -222,22 +222,22 @@ function BlogEditorPage() {
 											placeholder={t("blog.category_ph", {
 												defaultValue: "Learning science",
 											})}
-											className="h-11 w-full rounded-input border border-slate-200 px-3.5 text-slate-900 outline-none focus:border-brand-primary"
+											className="h-11 w-full rounded-input border border-border px-3.5 text-foreground outline-none focus:border-brand-primary"
 										/>
 									</label>
 									<label className="block">
-										<span className="mb-1.5 block font-medium text-slate-700 text-sm">
+										<span className="mb-1.5 block font-medium text-foreground text-sm">
 											{t("blog.author", { defaultValue: "Author" })}
 										</span>
 										<input
 											value={authorName}
 											onChange={(e) => setAuthorName(e.target.value)}
-											className="h-11 w-full rounded-input border border-slate-200 px-3.5 text-slate-900 outline-none focus:border-brand-primary"
+											className="h-11 w-full rounded-input border border-border px-3.5 text-foreground outline-none focus:border-brand-primary"
 										/>
 									</label>
 								</div>
 								<label className="block">
-									<span className="mb-1.5 block font-medium text-slate-700 text-sm">
+									<span className="mb-1.5 block font-medium text-foreground text-sm">
 										{t("blog.excerpt", { defaultValue: "Excerpt" })}
 									</span>
 									<textarea
@@ -248,7 +248,7 @@ function BlogEditorPage() {
 										placeholder={t("blog.excerpt_ph", {
 											defaultValue: "One or two sentences shown on cards.",
 										})}
-										className="w-full resize-none rounded-input border border-slate-200 px-3.5 py-2.5 text-slate-900 text-sm outline-none focus:border-brand-primary"
+										className="w-full resize-none rounded-input border border-border px-3.5 py-2.5 text-foreground text-sm outline-none focus:border-brand-primary"
 									/>
 								</label>
 							</div>
@@ -256,8 +256,8 @@ function BlogEditorPage() {
 					</section>
 
 					{/* Body */}
-					<section className="rounded-card border border-slate-200 bg-white p-4 shadow-card sm:p-6">
-						<p className="mb-3 font-medium text-slate-700 text-sm">
+					<section className="rounded-card border border-border bg-card p-4 shadow-card sm:p-6">
+						<p className="mb-3 font-medium text-foreground text-sm">
 							{t("blog.body", { defaultValue: "Body" })}
 						</p>
 						<RichTextEditor value={body} onChange={setBody} />

@@ -114,6 +114,11 @@ export class UpdateCohortDto {
 	@Max(100)
 	earnBackPercentage?: number;
 
+	@ApiPropertyOptional({ description: "Feature on the homepage." })
+	@IsOptional()
+	@IsBoolean()
+	isFeatured?: boolean;
+
 	@ApiPropertyOptional({ enum: EXAM_MODES })
 	@IsOptional()
 	@IsIn(EXAM_MODES)
@@ -155,6 +160,12 @@ export class AddCohortCourseDto {
 	@ApiProperty({ description: "Course to add to the cohort." })
 	@IsUUID()
 	courseId!: string;
+}
+
+export class AddCohortPathDto {
+	@ApiProperty({ description: "Learning path to add to the cohort." })
+	@IsUUID()
+	pathId!: string;
 }
 
 export class ReorderCohortCoursesDto {
