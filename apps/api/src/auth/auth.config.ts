@@ -10,6 +10,7 @@ import {
 	sendOtpEmail,
 	sendPasswordResetEmail,
 	sendVerificationEmail,
+	sendWelcomeEmail,
 } from "../common/email";
 import { sendWhatsappOtp } from "../common/termii";
 
@@ -27,7 +28,7 @@ const baseURL = process.env.BETTER_AUTH_URL ?? "http://localhost:3000";
 const useSecureCookies = baseURL.startsWith("https://");
 
 /**
- * Better Auth instance (blueprint §5.5): email/password + Google OAuth, with a
+ * Better Auth instance: email/password + Google OAuth, with a
  * dual-channel verification flow — a magic link AND a 6-digit OTP. The actual
  * delivery (Resend email + Termii WhatsApp) is wired in the next slice; for now
  * the send callbacks log so the flows are exercisable end-to-end.
@@ -71,10 +72,18 @@ export const auth = betterAuth({
 			await sendPasswordResetEmail(user.email, url);
 		},
 	},
+	account: {
+		// If a learner registered with email+password and later signs in with
+		// Google (same, already-verified email), link the Google account to the
+		// existing user instead of erroring or creating a duplicate. Linking is
+		// gated to verified emails (Google is not in `trustedProviders`), which
+		// blocks the unverified-squatter takeover vector.
+		accountLinking: { enabled: true },
+	},
 	emailVerification: {
 		sendOnSignUp: true,
 		sendVerificationEmail: async ({ user, url }) => {
-			// One dual-channel email: magic link + a 6-digit OTP (§5.5). Also push
+			// One dual-channel email: magic link + a 6-digit OTP. Also push
 			// the OTP over WhatsApp when the user added a phone.
 			let otp = "";
 			try {
@@ -95,6 +104,36 @@ export const auth = betterAuth({
 			if (phone && otp) {
 				await sendWhatsappOtp(phone, otp);
 			}
+		},
+		// Account verified & ready (email/password flow) → welcome email.
+		afterEmailVerification: async (user) => {
+			await sendWelcomeEmail(
+				user.email,
+				(user as { firstName?: string }).firstName ?? user.name,
+			);
+		},
+	},
+	databaseHooks: {
+		user: {
+			create: {
+				// Self-service sign-up may pick learner or instructor only; admin /
+				// facilitator are granted out-of-band, never self-assigned.
+				before: async (user) => {
+					const requested = (user as { role?: string }).role;
+					const role = requested === "instructor" ? "instructor" : "learner";
+					return { data: { ...user, role } };
+				},
+				// OAuth sign-ups arrive already verified (no email step) — welcome
+				// them here; email/password users get it from afterEmailVerification.
+				after: async (user) => {
+					if ((user as { emailVerified?: boolean }).emailVerified) {
+						await sendWelcomeEmail(
+							user.email,
+							(user as { firstName?: string }).firstName ?? user.name,
+						);
+					}
+				},
+			},
 		},
 	},
 	socialProviders: {
@@ -121,7 +160,9 @@ export const auth = betterAuth({
 				type: "string",
 				required: false,
 				defaultValue: "learner",
-				input: false,
+				// Accepted at sign-up, but clamped to learner|instructor by the
+				// create hook below — privileged roles are never self-grantable.
+				input: true,
 			},
 			language: { type: "string", required: false, defaultValue: "en" },
 		},

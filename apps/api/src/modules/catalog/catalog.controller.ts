@@ -1,11 +1,42 @@
-import { Controller, Get, Param } from "@nestjs/common";
+import { Controller, Get, Param, UseGuards } from "@nestjs/common";
 import { ApiOkResponse, ApiOperation, ApiTags } from "@nestjs/swagger";
+import { CurrentUser } from "../../auth/decorators/current-user.decorator";
+import { Roles } from "../../auth/decorators/roles.decorator";
+import { OptionalSessionGuard } from "../../auth/guards/optional-session.guard";
+import { RolesGuard } from "../../auth/guards/roles.guard";
+import { SessionGuard } from "../../auth/guards/session.guard";
+import type { AuthenticatedUser } from "../../auth/types";
 import { CatalogService } from "./catalog.service";
 
 @ApiTags("catalog")
 @Controller("catalog")
 export class CatalogController {
 	constructor(private readonly catalog: CatalogService) {}
+
+	@Get("featured")
+	@ApiOperation({
+		summary: "Featured courses, paths and cohorts for the homepage",
+	})
+	featured() {
+		return this.catalog.getFeatured();
+	}
+
+	@Get("recommended")
+	@UseGuards(OptionalSessionGuard)
+	@ApiOperation({
+		summary: "Recommended content (personalised when signed in, else popular)",
+	})
+	recommended(@CurrentUser() user?: AuthenticatedUser) {
+		return this.catalog.getRecommended(user?.id);
+	}
+
+	@Get("feature-requests")
+	@UseGuards(SessionGuard, RolesGuard)
+	@Roles("admin")
+	@ApiOperation({ summary: "Pending instructor feature requests (admin)" })
+	featureRequests() {
+		return this.catalog.getFeatureRequests();
+	}
 
 	@Get("courses")
 	@ApiOperation({
@@ -27,6 +58,15 @@ export class CatalogController {
 	@ApiOkResponse({ description: "The published course and its curriculum." })
 	getCourse(@Param("slug") slug: string) {
 		return this.catalog.getPublishedCourse(slug);
+	}
+
+	@Get("instructors/:id")
+	@ApiOperation({
+		summary: "Public instructor profile + their published courses",
+	})
+	@ApiOkResponse({ description: "Instructor profile and authored courses." })
+	getInstructor(@Param("id") id: string) {
+		return this.catalog.getPublishedInstructor(id);
 	}
 
 	@Get("paths")

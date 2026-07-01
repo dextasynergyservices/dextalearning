@@ -16,7 +16,7 @@ export const Route = createFileRoute("/blog/$slug")({
 
 // Typography for the admin-authored rich-text body.
 const PROSE =
-	"max-w-none text-[1.0625rem] text-slate-700 leading-[1.75] [&_a]:font-medium [&_a]:text-brand-primary [&_a]:underline [&_a]:underline-offset-2 [&_blockquote]:my-6 [&_blockquote]:border-brand-primary [&_blockquote]:border-l-4 [&_blockquote]:pl-5 [&_blockquote]:font-display [&_blockquote]:text-slate-800 [&_blockquote]:text-xl [&_blockquote]:italic [&_code]:rounded [&_code]:bg-slate-100 [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:font-mono [&_code]:text-[0.9em] [&_h2]:mt-10 [&_h2]:mb-3 [&_h2]:font-display [&_h2]:text-2xl [&_h2]:text-slate-900 [&_h3]:mt-8 [&_h3]:mb-2 [&_h3]:font-display [&_h3]:text-slate-900 [&_h3]:text-xl [&_hr]:my-8 [&_hr]:border-slate-200 [&_img]:my-6 [&_img]:rounded-card [&_li]:mt-1.5 [&_ol]:mt-4 [&_ol]:list-decimal [&_ol]:pl-6 [&_p]:mt-5 [&_strong]:font-semibold [&_strong]:text-slate-900 [&_ul]:mt-4 [&_ul]:list-disc [&_ul]:pl-6";
+	"max-w-none text-[1.0625rem] text-foreground leading-[1.75] [&_a]:font-medium [&_a]:text-brand-primary [&_a]:underline [&_a]:underline-offset-2 [&_blockquote]:my-6 [&_blockquote]:border-brand-primary [&_blockquote]:border-l-4 [&_blockquote]:pl-5 [&_blockquote]:font-display [&_blockquote]:text-foreground [&_blockquote]:text-xl [&_blockquote]:italic [&_code]:rounded [&_code]:bg-muted [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:font-mono [&_code]:text-[0.9em] [&_h2]:mt-10 [&_h2]:mb-3 [&_h2]:font-display [&_h2]:text-2xl [&_h2]:text-foreground [&_h3]:mt-8 [&_h3]:mb-2 [&_h3]:font-display [&_h3]:text-foreground [&_h3]:text-xl [&_hr]:my-8 [&_hr]:border-border [&_img]:my-6 [&_img]:rounded-card [&_li]:mt-1.5 [&_ol]:mt-4 [&_ol]:list-decimal [&_ol]:pl-6 [&_p]:mt-5 [&_strong]:font-semibold [&_strong]:text-foreground [&_ul]:mt-4 [&_ul]:list-disc [&_ul]:pl-6";
 
 function initialsOf(name?: string | null): string {
 	if (!name) return "D";
@@ -62,10 +62,10 @@ function BlogPostPage() {
 		return (
 			<PublicShell mobileTitle={t("blog.title")} mobileShowBack>
 				<section className="mx-auto flex min-h-[60vh] max-w-md flex-col items-center justify-center px-6 py-24 text-center">
-					<h1 className="font-display text-2xl text-slate-900 sm:text-3xl">
+					<h1 className="font-display text-2xl text-foreground sm:text-3xl">
 						{t("blog.not_found_title", { defaultValue: "Article not found" })}
 					</h1>
-					<p className="mt-3 text-slate-500">
+					<p className="mt-3 text-muted-foreground">
 						{t("blog.not_found_body", {
 							defaultValue: "This article may have moved or been unpublished.",
 						})}
@@ -102,7 +102,7 @@ function BlogPostPage() {
 			<article className="mx-auto max-w-2xl px-5 pt-6 pb-24 lg:px-8 lg:pt-14 lg:pb-20">
 				<Link
 					to="/blog"
-					className="inline-flex items-center gap-1.5 font-medium text-slate-500 text-sm transition-colors hover:text-brand-primary mt-8"
+					className="inline-flex items-center gap-1.5 font-medium text-muted-foreground text-sm transition-colors hover:text-brand-primary mt-8"
 				>
 					<ArrowLeft className="size-4" />
 					{t("blog.all_articles", { defaultValue: "All articles" })}
@@ -114,7 +114,7 @@ function BlogPostPage() {
 							{post.category}
 						</span>
 					) : null}
-					<h1 className="mt-3 font-display text-3xl text-slate-900 leading-[1.12] tracking-tight sm:text-4xl lg:text-[2.75rem]">
+					<h1 className="mt-3 font-display text-3xl text-foreground leading-[1.12] tracking-tight sm:text-4xl lg:text-[2.75rem]">
 						{post.title}
 					</h1>
 
@@ -124,10 +124,10 @@ function BlogPostPage() {
 							{initialsOf(post.authorName)}
 						</span>
 						<div className="min-w-0">
-							<p className="font-medium text-slate-900 text-sm">
+							<p className="font-medium text-foreground text-sm">
 								{post.authorName ?? "DextaLearning"}
 							</p>
-							<div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-slate-500 text-xs">
+							<div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-muted-foreground text-xs">
 								{dateLabel ? (
 									<span className="flex items-center gap-1">
 										<CalendarDays className="size-3.5" />
@@ -154,7 +154,7 @@ function BlogPostPage() {
 				) : null}
 
 				{post.excerpt ? (
-					<p className="mt-7 border-brand-primary/20 border-l-2 pl-4 font-display text-slate-600 text-lg leading-relaxed sm:text-xl">
+					<p className="mt-7 border-brand-primary/20 border-l-2 pl-4 font-display text-muted-foreground text-lg leading-relaxed sm:text-xl">
 						{post.excerpt}
 					</p>
 				) : null}
@@ -168,17 +168,17 @@ function BlogPostPage() {
 				) : null}
 
 				{/* Footer */}
-				<footer className="mt-12 border-slate-200 border-t pt-8">
+				<footer className="mt-12 border-border border-t pt-8">
 					{/* Author card */}
-					<div className="flex items-center gap-4 rounded-card border border-slate-200 bg-slate-50 p-5">
+					<div className="flex items-center gap-4 rounded-card border border-border bg-muted p-5">
 						<span className="flex size-12 shrink-0 items-center justify-center rounded-full bg-brand-primary font-display text-white">
 							{initialsOf(post.authorName)}
 						</span>
 						<div className="min-w-0">
-							<p className="font-stats font-semibold text-slate-400 text-xs uppercase tracking-wide">
+							<p className="font-stats font-semibold text-muted-foreground text-xs uppercase tracking-wide">
 								{t("blog.written_by", { defaultValue: "Written by" })}
 							</p>
-							<p className="font-display text-lg text-slate-900">
+							<p className="font-display text-lg text-foreground">
 								{post.authorName ?? "DextaLearning"}
 							</p>
 						</div>
@@ -197,7 +197,7 @@ function BlogPostPage() {
 							<p className="font-display text-xl">
 								{t("blog.cta_title", { defaultValue: "Put it into practice" })}
 							</p>
-							<p className="mt-1 text-slate-300 text-sm">
+							<p className="mt-1 text-muted-foreground text-sm">
 								{t("blog.cta_body", {
 									defaultValue:
 										"Explore courses built on the science of learning.",

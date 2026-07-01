@@ -29,7 +29,7 @@ export function FilterChips({
 						"shrink-0 rounded-pill px-4 py-2 font-medium text-sm transition-all active:scale-95",
 						active === key
 							? "bg-brand-primary text-white shadow-sm"
-							: "bg-slate-100 text-slate-600 hover:bg-slate-200",
+							: "bg-muted text-muted-foreground hover:bg-accent",
 					)}
 				>
 					{t(`${labelPrefix}.${key}`)}

@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as VerifyEmailRouteImport } from './routes/verify-email'
 import { Route as SearchRouteImport } from './routes/search'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as RegisterRouteImport } from './routes/register'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
@@ -18,6 +19,7 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as LeaderboardRouteImport } from './routes/leaderboard'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as ContinueRouteImport } from './routes/continue'
 import { Route as CommunityRouteImport } from './routes/community'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AboutRouteImport } from './routes/about'
@@ -27,8 +29,13 @@ import { Route as InstructorIndexRouteImport } from './routes/instructor/index'
 import { Route as BlogIndexRouteImport } from './routes/blog/index'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as LessonsLessonIdRouteImport } from './routes/lessons.$lessonId'
+import { Route as LearnMineRouteImport } from './routes/learn/mine'
+import { Route as InstructorsIdRouteImport } from './routes/instructors.$id'
+import { Route as InstructorProfileRouteImport } from './routes/instructor/profile'
 import { Route as CoursesSlugRouteImport } from './routes/courses.$slug'
 import { Route as BlogSlugRouteImport } from './routes/blog/$slug'
+import { Route as AdminProfileRouteImport } from './routes/admin/profile'
+import { Route as AdminIntegrityRouteImport } from './routes/admin/integrity'
 import { Route as TeachersPathsIndexRouteImport } from './routes/teachers/paths/index'
 import { Route as TeachersCoursesIndexRouteImport } from './routes/teachers/courses/index'
 import { Route as TeachersCohortsIndexRouteImport } from './routes/teachers/cohorts/index'
@@ -41,14 +48,29 @@ import { Route as AdminBlogIndexRouteImport } from './routes/admin/blog/index'
 import { Route as TeachersPathsSlugRouteImport } from './routes/teachers/paths/$slug'
 import { Route as TeachersCoursesSlugRouteImport } from './routes/teachers/courses/$slug'
 import { Route as TeachersCohortsSlugRouteImport } from './routes/teachers/cohorts/$slug'
+import { Route as LearnProjectProjectIdRouteImport } from './routes/learn/project/$projectId'
+import { Route as LearnPeerReviewProjectIdRouteImport } from './routes/learn/peer-review/$projectId'
+import { Route as LearnPathPathIdRouteImport } from './routes/learn/path/$pathId'
+import { Route as LearnLessonLessonIdRouteImport } from './routes/learn/lesson/$lessonId'
+import { Route as LearnCourseCourseIdRouteImport } from './routes/learn/course/$courseId'
+import { Route as LearnCohortCohortIdRouteImport } from './routes/learn/cohort/$cohortId'
+import { Route as LearnAssessmentAssessmentIdRouteImport } from './routes/learn/assessment/$assessmentId'
+import { Route as InstructorProjectsProjectIdRouteImport } from './routes/instructor/projects/$projectId'
+import { Route as InstructorProjectSubmissionsProjectIdRouteImport } from './routes/instructor/project-submissions/$projectId'
 import { Route as InstructorPathsPathIdRouteImport } from './routes/instructor/paths/$pathId'
 import { Route as InstructorLessonsLessonIdRouteImport } from './routes/instructor/lessons/$lessonId'
 import { Route as InstructorCoursesCourseIdRouteImport } from './routes/instructor/courses/$courseId'
+import { Route as InstructorAttemptReportsAssessmentIdRouteImport } from './routes/instructor/attempt-reports/$assessmentId'
+import { Route as InstructorAssessmentsAssessmentIdRouteImport } from './routes/instructor/assessments/$assessmentId'
+import { Route as AdminProjectsProjectIdRouteImport } from './routes/admin/projects/$projectId'
+import { Route as AdminProjectSubmissionsProjectIdRouteImport } from './routes/admin/project-submissions/$projectId'
 import { Route as AdminPathsPathIdRouteImport } from './routes/admin/paths/$pathId'
 import { Route as AdminLessonsLessonIdRouteImport } from './routes/admin/lessons/$lessonId'
 import { Route as AdminCoursesCourseIdRouteImport } from './routes/admin/courses/$courseId'
 import { Route as AdminCohortsCohortIdRouteImport } from './routes/admin/cohorts/$cohortId'
 import { Route as AdminBlogPostIdRouteImport } from './routes/admin/blog/$postId'
+import { Route as AdminAttemptReportsAssessmentIdRouteImport } from './routes/admin/attempt-reports/$assessmentId'
+import { Route as AdminAssessmentsAssessmentIdRouteImport } from './routes/admin/assessments/$assessmentId'
 
 const VerifyEmailRoute = VerifyEmailRouteImport.update({
   id: '/verify-email',
@@ -58,6 +80,11 @@ const VerifyEmailRoute = VerifyEmailRouteImport.update({
 const SearchRoute = SearchRouteImport.update({
   id: '/search',
   path: '/search',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RegisterRoute = RegisterRouteImport.update({
@@ -93,6 +120,11 @@ const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
 const DashboardRoute = DashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ContinueRoute = ContinueRouteImport.update({
+  id: '/continue',
+  path: '/continue',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CommunityRoute = CommunityRouteImport.update({
@@ -140,6 +172,21 @@ const LessonsLessonIdRoute = LessonsLessonIdRouteImport.update({
   path: '/lessons/$lessonId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LearnMineRoute = LearnMineRouteImport.update({
+  id: '/learn/mine',
+  path: '/learn/mine',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const InstructorsIdRoute = InstructorsIdRouteImport.update({
+  id: '/instructors/$id',
+  path: '/instructors/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const InstructorProfileRoute = InstructorProfileRouteImport.update({
+  id: '/instructor/profile',
+  path: '/instructor/profile',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CoursesSlugRoute = CoursesSlugRouteImport.update({
   id: '/courses/$slug',
   path: '/courses/$slug',
@@ -149,6 +196,16 @@ const BlogSlugRoute = BlogSlugRouteImport.update({
   id: '/blog/$slug',
   path: '/blog/$slug',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AdminProfileRoute = AdminProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminIntegrityRoute = AdminIntegrityRouteImport.update({
+  id: '/integrity',
+  path: '/integrity',
+  getParentRoute: () => AdminRoute,
 } as any)
 const TeachersPathsIndexRoute = TeachersPathsIndexRouteImport.update({
   id: '/teachers/paths/',
@@ -210,6 +267,55 @@ const TeachersCohortsSlugRoute = TeachersCohortsSlugRouteImport.update({
   path: '/teachers/cohorts/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LearnProjectProjectIdRoute = LearnProjectProjectIdRouteImport.update({
+  id: '/learn/project/$projectId',
+  path: '/learn/project/$projectId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LearnPeerReviewProjectIdRoute =
+  LearnPeerReviewProjectIdRouteImport.update({
+    id: '/learn/peer-review/$projectId',
+    path: '/learn/peer-review/$projectId',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const LearnPathPathIdRoute = LearnPathPathIdRouteImport.update({
+  id: '/learn/path/$pathId',
+  path: '/learn/path/$pathId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LearnLessonLessonIdRoute = LearnLessonLessonIdRouteImport.update({
+  id: '/learn/lesson/$lessonId',
+  path: '/learn/lesson/$lessonId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LearnCourseCourseIdRoute = LearnCourseCourseIdRouteImport.update({
+  id: '/learn/course/$courseId',
+  path: '/learn/course/$courseId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LearnCohortCohortIdRoute = LearnCohortCohortIdRouteImport.update({
+  id: '/learn/cohort/$cohortId',
+  path: '/learn/cohort/$cohortId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LearnAssessmentAssessmentIdRoute =
+  LearnAssessmentAssessmentIdRouteImport.update({
+    id: '/learn/assessment/$assessmentId',
+    path: '/learn/assessment/$assessmentId',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const InstructorProjectsProjectIdRoute =
+  InstructorProjectsProjectIdRouteImport.update({
+    id: '/instructor/projects/$projectId',
+    path: '/instructor/projects/$projectId',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const InstructorProjectSubmissionsProjectIdRoute =
+  InstructorProjectSubmissionsProjectIdRouteImport.update({
+    id: '/instructor/project-submissions/$projectId',
+    path: '/instructor/project-submissions/$projectId',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const InstructorPathsPathIdRoute = InstructorPathsPathIdRouteImport.update({
   id: '/instructor/paths/$pathId',
   path: '/instructor/paths/$pathId',
@@ -226,6 +332,29 @@ const InstructorCoursesCourseIdRoute =
     id: '/instructor/courses/$courseId',
     path: '/instructor/courses/$courseId',
     getParentRoute: () => rootRouteImport,
+  } as any)
+const InstructorAttemptReportsAssessmentIdRoute =
+  InstructorAttemptReportsAssessmentIdRouteImport.update({
+    id: '/instructor/attempt-reports/$assessmentId',
+    path: '/instructor/attempt-reports/$assessmentId',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const InstructorAssessmentsAssessmentIdRoute =
+  InstructorAssessmentsAssessmentIdRouteImport.update({
+    id: '/instructor/assessments/$assessmentId',
+    path: '/instructor/assessments/$assessmentId',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const AdminProjectsProjectIdRoute = AdminProjectsProjectIdRouteImport.update({
+  id: '/projects/$projectId',
+  path: '/projects/$projectId',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminProjectSubmissionsProjectIdRoute =
+  AdminProjectSubmissionsProjectIdRouteImport.update({
+    id: '/project-submissions/$projectId',
+    path: '/project-submissions/$projectId',
+    getParentRoute: () => AdminRoute,
   } as any)
 const AdminPathsPathIdRoute = AdminPathsPathIdRouteImport.update({
   id: '/paths/$pathId',
@@ -252,12 +381,25 @@ const AdminBlogPostIdRoute = AdminBlogPostIdRouteImport.update({
   path: '/blog/$postId',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminAttemptReportsAssessmentIdRoute =
+  AdminAttemptReportsAssessmentIdRouteImport.update({
+    id: '/attempt-reports/$assessmentId',
+    path: '/attempt-reports/$assessmentId',
+    getParentRoute: () => AdminRoute,
+  } as any)
+const AdminAssessmentsAssessmentIdRoute =
+  AdminAssessmentsAssessmentIdRouteImport.update({
+    id: '/assessments/$assessmentId',
+    path: '/assessments/$assessmentId',
+    getParentRoute: () => AdminRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/admin': typeof AdminRouteWithChildren
   '/community': typeof CommunityRoute
+  '/continue': typeof ContinueRoute
   '/dashboard': typeof DashboardRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/leaderboard': typeof LeaderboardRoute
@@ -265,23 +407,44 @@ export interface FileRoutesByFullPath {
   '/onboarding': typeof OnboardingRoute
   '/profile': typeof ProfileRoute
   '/register': typeof RegisterRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/search': typeof SearchRoute
   '/verify-email': typeof VerifyEmailRoute
+  '/admin/integrity': typeof AdminIntegrityRoute
+  '/admin/profile': typeof AdminProfileRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/courses/$slug': typeof CoursesSlugRoute
+  '/instructor/profile': typeof InstructorProfileRoute
+  '/instructors/$id': typeof InstructorsIdRoute
+  '/learn/mine': typeof LearnMineRoute
   '/lessons/$lessonId': typeof LessonsLessonIdRoute
   '/admin/': typeof AdminIndexRoute
   '/blog/': typeof BlogIndexRoute
   '/instructor/': typeof InstructorIndexRoute
   '/teachers/': typeof TeachersIndexRoute
+  '/admin/assessments/$assessmentId': typeof AdminAssessmentsAssessmentIdRoute
+  '/admin/attempt-reports/$assessmentId': typeof AdminAttemptReportsAssessmentIdRoute
   '/admin/blog/$postId': typeof AdminBlogPostIdRoute
   '/admin/cohorts/$cohortId': typeof AdminCohortsCohortIdRoute
   '/admin/courses/$courseId': typeof AdminCoursesCourseIdRoute
   '/admin/lessons/$lessonId': typeof AdminLessonsLessonIdRoute
   '/admin/paths/$pathId': typeof AdminPathsPathIdRoute
+  '/admin/project-submissions/$projectId': typeof AdminProjectSubmissionsProjectIdRoute
+  '/admin/projects/$projectId': typeof AdminProjectsProjectIdRoute
+  '/instructor/assessments/$assessmentId': typeof InstructorAssessmentsAssessmentIdRoute
+  '/instructor/attempt-reports/$assessmentId': typeof InstructorAttemptReportsAssessmentIdRoute
   '/instructor/courses/$courseId': typeof InstructorCoursesCourseIdRoute
   '/instructor/lessons/$lessonId': typeof InstructorLessonsLessonIdRoute
   '/instructor/paths/$pathId': typeof InstructorPathsPathIdRoute
+  '/instructor/project-submissions/$projectId': typeof InstructorProjectSubmissionsProjectIdRoute
+  '/instructor/projects/$projectId': typeof InstructorProjectsProjectIdRoute
+  '/learn/assessment/$assessmentId': typeof LearnAssessmentAssessmentIdRoute
+  '/learn/cohort/$cohortId': typeof LearnCohortCohortIdRoute
+  '/learn/course/$courseId': typeof LearnCourseCourseIdRoute
+  '/learn/lesson/$lessonId': typeof LearnLessonLessonIdRoute
+  '/learn/path/$pathId': typeof LearnPathPathIdRoute
+  '/learn/peer-review/$projectId': typeof LearnPeerReviewProjectIdRoute
+  '/learn/project/$projectId': typeof LearnProjectProjectIdRoute
   '/teachers/cohorts/$slug': typeof TeachersCohortsSlugRoute
   '/teachers/courses/$slug': typeof TeachersCoursesSlugRoute
   '/teachers/paths/$slug': typeof TeachersPathsSlugRoute
@@ -299,6 +462,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/community': typeof CommunityRoute
+  '/continue': typeof ContinueRoute
   '/dashboard': typeof DashboardRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/leaderboard': typeof LeaderboardRoute
@@ -306,23 +470,44 @@ export interface FileRoutesByTo {
   '/onboarding': typeof OnboardingRoute
   '/profile': typeof ProfileRoute
   '/register': typeof RegisterRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/search': typeof SearchRoute
   '/verify-email': typeof VerifyEmailRoute
+  '/admin/integrity': typeof AdminIntegrityRoute
+  '/admin/profile': typeof AdminProfileRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/courses/$slug': typeof CoursesSlugRoute
+  '/instructor/profile': typeof InstructorProfileRoute
+  '/instructors/$id': typeof InstructorsIdRoute
+  '/learn/mine': typeof LearnMineRoute
   '/lessons/$lessonId': typeof LessonsLessonIdRoute
   '/admin': typeof AdminIndexRoute
   '/blog': typeof BlogIndexRoute
   '/instructor': typeof InstructorIndexRoute
   '/teachers': typeof TeachersIndexRoute
+  '/admin/assessments/$assessmentId': typeof AdminAssessmentsAssessmentIdRoute
+  '/admin/attempt-reports/$assessmentId': typeof AdminAttemptReportsAssessmentIdRoute
   '/admin/blog/$postId': typeof AdminBlogPostIdRoute
   '/admin/cohorts/$cohortId': typeof AdminCohortsCohortIdRoute
   '/admin/courses/$courseId': typeof AdminCoursesCourseIdRoute
   '/admin/lessons/$lessonId': typeof AdminLessonsLessonIdRoute
   '/admin/paths/$pathId': typeof AdminPathsPathIdRoute
+  '/admin/project-submissions/$projectId': typeof AdminProjectSubmissionsProjectIdRoute
+  '/admin/projects/$projectId': typeof AdminProjectsProjectIdRoute
+  '/instructor/assessments/$assessmentId': typeof InstructorAssessmentsAssessmentIdRoute
+  '/instructor/attempt-reports/$assessmentId': typeof InstructorAttemptReportsAssessmentIdRoute
   '/instructor/courses/$courseId': typeof InstructorCoursesCourseIdRoute
   '/instructor/lessons/$lessonId': typeof InstructorLessonsLessonIdRoute
   '/instructor/paths/$pathId': typeof InstructorPathsPathIdRoute
+  '/instructor/project-submissions/$projectId': typeof InstructorProjectSubmissionsProjectIdRoute
+  '/instructor/projects/$projectId': typeof InstructorProjectsProjectIdRoute
+  '/learn/assessment/$assessmentId': typeof LearnAssessmentAssessmentIdRoute
+  '/learn/cohort/$cohortId': typeof LearnCohortCohortIdRoute
+  '/learn/course/$courseId': typeof LearnCourseCourseIdRoute
+  '/learn/lesson/$lessonId': typeof LearnLessonLessonIdRoute
+  '/learn/path/$pathId': typeof LearnPathPathIdRoute
+  '/learn/peer-review/$projectId': typeof LearnPeerReviewProjectIdRoute
+  '/learn/project/$projectId': typeof LearnProjectProjectIdRoute
   '/teachers/cohorts/$slug': typeof TeachersCohortsSlugRoute
   '/teachers/courses/$slug': typeof TeachersCoursesSlugRoute
   '/teachers/paths/$slug': typeof TeachersPathsSlugRoute
@@ -342,6 +527,7 @@ export interface FileRoutesById {
   '/about': typeof AboutRoute
   '/admin': typeof AdminRouteWithChildren
   '/community': typeof CommunityRoute
+  '/continue': typeof ContinueRoute
   '/dashboard': typeof DashboardRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/leaderboard': typeof LeaderboardRoute
@@ -349,23 +535,44 @@ export interface FileRoutesById {
   '/onboarding': typeof OnboardingRoute
   '/profile': typeof ProfileRoute
   '/register': typeof RegisterRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/search': typeof SearchRoute
   '/verify-email': typeof VerifyEmailRoute
+  '/admin/integrity': typeof AdminIntegrityRoute
+  '/admin/profile': typeof AdminProfileRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/courses/$slug': typeof CoursesSlugRoute
+  '/instructor/profile': typeof InstructorProfileRoute
+  '/instructors/$id': typeof InstructorsIdRoute
+  '/learn/mine': typeof LearnMineRoute
   '/lessons/$lessonId': typeof LessonsLessonIdRoute
   '/admin/': typeof AdminIndexRoute
   '/blog/': typeof BlogIndexRoute
   '/instructor/': typeof InstructorIndexRoute
   '/teachers/': typeof TeachersIndexRoute
+  '/admin/assessments/$assessmentId': typeof AdminAssessmentsAssessmentIdRoute
+  '/admin/attempt-reports/$assessmentId': typeof AdminAttemptReportsAssessmentIdRoute
   '/admin/blog/$postId': typeof AdminBlogPostIdRoute
   '/admin/cohorts/$cohortId': typeof AdminCohortsCohortIdRoute
   '/admin/courses/$courseId': typeof AdminCoursesCourseIdRoute
   '/admin/lessons/$lessonId': typeof AdminLessonsLessonIdRoute
   '/admin/paths/$pathId': typeof AdminPathsPathIdRoute
+  '/admin/project-submissions/$projectId': typeof AdminProjectSubmissionsProjectIdRoute
+  '/admin/projects/$projectId': typeof AdminProjectsProjectIdRoute
+  '/instructor/assessments/$assessmentId': typeof InstructorAssessmentsAssessmentIdRoute
+  '/instructor/attempt-reports/$assessmentId': typeof InstructorAttemptReportsAssessmentIdRoute
   '/instructor/courses/$courseId': typeof InstructorCoursesCourseIdRoute
   '/instructor/lessons/$lessonId': typeof InstructorLessonsLessonIdRoute
   '/instructor/paths/$pathId': typeof InstructorPathsPathIdRoute
+  '/instructor/project-submissions/$projectId': typeof InstructorProjectSubmissionsProjectIdRoute
+  '/instructor/projects/$projectId': typeof InstructorProjectsProjectIdRoute
+  '/learn/assessment/$assessmentId': typeof LearnAssessmentAssessmentIdRoute
+  '/learn/cohort/$cohortId': typeof LearnCohortCohortIdRoute
+  '/learn/course/$courseId': typeof LearnCourseCourseIdRoute
+  '/learn/lesson/$lessonId': typeof LearnLessonLessonIdRoute
+  '/learn/path/$pathId': typeof LearnPathPathIdRoute
+  '/learn/peer-review/$projectId': typeof LearnPeerReviewProjectIdRoute
+  '/learn/project/$projectId': typeof LearnProjectProjectIdRoute
   '/teachers/cohorts/$slug': typeof TeachersCohortsSlugRoute
   '/teachers/courses/$slug': typeof TeachersCoursesSlugRoute
   '/teachers/paths/$slug': typeof TeachersPathsSlugRoute
@@ -386,6 +593,7 @@ export interface FileRouteTypes {
     | '/about'
     | '/admin'
     | '/community'
+    | '/continue'
     | '/dashboard'
     | '/forgot-password'
     | '/leaderboard'
@@ -393,23 +601,44 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/profile'
     | '/register'
+    | '/reset-password'
     | '/search'
     | '/verify-email'
+    | '/admin/integrity'
+    | '/admin/profile'
     | '/blog/$slug'
     | '/courses/$slug'
+    | '/instructor/profile'
+    | '/instructors/$id'
+    | '/learn/mine'
     | '/lessons/$lessonId'
     | '/admin/'
     | '/blog/'
     | '/instructor/'
     | '/teachers/'
+    | '/admin/assessments/$assessmentId'
+    | '/admin/attempt-reports/$assessmentId'
     | '/admin/blog/$postId'
     | '/admin/cohorts/$cohortId'
     | '/admin/courses/$courseId'
     | '/admin/lessons/$lessonId'
     | '/admin/paths/$pathId'
+    | '/admin/project-submissions/$projectId'
+    | '/admin/projects/$projectId'
+    | '/instructor/assessments/$assessmentId'
+    | '/instructor/attempt-reports/$assessmentId'
     | '/instructor/courses/$courseId'
     | '/instructor/lessons/$lessonId'
     | '/instructor/paths/$pathId'
+    | '/instructor/project-submissions/$projectId'
+    | '/instructor/projects/$projectId'
+    | '/learn/assessment/$assessmentId'
+    | '/learn/cohort/$cohortId'
+    | '/learn/course/$courseId'
+    | '/learn/lesson/$lessonId'
+    | '/learn/path/$pathId'
+    | '/learn/peer-review/$projectId'
+    | '/learn/project/$projectId'
     | '/teachers/cohorts/$slug'
     | '/teachers/courses/$slug'
     | '/teachers/paths/$slug'
@@ -427,6 +656,7 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/community'
+    | '/continue'
     | '/dashboard'
     | '/forgot-password'
     | '/leaderboard'
@@ -434,23 +664,44 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/profile'
     | '/register'
+    | '/reset-password'
     | '/search'
     | '/verify-email'
+    | '/admin/integrity'
+    | '/admin/profile'
     | '/blog/$slug'
     | '/courses/$slug'
+    | '/instructor/profile'
+    | '/instructors/$id'
+    | '/learn/mine'
     | '/lessons/$lessonId'
     | '/admin'
     | '/blog'
     | '/instructor'
     | '/teachers'
+    | '/admin/assessments/$assessmentId'
+    | '/admin/attempt-reports/$assessmentId'
     | '/admin/blog/$postId'
     | '/admin/cohorts/$cohortId'
     | '/admin/courses/$courseId'
     | '/admin/lessons/$lessonId'
     | '/admin/paths/$pathId'
+    | '/admin/project-submissions/$projectId'
+    | '/admin/projects/$projectId'
+    | '/instructor/assessments/$assessmentId'
+    | '/instructor/attempt-reports/$assessmentId'
     | '/instructor/courses/$courseId'
     | '/instructor/lessons/$lessonId'
     | '/instructor/paths/$pathId'
+    | '/instructor/project-submissions/$projectId'
+    | '/instructor/projects/$projectId'
+    | '/learn/assessment/$assessmentId'
+    | '/learn/cohort/$cohortId'
+    | '/learn/course/$courseId'
+    | '/learn/lesson/$lessonId'
+    | '/learn/path/$pathId'
+    | '/learn/peer-review/$projectId'
+    | '/learn/project/$projectId'
     | '/teachers/cohorts/$slug'
     | '/teachers/courses/$slug'
     | '/teachers/paths/$slug'
@@ -469,6 +720,7 @@ export interface FileRouteTypes {
     | '/about'
     | '/admin'
     | '/community'
+    | '/continue'
     | '/dashboard'
     | '/forgot-password'
     | '/leaderboard'
@@ -476,23 +728,44 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/profile'
     | '/register'
+    | '/reset-password'
     | '/search'
     | '/verify-email'
+    | '/admin/integrity'
+    | '/admin/profile'
     | '/blog/$slug'
     | '/courses/$slug'
+    | '/instructor/profile'
+    | '/instructors/$id'
+    | '/learn/mine'
     | '/lessons/$lessonId'
     | '/admin/'
     | '/blog/'
     | '/instructor/'
     | '/teachers/'
+    | '/admin/assessments/$assessmentId'
+    | '/admin/attempt-reports/$assessmentId'
     | '/admin/blog/$postId'
     | '/admin/cohorts/$cohortId'
     | '/admin/courses/$courseId'
     | '/admin/lessons/$lessonId'
     | '/admin/paths/$pathId'
+    | '/admin/project-submissions/$projectId'
+    | '/admin/projects/$projectId'
+    | '/instructor/assessments/$assessmentId'
+    | '/instructor/attempt-reports/$assessmentId'
     | '/instructor/courses/$courseId'
     | '/instructor/lessons/$lessonId'
     | '/instructor/paths/$pathId'
+    | '/instructor/project-submissions/$projectId'
+    | '/instructor/projects/$projectId'
+    | '/learn/assessment/$assessmentId'
+    | '/learn/cohort/$cohortId'
+    | '/learn/course/$courseId'
+    | '/learn/lesson/$lessonId'
+    | '/learn/path/$pathId'
+    | '/learn/peer-review/$projectId'
+    | '/learn/project/$projectId'
     | '/teachers/cohorts/$slug'
     | '/teachers/courses/$slug'
     | '/teachers/paths/$slug'
@@ -512,6 +785,7 @@ export interface RootRouteChildren {
   AboutRoute: typeof AboutRoute
   AdminRoute: typeof AdminRouteWithChildren
   CommunityRoute: typeof CommunityRoute
+  ContinueRoute: typeof ContinueRoute
   DashboardRoute: typeof DashboardRoute
   ForgotPasswordRoute: typeof ForgotPasswordRoute
   LeaderboardRoute: typeof LeaderboardRoute
@@ -519,17 +793,32 @@ export interface RootRouteChildren {
   OnboardingRoute: typeof OnboardingRoute
   ProfileRoute: typeof ProfileRoute
   RegisterRoute: typeof RegisterRoute
+  ResetPasswordRoute: typeof ResetPasswordRoute
   SearchRoute: typeof SearchRoute
   VerifyEmailRoute: typeof VerifyEmailRoute
   BlogSlugRoute: typeof BlogSlugRoute
   CoursesSlugRoute: typeof CoursesSlugRoute
+  InstructorProfileRoute: typeof InstructorProfileRoute
+  InstructorsIdRoute: typeof InstructorsIdRoute
+  LearnMineRoute: typeof LearnMineRoute
   LessonsLessonIdRoute: typeof LessonsLessonIdRoute
   BlogIndexRoute: typeof BlogIndexRoute
   InstructorIndexRoute: typeof InstructorIndexRoute
   TeachersIndexRoute: typeof TeachersIndexRoute
+  InstructorAssessmentsAssessmentIdRoute: typeof InstructorAssessmentsAssessmentIdRoute
+  InstructorAttemptReportsAssessmentIdRoute: typeof InstructorAttemptReportsAssessmentIdRoute
   InstructorCoursesCourseIdRoute: typeof InstructorCoursesCourseIdRoute
   InstructorLessonsLessonIdRoute: typeof InstructorLessonsLessonIdRoute
   InstructorPathsPathIdRoute: typeof InstructorPathsPathIdRoute
+  InstructorProjectSubmissionsProjectIdRoute: typeof InstructorProjectSubmissionsProjectIdRoute
+  InstructorProjectsProjectIdRoute: typeof InstructorProjectsProjectIdRoute
+  LearnAssessmentAssessmentIdRoute: typeof LearnAssessmentAssessmentIdRoute
+  LearnCohortCohortIdRoute: typeof LearnCohortCohortIdRoute
+  LearnCourseCourseIdRoute: typeof LearnCourseCourseIdRoute
+  LearnLessonLessonIdRoute: typeof LearnLessonLessonIdRoute
+  LearnPathPathIdRoute: typeof LearnPathPathIdRoute
+  LearnPeerReviewProjectIdRoute: typeof LearnPeerReviewProjectIdRoute
+  LearnProjectProjectIdRoute: typeof LearnProjectProjectIdRoute
   TeachersCohortsSlugRoute: typeof TeachersCohortsSlugRoute
   TeachersCoursesSlugRoute: typeof TeachersCoursesSlugRoute
   TeachersPathsSlugRoute: typeof TeachersPathsSlugRoute
@@ -554,6 +843,13 @@ declare module '@tanstack/react-router' {
       path: '/search'
       fullPath: '/search'
       preLoaderRoute: typeof SearchRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/register': {
@@ -603,6 +899,13 @@ declare module '@tanstack/react-router' {
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof DashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/continue': {
+      id: '/continue'
+      path: '/continue'
+      fullPath: '/continue'
+      preLoaderRoute: typeof ContinueRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/community': {
@@ -668,6 +971,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LessonsLessonIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/learn/mine': {
+      id: '/learn/mine'
+      path: '/learn/mine'
+      fullPath: '/learn/mine'
+      preLoaderRoute: typeof LearnMineRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/instructors/$id': {
+      id: '/instructors/$id'
+      path: '/instructors/$id'
+      fullPath: '/instructors/$id'
+      preLoaderRoute: typeof InstructorsIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/instructor/profile': {
+      id: '/instructor/profile'
+      path: '/instructor/profile'
+      fullPath: '/instructor/profile'
+      preLoaderRoute: typeof InstructorProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/courses/$slug': {
       id: '/courses/$slug'
       path: '/courses/$slug'
@@ -681,6 +1005,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/blog/$slug'
       preLoaderRoute: typeof BlogSlugRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/admin/profile': {
+      id: '/admin/profile'
+      path: '/profile'
+      fullPath: '/admin/profile'
+      preLoaderRoute: typeof AdminProfileRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/integrity': {
+      id: '/admin/integrity'
+      path: '/integrity'
+      fullPath: '/admin/integrity'
+      preLoaderRoute: typeof AdminIntegrityRouteImport
+      parentRoute: typeof AdminRoute
     }
     '/teachers/paths/': {
       id: '/teachers/paths/'
@@ -766,6 +1104,69 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TeachersCohortsSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/learn/project/$projectId': {
+      id: '/learn/project/$projectId'
+      path: '/learn/project/$projectId'
+      fullPath: '/learn/project/$projectId'
+      preLoaderRoute: typeof LearnProjectProjectIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/learn/peer-review/$projectId': {
+      id: '/learn/peer-review/$projectId'
+      path: '/learn/peer-review/$projectId'
+      fullPath: '/learn/peer-review/$projectId'
+      preLoaderRoute: typeof LearnPeerReviewProjectIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/learn/path/$pathId': {
+      id: '/learn/path/$pathId'
+      path: '/learn/path/$pathId'
+      fullPath: '/learn/path/$pathId'
+      preLoaderRoute: typeof LearnPathPathIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/learn/lesson/$lessonId': {
+      id: '/learn/lesson/$lessonId'
+      path: '/learn/lesson/$lessonId'
+      fullPath: '/learn/lesson/$lessonId'
+      preLoaderRoute: typeof LearnLessonLessonIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/learn/course/$courseId': {
+      id: '/learn/course/$courseId'
+      path: '/learn/course/$courseId'
+      fullPath: '/learn/course/$courseId'
+      preLoaderRoute: typeof LearnCourseCourseIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/learn/cohort/$cohortId': {
+      id: '/learn/cohort/$cohortId'
+      path: '/learn/cohort/$cohortId'
+      fullPath: '/learn/cohort/$cohortId'
+      preLoaderRoute: typeof LearnCohortCohortIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/learn/assessment/$assessmentId': {
+      id: '/learn/assessment/$assessmentId'
+      path: '/learn/assessment/$assessmentId'
+      fullPath: '/learn/assessment/$assessmentId'
+      preLoaderRoute: typeof LearnAssessmentAssessmentIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/instructor/projects/$projectId': {
+      id: '/instructor/projects/$projectId'
+      path: '/instructor/projects/$projectId'
+      fullPath: '/instructor/projects/$projectId'
+      preLoaderRoute: typeof InstructorProjectsProjectIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/instructor/project-submissions/$projectId': {
+      id: '/instructor/project-submissions/$projectId'
+      path: '/instructor/project-submissions/$projectId'
+      fullPath: '/instructor/project-submissions/$projectId'
+      preLoaderRoute: typeof InstructorProjectSubmissionsProjectIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/instructor/paths/$pathId': {
       id: '/instructor/paths/$pathId'
       path: '/instructor/paths/$pathId'
@@ -786,6 +1187,34 @@ declare module '@tanstack/react-router' {
       fullPath: '/instructor/courses/$courseId'
       preLoaderRoute: typeof InstructorCoursesCourseIdRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/instructor/attempt-reports/$assessmentId': {
+      id: '/instructor/attempt-reports/$assessmentId'
+      path: '/instructor/attempt-reports/$assessmentId'
+      fullPath: '/instructor/attempt-reports/$assessmentId'
+      preLoaderRoute: typeof InstructorAttemptReportsAssessmentIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/instructor/assessments/$assessmentId': {
+      id: '/instructor/assessments/$assessmentId'
+      path: '/instructor/assessments/$assessmentId'
+      fullPath: '/instructor/assessments/$assessmentId'
+      preLoaderRoute: typeof InstructorAssessmentsAssessmentIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/projects/$projectId': {
+      id: '/admin/projects/$projectId'
+      path: '/projects/$projectId'
+      fullPath: '/admin/projects/$projectId'
+      preLoaderRoute: typeof AdminProjectsProjectIdRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/project-submissions/$projectId': {
+      id: '/admin/project-submissions/$projectId'
+      path: '/project-submissions/$projectId'
+      fullPath: '/admin/project-submissions/$projectId'
+      preLoaderRoute: typeof AdminProjectSubmissionsProjectIdRouteImport
+      parentRoute: typeof AdminRoute
     }
     '/admin/paths/$pathId': {
       id: '/admin/paths/$pathId'
@@ -822,16 +1251,36 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminBlogPostIdRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/attempt-reports/$assessmentId': {
+      id: '/admin/attempt-reports/$assessmentId'
+      path: '/attempt-reports/$assessmentId'
+      fullPath: '/admin/attempt-reports/$assessmentId'
+      preLoaderRoute: typeof AdminAttemptReportsAssessmentIdRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/assessments/$assessmentId': {
+      id: '/admin/assessments/$assessmentId'
+      path: '/assessments/$assessmentId'
+      fullPath: '/admin/assessments/$assessmentId'
+      preLoaderRoute: typeof AdminAssessmentsAssessmentIdRouteImport
+      parentRoute: typeof AdminRoute
+    }
   }
 }
 
 interface AdminRouteChildren {
+  AdminIntegrityRoute: typeof AdminIntegrityRoute
+  AdminProfileRoute: typeof AdminProfileRoute
   AdminIndexRoute: typeof AdminIndexRoute
+  AdminAssessmentsAssessmentIdRoute: typeof AdminAssessmentsAssessmentIdRoute
+  AdminAttemptReportsAssessmentIdRoute: typeof AdminAttemptReportsAssessmentIdRoute
   AdminBlogPostIdRoute: typeof AdminBlogPostIdRoute
   AdminCohortsCohortIdRoute: typeof AdminCohortsCohortIdRoute
   AdminCoursesCourseIdRoute: typeof AdminCoursesCourseIdRoute
   AdminLessonsLessonIdRoute: typeof AdminLessonsLessonIdRoute
   AdminPathsPathIdRoute: typeof AdminPathsPathIdRoute
+  AdminProjectSubmissionsProjectIdRoute: typeof AdminProjectSubmissionsProjectIdRoute
+  AdminProjectsProjectIdRoute: typeof AdminProjectsProjectIdRoute
   AdminBlogIndexRoute: typeof AdminBlogIndexRoute
   AdminCohortsIndexRoute: typeof AdminCohortsIndexRoute
   AdminCoursesIndexRoute: typeof AdminCoursesIndexRoute
@@ -839,12 +1288,18 @@ interface AdminRouteChildren {
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
+  AdminIntegrityRoute: AdminIntegrityRoute,
+  AdminProfileRoute: AdminProfileRoute,
   AdminIndexRoute: AdminIndexRoute,
+  AdminAssessmentsAssessmentIdRoute: AdminAssessmentsAssessmentIdRoute,
+  AdminAttemptReportsAssessmentIdRoute: AdminAttemptReportsAssessmentIdRoute,
   AdminBlogPostIdRoute: AdminBlogPostIdRoute,
   AdminCohortsCohortIdRoute: AdminCohortsCohortIdRoute,
   AdminCoursesCourseIdRoute: AdminCoursesCourseIdRoute,
   AdminLessonsLessonIdRoute: AdminLessonsLessonIdRoute,
   AdminPathsPathIdRoute: AdminPathsPathIdRoute,
+  AdminProjectSubmissionsProjectIdRoute: AdminProjectSubmissionsProjectIdRoute,
+  AdminProjectsProjectIdRoute: AdminProjectsProjectIdRoute,
   AdminBlogIndexRoute: AdminBlogIndexRoute,
   AdminCohortsIndexRoute: AdminCohortsIndexRoute,
   AdminCoursesIndexRoute: AdminCoursesIndexRoute,
@@ -858,6 +1313,7 @@ const rootRouteChildren: RootRouteChildren = {
   AboutRoute: AboutRoute,
   AdminRoute: AdminRouteWithChildren,
   CommunityRoute: CommunityRoute,
+  ContinueRoute: ContinueRoute,
   DashboardRoute: DashboardRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,
   LeaderboardRoute: LeaderboardRoute,
@@ -865,17 +1321,35 @@ const rootRouteChildren: RootRouteChildren = {
   OnboardingRoute: OnboardingRoute,
   ProfileRoute: ProfileRoute,
   RegisterRoute: RegisterRoute,
+  ResetPasswordRoute: ResetPasswordRoute,
   SearchRoute: SearchRoute,
   VerifyEmailRoute: VerifyEmailRoute,
   BlogSlugRoute: BlogSlugRoute,
   CoursesSlugRoute: CoursesSlugRoute,
+  InstructorProfileRoute: InstructorProfileRoute,
+  InstructorsIdRoute: InstructorsIdRoute,
+  LearnMineRoute: LearnMineRoute,
   LessonsLessonIdRoute: LessonsLessonIdRoute,
   BlogIndexRoute: BlogIndexRoute,
   InstructorIndexRoute: InstructorIndexRoute,
   TeachersIndexRoute: TeachersIndexRoute,
+  InstructorAssessmentsAssessmentIdRoute:
+    InstructorAssessmentsAssessmentIdRoute,
+  InstructorAttemptReportsAssessmentIdRoute:
+    InstructorAttemptReportsAssessmentIdRoute,
   InstructorCoursesCourseIdRoute: InstructorCoursesCourseIdRoute,
   InstructorLessonsLessonIdRoute: InstructorLessonsLessonIdRoute,
   InstructorPathsPathIdRoute: InstructorPathsPathIdRoute,
+  InstructorProjectSubmissionsProjectIdRoute:
+    InstructorProjectSubmissionsProjectIdRoute,
+  InstructorProjectsProjectIdRoute: InstructorProjectsProjectIdRoute,
+  LearnAssessmentAssessmentIdRoute: LearnAssessmentAssessmentIdRoute,
+  LearnCohortCohortIdRoute: LearnCohortCohortIdRoute,
+  LearnCourseCourseIdRoute: LearnCourseCourseIdRoute,
+  LearnLessonLessonIdRoute: LearnLessonLessonIdRoute,
+  LearnPathPathIdRoute: LearnPathPathIdRoute,
+  LearnPeerReviewProjectIdRoute: LearnPeerReviewProjectIdRoute,
+  LearnProjectProjectIdRoute: LearnProjectProjectIdRoute,
   TeachersCohortsSlugRoute: TeachersCohortsSlugRoute,
   TeachersCoursesSlugRoute: TeachersCoursesSlugRoute,
   TeachersPathsSlugRoute: TeachersPathsSlugRoute,

@@ -3,6 +3,7 @@ import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useRef } from "react";
 import { useTranslation } from "react-i18next";
+import { scheduleScrollTriggerRefresh } from "@/lib/scroll-trigger-refresh";
 
 gsap.registerPlugin(useGSAP, ScrollTrigger);
 
@@ -39,7 +40,12 @@ export function LearningScienceVisual() {
 			}
 
 			gsap
-				.timeline({ scrollTrigger: { trigger: root, start: "top 78%" } })
+				// `once` so a later position refresh (needed to correct pre-settle
+				// measurements) can never flip an already-drawn-in chart back to
+				// hidden — see the matching note in useReveal.
+				.timeline({
+					scrollTrigger: { trigger: root, start: "top 78%", once: true },
+				})
 				.to(lines, {
 					strokeDashoffset: 0,
 					duration: 1.4,
@@ -52,6 +58,11 @@ export function LearningScienceVisual() {
 					"-=0.7",
 				)
 				.from("[data-area]", { opacity: 0, duration: 0.8 }, "-=1");
+
+			// See scheduleScrollTriggerRefresh: recompute once this route's
+			// layout has truly settled (client-side nav, view-transition
+			// cross-fade, late fonts) so the draw-in doesn't get stuck hidden.
+			scheduleScrollTriggerRefresh();
 		},
 		{ scope },
 	);
@@ -59,19 +70,19 @@ export function LearningScienceVisual() {
 	return (
 		<div
 			ref={scope}
-			className="relative overflow-hidden rounded-card border border-slate-200 bg-white p-5 shadow-card sm:p-7"
+			className="relative overflow-hidden rounded-card border border-border bg-card p-5 shadow-card sm:p-7"
 		>
 			<div className="flex flex-wrap items-center justify-between gap-3">
-				<p className="font-display text-slate-900 text-sm">
+				<p className="font-display text-foreground text-sm">
 					{t("principles.visual.title")}
 				</p>
 				<div className="flex items-center gap-4 text-xs">
-					<span className="flex items-center gap-1.5 text-slate-500">
+					<span className="flex items-center gap-1.5 text-muted-foreground">
 						<span className="size-2.5 rounded-full bg-brand-primary" />
 						{t("principles.visual.spaced")}
 					</span>
-					<span className="flex items-center gap-1.5 text-slate-400">
-						<span className="size-2.5 rounded-full bg-slate-300" />
+					<span className="flex items-center gap-1.5 text-muted-foreground">
+						<span className="size-2.5 rounded-full bg-muted-foreground" />
 						{t("principles.visual.decay")}
 					</span>
 				</div>
@@ -99,16 +110,16 @@ export function LearningScienceVisual() {
 						x2="600"
 						y1={y}
 						y2={y}
-						className="stroke-slate-100"
+						className="stroke-border"
 						strokeWidth="1"
 					/>
 				))}
 
 				{/* Axis labels */}
-				<text x="30" y="50" className="fill-slate-400 text-[11px]">
+				<text x="30" y="50" className="fill-muted-foreground text-[11px]">
 					100%
 				</text>
-				<text x="38" y="224" className="fill-slate-400 text-[11px]">
+				<text x="38" y="224" className="fill-muted-foreground text-[11px]">
 					0%
 				</text>
 
@@ -117,7 +128,7 @@ export function LearningScienceVisual() {
 					data-draw
 					d={DECAY}
 					fill="none"
-					className="stroke-slate-300"
+					className="stroke-muted-foreground"
 					strokeWidth="2.5"
 					strokeLinecap="round"
 					strokeDasharray="6 7"
@@ -139,15 +150,15 @@ export function LearningScienceVisual() {
 						cx={dot.cx}
 						cy={dot.cy}
 						r="5"
-						className="fill-white stroke-brand-primary"
+						className="fill-card stroke-brand-primary"
 						strokeWidth="3"
 					/>
 				))}
 
-				<text x="150" y="244" className="fill-slate-400 text-[11px]">
+				<text x="150" y="244" className="fill-muted-foreground text-[11px]">
 					{t("principles.visual.day", { n: 1 })}
 				</text>
-				<text x="540" y="244" className="fill-slate-400 text-[11px]">
+				<text x="540" y="244" className="fill-muted-foreground text-[11px]">
 					{t("principles.visual.day", { n: 30 })}
 				</text>
 			</svg>

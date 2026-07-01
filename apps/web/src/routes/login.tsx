@@ -1,6 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Loader2 } from "lucide-react";
+import { Loader2, Sparkles } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
@@ -13,18 +13,26 @@ import { Button } from "@/components/ui/button";
 import {
 	authClient,
 	homeForRole,
+	safeRedirect,
 	signIn,
 	signInWithGoogle,
 } from "@/lib/auth-client";
 import { type LoginValues, loginSchema } from "@/lib/auth-schemas";
 
-export const Route = createFileRoute("/login")({ component: LoginPage });
+export const Route = createFileRoute("/login")({
+	component: LoginPage,
+	validateSearch: (search: Record<string, unknown>): { redirect?: string } => ({
+		redirect: typeof search.redirect === "string" ? search.redirect : undefined,
+	}),
+});
 
 function LoginPage() {
 	const { t } = useTranslation("auth");
+	const { redirect } = Route.useSearch();
 	const {
 		register,
 		handleSubmit,
+		getValues,
 		formState: { errors, isSubmitting },
 	} = useForm<LoginValues>({
 		resolver: zodResolver(loginSchema),
@@ -54,7 +62,50 @@ function LoginPage() {
 		const role = (
 			(fresh?.data?.user ?? data?.user) as { role?: string } | undefined
 		)?.role;
-		window.location.assign(homeForRole(role));
+		// Return the learner to where they came from (e.g. an Enroll click) if a
+		// safe internal redirect was supplied; otherwise land on the role home.
+		window.location.assign(safeRedirect(redirect) ?? homeForRole(role));
+	};
+
+	// Passwordless sign-in (additive, no conflict with password/Google — same
+	// account by email). Uses the email field only; Better Auth's magic-link
+	// plugin handles verification and redirects to `callbackURL`.
+	const sendMagicLink = async () => {
+		const email = getValues("email");
+		if (!email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
+			toast.error(
+				t("login.magic_need_email", {
+					defaultValue: "Enter your email first.",
+				}),
+			);
+			return;
+		}
+		// Land on the role-aware resolver (/continue) so staff reach their studio,
+		// not the learner dashboard — honouring any specific redirect first.
+		const safe = safeRedirect(redirect);
+		await authClient.signIn.magicLink(
+			{
+				email,
+				callbackURL: `${window.location.origin}/continue${
+					safe ? `?redirect=${encodeURIComponent(safe)}` : ""
+				}`,
+				// A magic link can also create a brand-new account → onboard them,
+				// same as registration / new-OAuth users.
+				newUserCallbackURL: `${window.location.origin}/onboarding`,
+			},
+			{
+				onSuccess: () => {
+					toast.success(
+						t("login.magic_sent", {
+							defaultValue: "Sign-in link sent — check your email.",
+						}),
+					);
+				},
+				onError: (ctx) => {
+					toast.error(ctx.error.message || t("toasts.error"));
+				},
+			},
+		);
 	};
 
 	return (
@@ -98,10 +149,21 @@ function LoginPage() {
 					{t("login.submit")}
 				</Button>
 			</form>
-			<p className="mt-5 text-center text-slate-500 text-sm">
+			<Button
+				type="button"
+				variant="outline"
+				size="lg"
+				onClick={sendMagicLink}
+				className="mt-3 w-full"
+			>
+				<Sparkles className="size-4" />
+				{t("login.magic_cta", { defaultValue: "Email me a sign-in link" })}
+			</Button>
+			<p className="mt-5 text-center text-muted-foreground text-sm">
 				{t("login.no_account")}{" "}
 				<Link
 					to="/register"
+					search={{ redirect }}
 					className="font-semibold text-brand-primary hover:underline"
 				>
 					{t("login.create")}

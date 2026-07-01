@@ -77,6 +77,15 @@ async function bootstrap() {
 		.addTag("catalog", "Public browse of published courses & curricula")
 		.addTag("authoring", "Instructor/Admin course → module → lesson management")
 		.addTag("media", "Lesson media uploads, encoding & protected playback")
+		.addTag("assessments", "Instructor/Admin assessment + question authoring")
+		.addTag("attempts", "Learner assessment attempts — server timer + grading")
+		.addTag(
+			"assessment-reports",
+			"Instructor/Admin anti-cheat reporting + review",
+		)
+		.addTag("projects", "Instructor/Admin project authoring + grading")
+		.addTag("project-submissions", "Learner project submission + peer review")
+		.addTag("completion", "Course/path/cohort progress + completion gates")
 		.addTag("auth", "Registration (Better Auth serves sign-in/OAuth/OTP)")
 		.addTag("health", "Liveness probe")
 		.build();

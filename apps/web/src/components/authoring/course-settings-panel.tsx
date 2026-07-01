@@ -1,14 +1,18 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { ImagePlus, Loader2, Save } from "lucide-react";
+import { CheckCircle2, Clock3, ImagePlus, Loader2, Save } from "lucide-react";
 import { type ReactNode, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
+import { RichTextEditor } from "@/components/authoring/rich-text-editor";
 import { Button } from "@/components/ui/button";
+import { useSession } from "@/lib/auth-client";
 import {
 	type CourseDetail,
 	updateCourse,
 	uploadCourseThumbnail,
 } from "@/lib/content-api";
+import { contentLengthLabel, contentMinutes } from "@/lib/duration";
+import { isBlankHtml } from "@/lib/rich-text";
 import { cn } from "@/lib/utils";
 
 const LEVELS = ["beginner", "intermediate", "advanced"] as const;
@@ -38,12 +42,18 @@ function money(currency: string, amount: number): string {
 export function CourseSettingsPanel({ course }: { course: CourseDetail }) {
 	const { t } = useTranslation("authoring");
 	const queryClient = useQueryClient();
+	const { data: session } = useSession();
+	const isAdmin =
+		(session?.user as { role?: string } | undefined)?.role === "admin";
 	const fileRef = useRef<HTMLInputElement>(null);
 
 	const [thumbUrl, setThumbUrl] = useState(course.thumbnailUrl);
 	const [description, setDescription] = useState(course.description ?? "");
 	const [level, setLevel] = useState(course.level ?? "");
 	const [language, setLanguage] = useState(course.language ?? "en");
+	const [duration, setDuration] = useState(course.estimatedDuration ?? "");
+	const [featured, setFeatured] = useState(course.isFeatured);
+	const [requested, setRequested] = useState(course.featureRequested);
 	const [isFree, setIsFree] = useState(course.isFree);
 	const [price, setPrice] = useState(String(course.price ?? 0));
 	const [currency, setCurrency] = useState(course.currency ?? "NGN");
@@ -56,12 +66,26 @@ export function CourseSettingsPanel({ course }: { course: CourseDetail }) {
 	const invalidate = () =>
 		queryClient.invalidateQueries({ queryKey: ["course", course.id] });
 
+	// Featuring/request saves immediately (separate from the big "Save settings")
+	// so the toggle survives navigation and reaches the admin queue right away.
+	const featureToggle = useMutation({
+		mutationFn: (body: { isFeatured?: boolean; featureRequested?: boolean }) =>
+			updateCourse(course.id, body),
+		onSuccess: () => {
+			invalidate();
+			queryClient.invalidateQueries({ queryKey: ["feature-requests"] });
+			queryClient.invalidateQueries({ queryKey: ["featured"] });
+		},
+		onError: (e) => toast.error(e.message),
+	});
+
 	const save = useMutation({
 		mutationFn: () =>
 			updateCourse(course.id, {
-				description: description.trim() || undefined,
+				description: isBlankHtml(description) ? undefined : description,
 				level: level || undefined,
 				language,
+				estimatedDuration: duration.trim() || undefined,
 				isFree,
 				price: isFree ? undefined : Number(price) || 0,
 				currency,
@@ -93,14 +117,18 @@ export function CourseSettingsPanel({ course }: { course: CourseDetail }) {
 	const priceNum = Number(price) || 0;
 	const pctNum = Math.min(100, Math.max(1, Number(pct) || 0));
 	const earnBase = Math.round((priceNum * pctNum) / 100);
+	const contentLabel = contentLengthLabel(
+		t,
+		contentMinutes(course.modules.flatMap((m) => m.lessons)),
+	);
 
 	return (
-		<section className="rounded-card border border-slate-200 bg-white shadow-card">
-			<header className="border-slate-100 border-b px-4 py-3 sm:px-6">
-				<h2 className="font-display text-slate-900 text-lg">
+		<section className="rounded-card border border-border bg-card shadow-card">
+			<header className="border-border border-b px-4 py-3 sm:px-6">
+				<h2 className="font-display text-foreground text-lg">
 					{t("settings.title", { defaultValue: "Course settings" })}
 				</h2>
-				<p className="mt-0.5 text-slate-500 text-sm">
+				<p className="mt-0.5 text-muted-foreground text-sm">
 					{t("settings.subtitle", {
 						defaultValue:
 							"Thumbnail, description, pricing and Earn-Back learners see on the catalogue.",
@@ -111,21 +139,21 @@ export function CourseSettingsPanel({ course }: { course: CourseDetail }) {
 			<div className="grid gap-6 p-4 sm:p-6 lg:grid-cols-[260px_1fr]">
 				{/* Thumbnail */}
 				<div>
-					<p className="mb-2 font-medium text-slate-700 text-sm">
+					<p className="mb-2 font-medium text-foreground text-sm">
 						{t("settings.thumbnail", { defaultValue: "Thumbnail" })}
 					</p>
 					<button
 						type="button"
 						onClick={() => fileRef.current?.click()}
 						className={cn(
-							"group relative flex aspect-video w-full items-center justify-center overflow-hidden rounded-card border-2 border-slate-200 border-dashed bg-slate-50 transition-colors hover:border-brand-primary/50",
+							"group relative flex aspect-video w-full items-center justify-center overflow-hidden rounded-card border-2 border-border border-dashed bg-muted transition-colors hover:border-brand-primary/50",
 							thumbUrl && "border-solid",
 						)}
 					>
 						{thumbUrl ? (
 							<img src={thumbUrl} alt="" className="size-full object-cover" />
 						) : (
-							<span className="flex flex-col items-center gap-1 text-slate-400">
+							<span className="flex flex-col items-center gap-1 text-muted-foreground">
 								<ImagePlus className="size-6" />
 								<span className="text-xs">
 									{t("settings.thumb_hint", {
@@ -171,17 +199,7 @@ export function CourseSettingsPanel({ course }: { course: CourseDetail }) {
 					<Field
 						label={t("settings.description", { defaultValue: "Description" })}
 					>
-						<textarea
-							value={description}
-							onChange={(e) => setDescription(e.target.value)}
-							rows={3}
-							maxLength={5000}
-							placeholder={t("settings.description_ph", {
-								defaultValue:
-									"What will learners be able to do after this course?",
-							})}
-							className="w-full resize-none rounded-input border border-slate-200 px-3.5 py-2.5 text-slate-900 text-sm outline-none focus:border-brand-primary"
-						/>
+						<RichTextEditor value={description} onChange={setDescription} />
 					</Field>
 
 					<div className="grid gap-4 sm:grid-cols-2">
@@ -208,8 +226,104 @@ export function CourseSettingsPanel({ course }: { course: CourseDetail }) {
 						</Field>
 					</div>
 
+					<Field
+						label={t("settings.estimated_duration", {
+							defaultValue: "Estimated duration",
+						})}
+						hint={t("settings.estimated_duration_hint", {
+							defaultValue:
+								"A human estimate learners see, e.g. weeks. Content length is calculated automatically from the lessons.",
+						})}
+					>
+						<input
+							type="text"
+							value={duration}
+							onChange={(e) => setDuration(e.target.value)}
+							maxLength={120}
+							placeholder={t("settings.estimated_duration_ph", {
+								defaultValue: "e.g. 6–8 weeks (self-paced or facilitator-led)",
+							})}
+							className="h-11 w-full rounded-input border border-border px-3.5 text-foreground outline-none focus:border-brand-primary"
+						/>
+					</Field>
+
+					<div className="flex items-center justify-between gap-3 rounded-card border border-border bg-muted px-4 py-3">
+						<div>
+							<p className="font-medium text-foreground text-sm">
+								{t("settings.content_length", {
+									defaultValue: "Content length",
+								})}
+							</p>
+							<p className="text-muted-foreground text-xs">
+								{t("settings.content_length_hint", {
+									defaultValue: "Auto-calculated from lesson video & audio.",
+								})}
+							</p>
+						</div>
+						<span className="flex shrink-0 items-center gap-1.5 font-stats font-semibold text-foreground text-sm">
+							<Clock3 className="size-4 text-brand-primary" />
+							{contentLabel ||
+								t("settings.content_length_none", { defaultValue: "—" })}
+						</span>
+					</div>
+
+					<div className="rounded-card border border-brand-primary/20 bg-brand-primary-light/30 p-4">
+						{isAdmin ? (
+							<>
+								<Toggle
+									checked={featured}
+									onChange={(on) => {
+										setFeatured(on);
+										if (on) setRequested(false);
+										featureToggle.mutate({ isFeatured: on });
+									}}
+									label={t("settings.featured", {
+										defaultValue: "Feature on homepage",
+									})}
+									hint={t("settings.featured_hint", {
+										defaultValue:
+											"Show this in the Featured carousel on the homepage.",
+									})}
+								/>
+								{requested && !featured ? (
+									<p className="mt-2 text-amber-700 text-xs">
+										{t("settings.feature_requested_note", {
+											defaultValue:
+												"The instructor requested featuring — approve above.",
+										})}
+									</p>
+								) : null}
+							</>
+						) : (
+							<>
+								<Toggle
+									checked={requested}
+									onChange={(on) => {
+										setRequested(on);
+										featureToggle.mutate({ featureRequested: on });
+									}}
+									label={t("settings.request_featuring", {
+										defaultValue: "Request featuring",
+									})}
+									hint={t("settings.request_featuring_hint", {
+										defaultValue:
+											"Ask an admin to feature this on the homepage.",
+									})}
+								/>
+								{featured ? (
+									<p className="mt-2 flex items-center gap-1 text-success text-xs">
+										<CheckCircle2 className="size-3.5" />
+										{t("settings.is_featured_note", {
+											defaultValue: "Featured on the homepage",
+										})}
+									</p>
+								) : null}
+							</>
+						)}
+					</div>
+
 					{/* Pricing */}
-					<div className="rounded-card border border-slate-200 p-4">
+					<div className="rounded-card border border-border p-4">
 						<Toggle
 							checked={!isFree}
 							onChange={(on) => setIsFree(!on)}
@@ -226,7 +340,7 @@ export function CourseSettingsPanel({ course }: { course: CourseDetail }) {
 										min={0}
 										value={price}
 										onChange={(e) => setPrice(e.target.value)}
-										className="h-11 w-full rounded-input border border-slate-200 px-3.5 text-slate-900 outline-none focus:border-brand-primary"
+										className="h-11 w-full rounded-input border border-border px-3.5 text-foreground outline-none focus:border-brand-primary"
 									/>
 								</Field>
 								<Field
@@ -270,7 +384,7 @@ export function CourseSettingsPanel({ course }: { course: CourseDetail }) {
 												max={100}
 												value={pct}
 												onChange={(e) => setPct(e.target.value)}
-												className="h-11 w-full rounded-input border border-slate-200 px-3.5 text-slate-900 outline-none focus:border-brand-primary"
+												className="h-11 w-full rounded-input border border-border px-3.5 text-foreground outline-none focus:border-brand-primary"
 											/>
 										</Field>
 										<Field
@@ -284,7 +398,7 @@ export function CourseSettingsPanel({ course }: { course: CourseDetail }) {
 												max={365}
 												value={deadline}
 												onChange={(e) => setDeadline(e.target.value)}
-												className="h-11 w-full rounded-input border border-slate-200 px-3.5 text-slate-900 outline-none focus:border-brand-primary"
+												className="h-11 w-full rounded-input border border-border px-3.5 text-foreground outline-none focus:border-brand-primary"
 											/>
 										</Field>
 									</div>
@@ -318,14 +432,25 @@ export function CourseSettingsPanel({ course }: { course: CourseDetail }) {
 	);
 }
 
-function Field({ label, children }: { label: string; children: ReactNode }) {
+function Field({
+	label,
+	hint,
+	children,
+}: {
+	label: string;
+	hint?: string;
+	children: ReactNode;
+}) {
 	return (
 		// biome-ignore lint/a11y/noLabelWithoutControl: the control is passed in as `children` and wrapped by the label.
 		<label className="block">
-			<span className="mb-1.5 block font-medium text-slate-700 text-sm">
+			<span className="mb-1.5 block font-medium text-foreground text-sm">
 				{label}
 			</span>
 			{children}
+			{hint ? (
+				<span className="mt-1 block text-muted-foreground text-xs">{hint}</span>
+			) : null}
 		</label>
 	);
 }
@@ -343,7 +468,7 @@ function Select({
 		<select
 			value={value}
 			onChange={(e) => onChange(e.target.value)}
-			className="h-11 w-full rounded-input border border-slate-200 bg-white px-3 text-slate-900 outline-none focus:border-brand-primary"
+			className="h-11 w-full rounded-input border border-border bg-card px-3 text-foreground outline-none focus:border-brand-primary"
 		>
 			{children}
 		</select>
@@ -368,10 +493,12 @@ function Toggle({
 			className="flex w-full items-center justify-between gap-3 text-left"
 		>
 			<span>
-				<span className="block font-medium text-slate-800 text-sm">
+				<span className="block font-medium text-foreground text-sm">
 					{label}
 				</span>
-				{hint ? <span className="text-slate-500 text-xs">{hint}</span> : null}
+				{hint ? (
+					<span className="text-muted-foreground text-xs">{hint}</span>
+				) : null}
 			</span>
 			<span
 				className={cn(
@@ -381,7 +508,7 @@ function Toggle({
 			>
 				<span
 					className={cn(
-						"absolute top-0.5 size-5 rounded-full bg-white shadow-sm transition-all",
+						"absolute top-0.5 size-5 rounded-full bg-card shadow-sm transition-all",
 						checked ? "left-[1.375rem]" : "left-0.5",
 					)}
 				/>

@@ -4,9 +4,7 @@ import { motion } from "framer-motion";
 import {
 	ArrowRight,
 	Award,
-	BookOpen,
 	Brain,
-	Clock3,
 	Compass,
 	Flame,
 	GraduationCap,
@@ -17,10 +15,14 @@ import {
 } from "lucide-react";
 import type { ComponentType } from "react";
 import { useTranslation } from "react-i18next";
+import { Carousel } from "@/components/catalog/carousel";
+import { PublicCourseCard } from "@/components/catalog/public-cards";
 import { LearnerShell } from "@/components/layout/learner-shell";
+import { MyLearningCard } from "@/components/learn/my-learning-card";
+import { EmptyState } from "@/components/ui/empty-state";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useSession } from "@/lib/auth-client";
-import { getPublishedCourses } from "@/lib/content-api";
+import { getMyLearning, getPublishedCourses } from "@/lib/content-api";
 
 export const Route = createFileRoute("/dashboard")({
 	component: DashboardPage,
@@ -48,7 +50,7 @@ const STATS: {
 		key: "certificates",
 		icon: Award,
 		value: "0",
-		tint: "bg-slate-100 text-slate-700",
+		tint: "bg-muted text-foreground",
 	},
 ];
 
@@ -70,7 +72,7 @@ const LEARNING_TIPS: {
 	{
 		key: "focus",
 		icon: Target,
-		tint: "bg-slate-100 text-slate-700",
+		tint: "bg-muted text-foreground",
 	},
 ];
 
@@ -101,8 +103,15 @@ function DashboardPage() {
 		staleTime: 0,
 		refetchOnMount: "always",
 	});
-
-	const featuredCourse = courses?.[0];
+	const { data: mine } = useQuery({
+		queryKey: ["my-learning"],
+		queryFn: getMyLearning,
+	});
+	const inProgress = mine
+		? [...mine.courses, ...mine.paths, ...mine.cohorts]
+				.filter((i) => !i.isComplete)
+				.slice(0, 3)
+		: [];
 
 	return (
 		<LearnerShell title={t("home.greeting")}>
@@ -114,18 +123,18 @@ function DashboardPage() {
 			>
 				<motion.section
 					variants={itemMotion}
-					className="rounded-card border border-brand-primary/15 bg-white p-4 shadow-card sm:p-6"
+					className="rounded-card border border-brand-primary/15 bg-card p-4 shadow-card sm:p-6"
 				>
 					<div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
 						<div className="min-w-0">
 							<p className="font-stats font-semibold text-brand-primary text-xs uppercase">
 								{t("home.greeting")}
 							</p>
-							<h2 className="mt-2 font-display text-2xl leading-tight text-slate-900 sm:text-3xl">
+							<h2 className="mt-2 font-display text-2xl leading-tight text-foreground sm:text-3xl">
 								{firstName ? `${firstName}, ` : ""}
 								{t("home.subtitle")}
 							</h2>
-							<p className="mt-2 max-w-xl text-slate-600 text-sm leading-relaxed">
+							<p className="mt-2 max-w-xl text-muted-foreground text-sm leading-relaxed">
 								{t("home.tip_body")}
 							</p>
 						</div>
@@ -144,17 +153,17 @@ function DashboardPage() {
 								key={key}
 								whileHover={{ y: -2 }}
 								whileTap={{ scale: 0.98 }}
-								className="rounded-btn border border-slate-200 bg-slate-50 p-3 sm:p-4"
+								className="rounded-btn border border-border bg-muted p-3 sm:p-4"
 							>
 								<span
 									className={`flex size-8 items-center justify-center rounded-btn ${tint}`}
 								>
 									<Icon className="size-4" />
 								</span>
-								<p className="mt-3 font-stats font-bold text-2xl text-slate-900">
+								<p className="mt-3 font-stats font-bold text-2xl text-foreground">
 									{value}
 								</p>
-								<p className="text-slate-500 text-xs leading-tight">
+								<p className="text-muted-foreground text-xs leading-tight">
 									{t(`home.stats.${key}`)}
 								</p>
 							</motion.div>
@@ -168,14 +177,14 @@ function DashboardPage() {
 				>
 					<motion.div
 						whileHover={{ y: -2 }}
-						className="rounded-card border border-slate-200 bg-white p-4 shadow-card sm:p-5"
+						className="rounded-card border border-border bg-card p-4 shadow-card sm:p-5"
 					>
 						<div className="flex items-center justify-between gap-3">
 							<div>
-								<p className="font-display text-lg text-slate-900">
+								<p className="font-display text-lg text-foreground">
 									{t("home.continue_title")}
 								</p>
-								<p className="mt-1 text-slate-500 text-sm">
+								<p className="mt-1 text-muted-foreground text-sm">
 									{t("home.start_body")}
 								</p>
 							</div>
@@ -184,28 +193,21 @@ function DashboardPage() {
 							</span>
 						</div>
 
-						{featuredCourse ? (
-							<Link
-								to="/courses/$slug"
-								params={{ slug: featuredCourse.slug }}
-								className="mt-4 flex items-center gap-3 rounded-btn border border-brand-primary/20 bg-brand-primary-light/60 p-3 transition-colors hover:border-brand-primary/40"
-							>
-								<span className="flex size-11 shrink-0 items-center justify-center rounded-btn bg-white text-brand-primary">
-									<BookOpen className="size-5" />
-								</span>
-								<span className="min-w-0 flex-1">
-									<span className="line-clamp-1 font-semibold text-slate-900 text-sm">
-										{featuredCourse.title}
-									</span>
-									<span className="mt-0.5 flex items-center gap-1.5 text-slate-500 text-xs">
-										<Clock3 className="size-3.5" />
-										{t("home.view_course")}
-									</span>
-								</span>
-								<ArrowRight className="size-4 text-brand-primary" />
-							</Link>
+						{inProgress.length > 0 ? (
+							<div className="mt-4 space-y-3">
+								<MyLearningCard item={inProgress[0]} />
+								{inProgress.length > 1 ? (
+									<Link
+										to="/learn/mine"
+										className="inline-flex items-center gap-1 font-semibold text-brand-primary text-sm hover:gap-1.5"
+									>
+										{t("my.view_all", { defaultValue: "View all" })}
+										<ArrowRight className="size-4" />
+									</Link>
+								) : null}
+							</div>
 						) : (
-							<div className="mt-4 rounded-btn border border-dashed border-slate-200 bg-slate-50 p-4 text-center text-slate-500 text-sm">
+							<div className="mt-4 rounded-btn border border-dashed border-border bg-muted p-4 text-center text-muted-foreground text-sm">
 								{t("home.continue_empty")}
 							</div>
 						)}
@@ -213,17 +215,17 @@ function DashboardPage() {
 
 					<motion.div
 						whileHover={{ y: -2 }}
-						className="rounded-card border border-brand-accent/25 bg-white p-4 shadow-card sm:p-5"
+						className="rounded-card border border-brand-accent/25 bg-card p-4 shadow-card sm:p-5"
 					>
 						<div className="flex items-start gap-3">
 							<span className="flex size-10 shrink-0 items-center justify-center rounded-btn bg-brand-accent-light text-brand-accent">
 								<Lightbulb className="size-5" />
 							</span>
 							<div>
-								<p className="font-display text-lg text-slate-900">
+								<p className="font-display text-lg text-foreground">
 									{t("home.tip_title")}
 								</p>
-								<p className="mt-1 text-slate-600 text-sm leading-relaxed">
+								<p className="mt-1 text-muted-foreground text-sm leading-relaxed">
 									{t("home.tip_body")}
 								</p>
 							</div>
@@ -233,14 +235,14 @@ function DashboardPage() {
 
 				<motion.section
 					variants={itemMotion}
-					className="rounded-card border border-slate-200 bg-white p-4 shadow-card sm:p-5"
+					className="rounded-card border border-border bg-card p-4 shadow-card sm:p-5"
 				>
 					<div className="flex items-center justify-between gap-3">
 						<div>
 							<p className="font-stats font-semibold text-brand-primary text-xs uppercase">
 								{t("home.learning_plan")}
 							</p>
-							<h3 className="mt-1 font-display text-xl text-slate-900">
+							<h3 className="mt-1 font-display text-xl text-foreground">
 								{t("home.tips_title")}
 							</h3>
 						</div>
@@ -254,17 +256,17 @@ function DashboardPage() {
 								key={key}
 								whileHover={{ y: -3 }}
 								whileTap={{ scale: 0.99 }}
-								className="rounded-btn border border-slate-200 bg-slate-50 p-4"
+								className="rounded-btn border border-border bg-muted p-4"
 							>
 								<span
 									className={`flex size-9 items-center justify-center rounded-btn ${tint}`}
 								>
 									<Icon className="size-4" />
 								</span>
-								<h4 className="mt-3 font-display text-slate-900">
+								<h4 className="mt-3 font-display text-foreground">
 									{t(`home.learning_tips.${key}.title`)}
 								</h4>
-								<p className="mt-1 text-slate-600 text-sm leading-relaxed">
+								<p className="mt-1 text-muted-foreground text-sm leading-relaxed">
 									{t(`home.learning_tips.${key}.body`)}
 								</p>
 							</motion.article>
@@ -282,7 +284,7 @@ function DashboardPage() {
 							<p className="font-stats font-semibold text-brand-primary text-xs uppercase">
 								{t("home.recommended_title")}
 							</p>
-							<h3 className="mt-1 font-display text-xl text-slate-900">
+							<h3 className="mt-1 font-display text-xl text-foreground">
 								{t("home.explore_title")}
 							</h3>
 						</div>
@@ -295,65 +297,15 @@ function DashboardPage() {
 							))}
 						</div>
 					) : courses && courses.length > 0 ? (
-						<div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-							{courses.map((course, i) => (
-								<motion.div
-									key={course.id}
-									whileHover={{ y: -4 }}
-									whileTap={{ scale: 0.99 }}
-								>
-									<Link
-										to="/courses/$slug"
-										params={{ slug: course.slug }}
-										className="group flex min-h-48 flex-col rounded-card border border-slate-200 bg-white p-4 shadow-card transition-colors hover:border-brand-primary/30 hover:shadow-card-hover"
-									>
-										<div className="flex items-start justify-between gap-3">
-											<span className="flex size-11 items-center justify-center rounded-btn bg-brand-primary-light text-brand-primary">
-												<BookOpen className="size-5" />
-											</span>
-											<span className="rounded-pill bg-slate-100 px-2.5 py-1 font-stats font-semibold text-[0.65rem] text-slate-600 uppercase">
-												{course.level ?? course.language}
-											</span>
-										</div>
-										<h4 className="mt-4 line-clamp-2 font-display text-lg leading-snug text-slate-900">
-											{course.title}
-										</h4>
-										{course.description ? (
-											<p className="mt-2 line-clamp-2 text-slate-500 text-sm leading-relaxed">
-												{course.description}
-											</p>
-										) : null}
-										<div className="mt-auto flex items-center justify-between pt-4">
-											<span className="font-stats text-slate-400 text-xs">
-												{t("courses.modules", {
-													ns: "authoring",
-													count: course._count.modules,
-												})}
-											</span>
-											<span className="flex items-center gap-1 font-semibold text-brand-primary text-sm transition-all group-hover:gap-1.5">
-												{t("home.view_course")}
-												<ArrowRight className="size-4" />
-											</span>
-										</div>
-										<div
-											className="mt-4 h-1 rounded-full bg-brand-primary-light"
-											aria-hidden="true"
-										>
-											<motion.div
-												initial={{ width: 0 }}
-												animate={{ width: `${Math.min(100, 30 + i * 10)}%` }}
-												transition={{ duration: 0.7, delay: 0.1 + i * 0.04 }}
-												className="h-full rounded-full bg-brand-primary"
-											/>
-										</div>
-									</Link>
-								</motion.div>
-							))}
+						<div className="mt-4">
+							<Carousel
+								items={courses}
+								getKey={(c) => c.id}
+								render={(course) => <PublicCourseCard course={course} />}
+							/>
 						</div>
 					) : (
-						<div className="mt-4 rounded-card border border-slate-200 border-dashed bg-white py-12 text-center text-slate-500 text-sm">
-							{t("home.empty_courses")}
-						</div>
+						<EmptyState className="mt-4" title={t("home.empty_courses")} />
 					)}
 				</motion.section>
 			</motion.div>

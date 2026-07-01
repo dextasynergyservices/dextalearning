@@ -53,7 +53,7 @@ export function MobileAppBar({
 			"flex size-10 items-center justify-center rounded-full transition-colors active:scale-95",
 			dark
 				? "text-white hover:bg-white/10"
-				: "text-slate-600 hover:bg-slate-100",
+				: "text-muted-foreground hover:bg-accent",
 		);
 
 	return (
@@ -61,7 +61,7 @@ export function MobileAppBar({
 			className={cn(
 				"fixed inset-x-0 top-0 z-40 transition-colors duration-300 lg:hidden",
 				solid
-					? "border-b border-slate-200 bg-white/90 backdrop-blur-md"
+					? "border-b border-border bg-card/90 backdrop-blur-md"
 					: "border-b border-transparent",
 			)}
 			style={{ paddingTop: "env(safe-area-inset-top)" }}
@@ -76,7 +76,7 @@ export function MobileAppBar({
 							"-ml-1 flex size-10 items-center justify-center rounded-full transition-colors active:scale-95",
 							onDark
 								? "text-white hover:bg-white/10"
-								: "text-slate-700 hover:bg-slate-100",
+								: "text-foreground hover:bg-accent",
 						)}
 					>
 						<ChevronLeft className="size-6" />
@@ -87,14 +87,14 @@ export function MobileAppBar({
 					<h1
 						className={cn(
 							"truncate font-display text-lg tracking-tight",
-							onDark ? "text-white" : "text-slate-900",
+							onDark ? "text-white" : "text-foreground",
 						)}
 					>
 						{title}
 					</h1>
 				) : (
 					<Logo
-						className={cn("text-xl", onDark ? "text-white" : "text-slate-900")}
+						className={cn("text-xl", onDark ? "text-white" : "text-foreground")}
 						accentClassName={
 							onDark ? "text-brand-accent" : "text-brand-primary"
 						}

@@ -52,6 +52,54 @@
 	"done": {
 		"title": "Tout est prêt !",
 		"subtitle": "Bienvenue sur DextaLearning — commençons à apprendre.",
-		"cta": "Aller à mon tableau de bord"
+		"cta": "Aller à mon tableau de bord",
+		"with_picks": "Bienvenue sur DextaLearning — voici quelques cours pour commencer.",
+		"browse": "Parcourir tous les cours"
+	},
+	"save_error": "Impossible d'enregistrer vos préférences — vous pourrez les modifier plus tard.",
+	"aside": {
+		"learner_title": "Personnalisons votre apprentissage",
+		"learner_subtitle": "Quelques questions rapides pour adapter les cours, le rythme et les rappels.",
+		"instructor_title": "Bienvenue dans le Creator Studio",
+		"instructor_subtitle": "Configurez votre profil d'instructeur pour que les apprenants sachent qui les forme."
+	},
+	"whatsapp": {
+		"title": "Rappels d'étude sur WhatsApp",
+		"subtitle": "Facultatif — ajoutez votre numéro pour recevoir de petits rappels.",
+		"placeholder": "ex. +234 801 234 5678",
+		"optin": "M'envoyer des rappels d'étude sur WhatsApp",
+		"optin_hint": "Vous pouvez le désactiver à tout moment dans les paramètres."
+	},
+	"instructor": {
+		"welcome_title": "Vous êtes désormais instructeur 🎉",
+		"welcome_subtitle": "Voici ce que vous pouvez faire dans le Creator Studio :",
+		"points": {
+			"create": "Créez des cours, des parcours et des cohortes en direct avec des leçons vidéo, audio, PDF et texte.",
+			"earn": "Gagnez grâce au modèle Earn-Back — les apprenants sont récompensés pour avoir terminé, vous êtes payé pour enseigner.",
+			"publish": "Publiez quand vous êtes prêt — aucune approbation requise pour commencer."
+		},
+		"profile_title": "Créez votre profil d'instructeur",
+		"profile_subtitle": "C'est votre présence publique sur chaque cours que vous enseignez. Vous pourrez l'affiner plus tard.",
+		"headline": "Titre",
+		"headline_ph": "ex. Designer produit senior et formateur",
+		"bio": "Courte biographie",
+		"bio_ph": "Parlez de votre expérience et de ce que vous enseignez…",
+		"expertise": "Domaines d'expertise",
+		"areas": {
+			"technology": "Technologie",
+			"business": "Business",
+			"design": "Design",
+			"data": "Données et IA",
+			"languages": "Langues",
+			"science": "Sciences",
+			"arts": "Arts",
+			"health": "Santé",
+			"education": "Éducation",
+			"personal": "Développement personnel"
+		},
+		"enter_studio": "Entrer dans le Studio",
+		"ready_title": "Votre studio est prêt",
+		"ready_subtitle": "Lancez-vous et créez votre premier cours — quelques minutes suffisent.",
+		"payout_note": "💡 Configurez votre compte de paiement plus tard dans les Paramètres — vous pouvez publier et accumuler des gains avant cela."
 	}
 }

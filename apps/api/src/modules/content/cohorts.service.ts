@@ -126,10 +126,28 @@ export class CohortsService {
 		const cohort = await this.prisma.cohort.findUnique({
 			where: { id: cohortId },
 			include: {
+				introLesson: {
+					select: {
+						id: true,
+						contentType: true,
+						videoKeysJson: true,
+						audioKey: true,
+						pdfKey: true,
+						contentText: true,
+					},
+				},
 				courses: {
 					orderBy: { orderIndex: "asc" },
 					include: {
 						course: {
+							select: { id: true, title: true, status: true, level: true },
+						},
+					},
+				},
+				paths: {
+					orderBy: { orderIndex: "asc" },
+					include: {
+						path: {
 							select: { id: true, title: true, status: true, level: true },
 						},
 					},
@@ -146,6 +164,13 @@ export class CohortsService {
 			select: { id: true, title: true, status: true, level: true },
 		});
 		const availableCourses = allCourses.filter((c) => !inCohort.has(c.id));
+
+		const inCohortPaths = new Set(cohort.paths.map((cp) => cp.pathId));
+		const allPaths = await this.prisma.learningPath.findMany({
+			orderBy: { createdAt: "desc" },
+			select: { id: true, title: true, status: true, level: true },
+		});
+		const availablePaths = allPaths.filter((p) => !inCohortPaths.has(p.id));
 
 		const assignedIds = new Set([
 			...cohort.instructors.map((ci) => ci.userId),
@@ -166,9 +191,37 @@ export class CohortsService {
 		return this.withPrice({
 			...cohort,
 			availableCourses,
+			availablePaths,
 			assignableInstructors,
 			assignableFacilitators,
 		});
+	}
+
+	/** Create (or return the existing) intro/preview lesson for a cohort. */
+	async createIntro(cohortId: string) {
+		await this.assertExists(cohortId);
+		const existing = await this.prisma.lesson.findFirst({
+			where: { introForCohortId: cohortId },
+			select: { id: true },
+		});
+		if (existing) return { id: existing.id };
+		const lesson = await this.prisma.lesson.create({
+			data: {
+				introForCohortId: cohortId,
+				title: "Cohort intro",
+				orderIndex: 0,
+			},
+			select: { id: true },
+		});
+		return { id: lesson.id };
+	}
+
+	async removeIntro(cohortId: string) {
+		await this.assertExists(cohortId);
+		await this.prisma.lesson.deleteMany({
+			where: { introForCohortId: cohortId },
+		});
+		return { removed: true as const };
 	}
 
 	async updateCohort(cohortId: string, dto: UpdateCohortDto) {
@@ -233,6 +286,31 @@ export class CohortsService {
 		await this.assertExists(cohortId);
 		await this.prisma.cohortCourse.delete({
 			where: { cohortId_courseId: { cohortId, courseId } },
+		});
+		return { removed: true };
+	}
+
+	async addPath(cohortId: string, pathId: string) {
+		await this.assertExists(cohortId);
+		const path = await this.prisma.learningPath.findUnique({
+			where: { id: pathId },
+			select: { id: true },
+		});
+		if (!path) throw new NotFoundException("Path not found");
+		const last = await this.prisma.cohortPath.aggregate({
+			where: { cohortId },
+			_max: { orderIndex: true },
+		});
+		await this.prisma.cohortPath.create({
+			data: { cohortId, pathId, orderIndex: (last._max.orderIndex ?? 0) + 1 },
+		});
+		return { added: true };
+	}
+
+	async removePath(cohortId: string, pathId: string) {
+		await this.assertExists(cohortId);
+		await this.prisma.cohortPath.delete({
+			where: { cohortId_pathId: { cohortId, pathId } },
 		});
 		return { removed: true };
 	}

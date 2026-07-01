@@ -164,6 +164,16 @@ export class PathsService {
 		const path = await this.prisma.learningPath.findUnique({
 			where: { id: pathId },
 			include: {
+				introLesson: {
+					select: {
+						id: true,
+						contentType: true,
+						videoKeysJson: true,
+						audioKey: true,
+						pdfKey: true,
+						contentText: true,
+					},
+				},
 				pathCourses: {
 					orderBy: { orderIndex: "asc" },
 					include: {
@@ -175,6 +185,16 @@ export class PathsService {
 								status: true,
 								level: true,
 								_count: { select: { modules: true } },
+								modules: {
+									select: {
+										lessons: {
+											select: {
+												videoDurationSec: true,
+												audioDurationSec: true,
+											},
+										},
+									},
+								},
 							},
 						},
 					},
@@ -186,6 +206,28 @@ export class PathsService {
 			throw new ForbiddenException("You do not own this path");
 		}
 
+		// Fold each course's lesson media durations into a calculated content
+		// length (minutes), dropping the raw lesson rows from the payload (§4.3).
+		const pathCourses = path.pathCourses.map((pc) => {
+			const seconds = pc.course.modules.reduce(
+				(sum, m) =>
+					sum +
+					m.lessons.reduce(
+						(s, l) => s + (l.videoDurationSec ?? l.audioDurationSec ?? 0),
+						0,
+					),
+				0,
+			);
+			const { modules: _modules, ...course } = pc.course;
+			return {
+				...pc,
+				course: {
+					...course,
+					contentMinutes: seconds > 0 ? Math.ceil(seconds / 60) : 0,
+				},
+			};
+		});
+
 		// Courses the author can still add: their own (or, for admins, any) that
 		// are not already in this path.
 		const inPath = new Set(path.pathCourses.map((pc) => pc.courseId));
@@ -196,7 +238,33 @@ export class PathsService {
 		});
 		const availableCourses = candidates.filter((c) => !inPath.has(c.id));
 
-		return this.withCommercials({ ...path, availableCourses });
+		return this.withCommercials({ ...path, pathCourses, availableCourses });
+	}
+
+	/**
+	 * Create (or return the existing) intro/preview lesson for a path — a
+	 * standalone lesson the author fills in via the lesson editor, played to
+	 * prospective learners before they enrol. Reuses the whole lesson media
+	 * pipeline (upload/encode/serve/player).
+	 */
+	async createIntro(user: AuthenticatedUser, pathId: string) {
+		await this.assertPathOwner(pathId, user);
+		const existing = await this.prisma.lesson.findFirst({
+			where: { introForPathId: pathId },
+			select: { id: true },
+		});
+		if (existing) return { id: existing.id };
+		const lesson = await this.prisma.lesson.create({
+			data: { introForPathId: pathId, title: "Path intro", orderIndex: 0 },
+			select: { id: true },
+		});
+		return { id: lesson.id };
+	}
+
+	async removeIntro(user: AuthenticatedUser, pathId: string) {
+		await this.assertPathOwner(pathId, user);
+		await this.prisma.lesson.deleteMany({ where: { introForPathId: pathId } });
+		return { removed: true as const };
 	}
 
 	async updatePath(
@@ -212,12 +280,20 @@ export class PathsService {
 			isEarnBackEligible,
 			earnBackPercentage,
 			earnBackDeadlineDays,
+			isFeatured,
 			...rest
 		} = dto;
+		// Featuring is admin-only; instructors set `featureRequested` (in ...rest).
+		// When an admin sets `isFeatured`, any pending request is resolved.
+		const featuring =
+			user.role === "admin" && isFeatured !== undefined
+				? { isFeatured, featureRequested: false }
+				: {};
 		const updated = await this.prisma.learningPath.update({
 			where: { id: pathId },
 			data: {
 				...rest,
+				...featuring,
 				...this.normalizeCommercials({
 					price,
 					isFree,

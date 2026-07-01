@@ -15,6 +15,7 @@ import { toast } from "sonner";
 import { StudioShell } from "@/components/authoring/studio-shell";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { EmptyState } from "@/components/ui/empty-state";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
 	type CohortSummary,
@@ -94,29 +95,29 @@ function CohortsListPage() {
 					initial={{ opacity: 0, y: 14 }}
 					animate={{ opacity: 1, y: 0 }}
 					transition={{ duration: 0.34 }}
-					className="rounded-card border border-brand-primary/15 bg-white p-4 shadow-card sm:p-6"
+					className="rounded-card border border-brand-primary/15 bg-card p-4 shadow-card sm:p-6"
 				>
 					<p className="font-stats font-semibold text-brand-primary text-xs uppercase">
 						{t("cohorts.eyebrow", { defaultValue: "Run programmes" })}
 					</p>
-					<h2 className="mt-2 font-display text-2xl text-slate-900 sm:text-3xl">
+					<h2 className="mt-2 font-display text-2xl text-foreground sm:text-3xl">
 						{t("cohorts.heading", { defaultValue: "Cohorts" })}
 					</h2>
-					<p className="mt-2 max-w-2xl text-slate-600 text-sm leading-relaxed">
+					<p className="mt-2 max-w-2xl text-muted-foreground text-sm leading-relaxed">
 						{t("cohorts.subtitle", {
 							defaultValue:
 								"Schedule a guided run of courses with a start date, seats, groups and assigned staff.",
 						})}
 					</p>
 					<div className="mt-4 flex gap-6 text-sm">
-						<span className="text-slate-500">
-							<b className="font-stats font-bold text-slate-900 text-lg">
+						<span className="text-muted-foreground">
+							<b className="font-stats font-bold text-foreground text-lg">
 								{isPending ? "—" : (cohorts?.length ?? 0)}
 							</b>{" "}
 							{t("cohorts.stat_total", { defaultValue: "cohorts" })}
 						</span>
-						<span className="text-slate-500">
-							<b className="font-stats font-bold text-slate-900 text-lg">
+						<span className="text-muted-foreground">
+							<b className="font-stats font-bold text-foreground text-lg">
 								{isPending ? "—" : open}
 							</b>{" "}
 							{t("cohorts.stat_open", { defaultValue: "open" })}
@@ -130,7 +131,7 @@ function CohortsListPage() {
 							e.preventDefault();
 							if (title.trim().length >= 3) create.mutate();
 						}}
-						className="flex flex-col gap-3 rounded-card border border-slate-200 bg-white p-4 shadow-card sm:flex-row sm:items-center"
+						className="flex flex-col gap-3 rounded-card border border-border bg-card p-4 shadow-card sm:flex-row sm:items-center"
 					>
 						<input
 							// biome-ignore lint/a11y/noAutofocus: focus the field the user just opened.
@@ -140,7 +141,7 @@ function CohortsListPage() {
 							placeholder={t("cohorts.field_title", {
 								defaultValue: "Cohort title",
 							})}
-							className="h-11 flex-1 rounded-input border border-slate-200 px-3.5 text-slate-900 outline-none focus:border-brand-primary"
+							className="h-11 flex-1 rounded-input border border-border px-3.5 text-foreground outline-none focus:border-brand-primary"
 						/>
 						<Button
 							type="submit"
@@ -166,7 +167,7 @@ function CohortsListPage() {
 							<motion.article
 								key={cohort.id}
 								whileHover={{ y: -4 }}
-								className="group flex flex-col rounded-card border border-slate-200 bg-white shadow-card transition-colors hover:border-brand-primary/30 hover:shadow-card-hover"
+								className="group flex flex-col rounded-card border border-border bg-card shadow-card transition-colors hover:border-brand-primary/30 hover:shadow-card-hover"
 							>
 								<Link
 									to="/admin/cohorts/$cohortId"
@@ -187,10 +188,10 @@ function CohortsListPage() {
 											})}
 										</span>
 									</div>
-									<h3 className="mt-3 line-clamp-2 font-display text-slate-900">
+									<h3 className="mt-3 line-clamp-2 font-display text-foreground">
 										{cohort.title}
 									</h3>
-									<div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-slate-400 text-xs">
+									<div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-muted-foreground text-xs">
 										{formatDate(cohort.startsAt) ? (
 											<span className="flex items-center gap-1">
 												<CalendarDays className="size-3.5" />
@@ -207,7 +208,7 @@ function CohortsListPage() {
 											{cohort.capacity ? `/${cohort.capacity}` : ""}
 										</span>
 									</div>
-									<p className="mt-3 font-stats font-bold text-slate-900 text-sm">
+									<p className="mt-3 font-stats font-bold text-foreground text-sm">
 										{cohort.isFree
 											? t("catalog.free", {
 													ns: "academy",
@@ -216,7 +217,7 @@ function CohortsListPage() {
 											: formatMoney(cohort.currency, cohort.price ?? 0)}
 									</p>
 								</Link>
-								<div className="flex items-center justify-end border-slate-100 border-t px-3 py-2">
+								<div className="flex items-center justify-end border-border border-t px-3 py-2">
 									<Button
 										variant="ghost"
 										size="sm"
@@ -230,14 +231,13 @@ function CohortsListPage() {
 							</motion.article>
 						))
 					) : (
-						<div className="col-span-full rounded-card border border-slate-200 border-dashed bg-white py-16 text-center">
-							<CalendarDays className="mx-auto size-8 text-slate-300" />
-							<p className="mt-3 text-slate-400">
-								{t("cohorts.empty", {
-									defaultValue: "No cohorts yet — schedule your first run.",
-								})}
-							</p>
-						</div>
+						<EmptyState
+							className="col-span-full"
+							icon={CalendarDays}
+							title={t("cohorts.empty", {
+								defaultValue: "No cohorts yet — schedule your first run.",
+							})}
+						/>
 					)}
 				</div>
 			</div>

@@ -56,5 +56,11 @@
 		"content": {
 			"not_publishable": "Certaines leçons ont besoin de contenu ou d'une transcription avant la publication."
 		}
+	},
+	"theme": {
+		"label": "Thème",
+		"light": "Clair",
+		"dark": "Sombre",
+		"system": "Système"
 	}
 }

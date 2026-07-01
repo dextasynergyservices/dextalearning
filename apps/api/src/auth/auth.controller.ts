@@ -1,6 +1,7 @@
 import {
 	BadRequestException,
 	Body,
+	ConflictException,
 	Controller,
 	HttpCode,
 	Post,
@@ -32,6 +33,8 @@ export class AuthController {
 					lastName: dto.lastName,
 					otherNames: dto.otherNames,
 					phone: dto.phone,
+					// Clamped to learner|instructor by the Better Auth create hook.
+					role: dto.role ?? "learner",
 				},
 			});
 
@@ -43,6 +46,19 @@ export class AuthController {
 		} catch (error) {
 			const message =
 				error instanceof Error ? error.message : "Registration failed";
+			// Better Auth signals a duplicate with USER_ALREADY_EXISTS — surface a
+			// clear 409 + stable code so the UI can nudge the user to sign in.
+			const code = (error as { body?: { code?: string } }).body?.code;
+			if (
+				code === "USER_ALREADY_EXISTS" ||
+				/already (exists|registered)|existing account/i.test(message)
+			) {
+				throw new ConflictException({
+					message:
+						"An account with this email already exists. Please sign in instead.",
+					code: "EMAIL_EXISTS",
+				});
+			}
 			throw new BadRequestException(message);
 		}
 	}

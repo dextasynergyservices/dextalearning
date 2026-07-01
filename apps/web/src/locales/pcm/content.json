@@ -68,6 +68,7 @@
 		"cta_button": "Join the community"
 	},
 	"blog": {
+		"badge": "Blog",
 		"title": "The DextaLearning Blog",
 		"subtitle": "Tori about learning science, teaching, and how we dey build DextaLearning.",
 		"read_time": "{{count}} min read",

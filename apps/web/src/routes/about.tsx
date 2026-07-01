@@ -36,7 +36,7 @@ function Stat({ value, label }: { value: string; label: string }) {
 			>
 				{display}
 			</p>
-			<p className="mt-2 text-slate-300 text-sm">{label}</p>
+			<p className="mt-2 text-muted-foreground text-sm">{label}</p>
 		</div>
 	);
 }
@@ -73,7 +73,7 @@ function AboutPage() {
 						initial={{ opacity: 0, y: 20 }}
 						animate={{ opacity: 1, y: 0 }}
 						transition={{ duration: 0.6, delay: 0.15 }}
-						className="mx-auto mt-5 max-w-2xl text-lg text-slate-300"
+						className="mx-auto mt-5 max-w-2xl text-lg text-muted-foreground"
 					>
 						{t("about.subtitle")}
 					</motion.p>
@@ -93,18 +93,18 @@ function AboutPage() {
 				</p>
 				<p
 					data-reveal
-					className="mt-4 font-display text-2xl text-slate-900 leading-snug sm:text-3xl"
+					className="mt-4 font-display text-2xl text-foreground leading-snug sm:text-3xl"
 				>
 					{t("about.mission_body")}
 				</p>
 			</section>
 
 			{/* Beliefs */}
-			<section ref={beliefsRef} className="bg-slate-50">
+			<section ref={beliefsRef} className="bg-muted">
 				<div className="mx-auto max-w-7xl px-6 py-14 lg:px-8 lg:py-20">
 					<h2
 						data-reveal
-						className="text-center font-display text-2xl tracking-tight text-slate-900 sm:text-3xl"
+						className="text-center font-display text-2xl tracking-tight text-foreground sm:text-3xl"
 					>
 						{t("about.beliefs_title")}
 					</h2>
@@ -113,15 +113,15 @@ function AboutPage() {
 							<div
 								key={key}
 								data-reveal={idx % 2 === 0 ? "left" : "right"}
-								className="rounded-card border border-slate-200 bg-white p-7 shadow-card transition-all hover:-translate-y-1 hover:shadow-card-hover"
+								className="rounded-card border border-border bg-card p-7 shadow-card transition-all hover:-translate-y-1 hover:shadow-card-hover"
 							>
 								<span className="flex size-12 items-center justify-center rounded-btn bg-brand-primary-light text-brand-primary">
 									<Icon className="size-6" />
 								</span>
-								<h3 className="mt-5 font-display text-lg text-slate-900">
+								<h3 className="mt-5 font-display text-lg text-foreground">
 									{t(`about.beliefs.${key}.title`)}
 								</h3>
-								<p className="mt-2 text-slate-500 text-sm leading-relaxed">
+								<p className="mt-2 text-muted-foreground text-sm leading-relaxed">
 									{t(`about.beliefs.${key}.body`)}
 								</p>
 							</div>

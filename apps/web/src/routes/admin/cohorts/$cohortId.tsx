@@ -13,16 +13,20 @@ import {
 import { type ReactNode, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
+import { InlineCreate } from "@/components/authoring/inline-create";
+import { IntroManager } from "@/components/authoring/intro-manager";
 import { StudioShell } from "@/components/authoring/studio-shell";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
 	addCohortCourse,
+	addCohortPath,
 	assignCohortFacilitator,
 	assignCohortInstructor,
 	type CohortDetail,
 	type CohortStaff,
+	createCohortIntro,
 	deleteCohort,
 	formatMoney,
 	getCohort,
@@ -30,6 +34,8 @@ import {
 	removeCohortCourse,
 	removeCohortFacilitator,
 	removeCohortInstructor,
+	removeCohortIntro,
+	removeCohortPath,
 	reorderCohortCourses,
 	updateCohort,
 } from "@/lib/content-api";
@@ -131,7 +137,16 @@ function CohortEditorPage() {
 			) : (
 				<div className="space-y-6">
 					<SettingsCard cohort={cohort} onSaved={invalidate} />
+					<IntroManager
+						id={cohort.id}
+						intro={cohort.introLesson}
+						editorArea="admin"
+						queryKey={["cohort", cohortId]}
+						createFn={createCohortIntro}
+						removeFn={removeCohortIntro}
+					/>
 					<CourseManager cohort={cohort} onChanged={invalidate} />
+					<PathManager cohort={cohort} onChanged={invalidate} />
 					<StaffCard cohort={cohort} onChanged={invalidate} />
 				</div>
 			)}
@@ -167,6 +182,7 @@ function SettingsCard({
 		startsAt: dateInput(cohort.startsAt),
 		endsAt: dateInput(cohort.endsAt),
 		capacity: cohort.capacity ? String(cohort.capacity) : "",
+		isFeatured: cohort.isFeatured,
 		isFree: cohort.isFree,
 		price: String(cohort.price ?? 0),
 		currency: cohort.currency ?? "NGN",
@@ -186,6 +202,7 @@ function SettingsCard({
 		mutationFn: () =>
 			updateCohort(cohort.id, {
 				description: form.description.trim() || undefined,
+				isFeatured: form.isFeatured,
 				startsAt: form.startsAt || undefined,
 				endsAt: form.endsAt || undefined,
 				capacity: form.capacity ? Number(form.capacity) : undefined,
@@ -216,9 +233,9 @@ function SettingsCard({
 	);
 
 	return (
-		<section className="rounded-card border border-slate-200 bg-white shadow-card">
-			<header className="border-slate-100 border-b px-4 py-3 sm:px-6">
-				<h2 className="font-display text-slate-900 text-lg">
+		<section className="rounded-card border border-border bg-card shadow-card">
+			<header className="border-border border-b px-4 py-3 sm:px-6">
+				<h2 className="font-display text-foreground text-lg">
 					{t("cohorts.settings_title", { defaultValue: "Cohort settings" })}
 				</h2>
 			</header>
@@ -230,7 +247,7 @@ function SettingsCard({
 						value={form.description}
 						onChange={(e) => set({ description: e.target.value })}
 						rows={2}
-						className="w-full resize-none rounded-input border border-slate-200 px-3.5 py-2.5 text-slate-900 text-sm outline-none focus:border-brand-primary"
+						className="w-full resize-none rounded-input border border-border px-3.5 py-2.5 text-foreground text-sm outline-none focus:border-brand-primary"
 					/>
 				</Field>
 
@@ -240,7 +257,7 @@ function SettingsCard({
 							type="date"
 							value={form.startsAt}
 							onChange={(e) => set({ startsAt: e.target.value })}
-							className="h-11 w-full rounded-input border border-slate-200 px-3 text-slate-900 outline-none focus:border-brand-primary"
+							className="h-11 w-full rounded-input border border-border px-3 text-foreground outline-none focus:border-brand-primary"
 						/>
 					</Field>
 					<Field label={t("cohorts.ends_at", { defaultValue: "End date" })}>
@@ -248,7 +265,7 @@ function SettingsCard({
 							type="date"
 							value={form.endsAt}
 							onChange={(e) => set({ endsAt: e.target.value })}
-							className="h-11 w-full rounded-input border border-slate-200 px-3 text-slate-900 outline-none focus:border-brand-primary"
+							className="h-11 w-full rounded-input border border-border px-3 text-foreground outline-none focus:border-brand-primary"
 						/>
 					</Field>
 					<Field label={t("cohorts.capacity", { defaultValue: "Capacity" })}>
@@ -260,13 +277,27 @@ function SettingsCard({
 								defaultValue: "Unlimited",
 							})}
 							onChange={(e) => set({ capacity: e.target.value })}
-							className="h-11 w-full rounded-input border border-slate-200 px-3.5 text-slate-900 outline-none focus:border-brand-primary"
+							className="h-11 w-full rounded-input border border-border px-3.5 text-foreground outline-none focus:border-brand-primary"
 						/>
 					</Field>
 				</div>
 
+				<div className="rounded-card border border-brand-primary/20 bg-brand-primary-light/30 p-4">
+					<Toggle
+						checked={form.isFeatured}
+						onChange={(on) => set({ isFeatured: on })}
+						label={t("settings.featured", {
+							defaultValue: "Feature on homepage",
+						})}
+						hint={t("settings.featured_hint", {
+							defaultValue:
+								"Show this in the Featured carousel on the homepage.",
+						})}
+					/>
+				</div>
+
 				{/* Pricing */}
-				<div className="rounded-card border border-slate-200 p-4">
+				<div className="rounded-card border border-border p-4">
 					<Toggle
 						checked={!form.isFree}
 						onChange={(on) => set({ isFree: !on })}
@@ -280,7 +311,7 @@ function SettingsCard({
 									min={0}
 									value={form.price}
 									onChange={(e) => set({ price: e.target.value })}
-									className="h-11 w-full rounded-input border border-slate-200 px-3.5 text-slate-900 outline-none focus:border-brand-primary"
+									className="h-11 w-full rounded-input border border-border px-3.5 text-foreground outline-none focus:border-brand-primary"
 								/>
 							</Field>
 							<Field
@@ -317,7 +348,7 @@ function SettingsCard({
 										max={100}
 										value={form.pct}
 										onChange={(e) => set({ pct: e.target.value })}
-										className="h-11 w-full rounded-input border border-slate-200 px-3.5 text-slate-900 outline-none focus:border-brand-primary sm:max-w-40"
+										className="h-11 w-full rounded-input border border-border px-3.5 text-foreground outline-none focus:border-brand-primary sm:max-w-40"
 									/>
 								</Field>
 								<p className="mt-2 text-amber-800 text-sm">
@@ -375,7 +406,7 @@ function SettingsCard({
 							min={2}
 							value={form.targetGroupSize}
 							onChange={(e) => set({ targetGroupSize: e.target.value })}
-							className="h-11 w-full rounded-input border border-slate-200 px-3.5 text-slate-900 outline-none focus:border-brand-primary"
+							className="h-11 w-full rounded-input border border-border px-3.5 text-foreground outline-none focus:border-brand-primary"
 						/>
 					</Field>
 					<Field label={t("cohorts.min_group", { defaultValue: "Min group" })}>
@@ -384,7 +415,7 @@ function SettingsCard({
 							min={2}
 							value={form.minGroupSize}
 							onChange={(e) => set({ minGroupSize: e.target.value })}
-							className="h-11 w-full rounded-input border border-slate-200 px-3.5 text-slate-900 outline-none focus:border-brand-primary"
+							className="h-11 w-full rounded-input border border-border px-3.5 text-foreground outline-none focus:border-brand-primary"
 						/>
 					</Field>
 					<Field label={t("cohorts.max_group", { defaultValue: "Max group" })}>
@@ -393,7 +424,7 @@ function SettingsCard({
 							min={2}
 							value={form.maxGroupSize}
 							onChange={(e) => set({ maxGroupSize: e.target.value })}
-							className="h-11 w-full rounded-input border border-slate-200 px-3.5 text-slate-900 outline-none focus:border-brand-primary"
+							className="h-11 w-full rounded-input border border-border px-3.5 text-foreground outline-none focus:border-brand-primary"
 						/>
 					</Field>
 				</div>
@@ -449,9 +480,9 @@ function CourseManager({
 	};
 
 	return (
-		<section className="rounded-card border border-slate-200 bg-white shadow-card">
-			<header className="border-slate-100 border-b px-4 py-3 sm:px-6">
-				<h2 className="font-display text-slate-900 text-lg">
+		<section className="rounded-card border border-border bg-card shadow-card">
+			<header className="border-border border-b px-4 py-3 sm:px-6">
+				<h2 className="font-display text-foreground text-lg">
 					{t("cohorts.courses_title", {
 						defaultValue: "Courses in this cohort",
 					})}
@@ -469,7 +500,7 @@ function CourseManager({
 								aria-label="Move up"
 								disabled={index === 0 || reorder.isPending}
 								onClick={() => move(index, -1)}
-								className="flex size-5 items-center justify-center rounded text-slate-400 hover:text-brand-primary disabled:opacity-30"
+								className="flex size-5 items-center justify-center rounded text-muted-foreground hover:text-brand-primary disabled:opacity-30"
 							>
 								<ArrowUp className="size-3.5" />
 							</button>
@@ -480,7 +511,7 @@ function CourseManager({
 									index === cohort.courses.length - 1 || reorder.isPending
 								}
 								onClick={() => move(index, 1)}
-								className="flex size-5 items-center justify-center rounded text-slate-400 hover:text-brand-primary disabled:opacity-30"
+								className="flex size-5 items-center justify-center rounded text-muted-foreground hover:text-brand-primary disabled:opacity-30"
 							>
 								<ArrowDown className="size-3.5" />
 							</button>
@@ -488,32 +519,32 @@ function CourseManager({
 						<span className="flex size-8 shrink-0 items-center justify-center rounded-btn bg-brand-primary-light font-stats font-semibold text-brand-primary text-xs">
 							{index + 1}
 						</span>
-						<span className="flex-1 truncate font-medium text-slate-800 text-sm">
+						<span className="flex-1 truncate font-medium text-foreground text-sm">
 							{cc.course.title}
 						</span>
 						<button
 							type="button"
 							aria-label={t("editor.delete")}
 							onClick={() => remove.mutate(cc.course.id)}
-							className="flex size-8 items-center justify-center rounded-btn text-slate-400 hover:bg-error/5 hover:text-error"
+							className="flex size-8 items-center justify-center rounded-btn text-muted-foreground hover:bg-error/5 hover:text-error"
 						>
 							<Trash2 className="size-4" />
 						</button>
 					</li>
 				))}
 				{cohort.courses.length === 0 ? (
-					<li className="px-4 py-8 text-center text-slate-400 text-sm">
+					<li className="px-4 py-8 text-center text-muted-foreground text-sm">
 						{t("cohorts.no_courses", {
 							defaultValue: "No courses yet — add one below.",
 						})}
 					</li>
 				) : null}
 			</ul>
-			<div className="flex flex-col gap-2 border-slate-100 border-t p-3 sm:flex-row">
+			<div className="flex flex-col gap-2 border-border border-t p-3 sm:flex-row">
 				<select
 					value={addId}
 					onChange={(e) => setAddId(e.target.value)}
-					className="h-11 flex-1 rounded-input border border-slate-200 bg-white px-3 text-slate-900 outline-none focus:border-brand-primary"
+					className="h-11 flex-1 rounded-input border border-border bg-card px-3 text-foreground outline-none focus:border-brand-primary"
 				>
 					<option value="">
 						{cohort.availableCourses.length
@@ -539,6 +570,134 @@ function CourseManager({
 					<Plus className="size-4" />
 					{t("paths.add_course", { defaultValue: "Add course" })}
 				</Button>
+			</div>
+			<div className="border-border border-t px-3 pb-3">
+				<p className="mb-2 text-muted-foreground text-xs">
+					{t("paths.or_create_course", {
+						defaultValue: "Don't see it? Create a new draft course:",
+					})}
+				</p>
+				<InlineCreate
+					kind="course"
+					attaching={add.isPending}
+					onCreated={(courseId) => add.mutate(courseId)}
+				/>
+			</div>
+		</section>
+	);
+}
+
+/** Learning paths attached to a cohort (admin-only — §4.1). */
+function PathManager({
+	cohort,
+	onChanged,
+}: {
+	cohort: CohortDetail;
+	onChanged: () => void;
+}) {
+	const { t } = useTranslation("authoring");
+	const [addId, setAddId] = useState("");
+
+	const add = useMutation({
+		mutationFn: (pathId: string) => addCohortPath(cohort.id, pathId),
+		onSuccess: () => {
+			setAddId("");
+			onChanged();
+		},
+		onError: (e) => toast.error(e.message),
+	});
+	const remove = useMutation({
+		mutationFn: (pathId: string) => removeCohortPath(cohort.id, pathId),
+		onSuccess: onChanged,
+		onError: (e) => toast.error(e.message),
+	});
+
+	return (
+		<section className="rounded-card border border-border bg-card shadow-card">
+			<header className="border-border border-b px-4 py-3 sm:px-6">
+				<h2 className="font-display text-foreground text-lg">
+					{t("cohorts.paths_title", { defaultValue: "Learning paths" })}
+				</h2>
+				<p className="mt-0.5 text-muted-foreground text-sm">
+					{t("cohorts.paths_hint", {
+						defaultValue:
+							"Attach whole paths in addition to standalone courses.",
+					})}
+				</p>
+			</header>
+			<ul className="divide-y divide-slate-100">
+				{cohort.paths.map((cp, index) => (
+					<li
+						key={cp.path.id}
+						className="flex items-center gap-2 px-3 py-2.5 sm:px-4"
+					>
+						<span className="flex size-8 shrink-0 items-center justify-center rounded-btn bg-brand-accent-light font-stats font-semibold text-amber-700 text-xs">
+							{index + 1}
+						</span>
+						<span className="flex-1 truncate font-medium text-foreground text-sm">
+							{cp.path.title}
+							{cp.path.status === "published" ? "" : " (draft)"}
+						</span>
+						<button
+							type="button"
+							aria-label={t("editor.delete")}
+							onClick={() => remove.mutate(cp.path.id)}
+							className="flex size-8 items-center justify-center rounded-btn text-muted-foreground hover:bg-error/5 hover:text-error"
+						>
+							<Trash2 className="size-4" />
+						</button>
+					</li>
+				))}
+				{cohort.paths.length === 0 ? (
+					<li className="px-4 py-8 text-center text-muted-foreground text-sm">
+						{t("cohorts.no_paths", {
+							defaultValue: "No paths yet — add one below.",
+						})}
+					</li>
+				) : null}
+			</ul>
+			<div className="flex flex-col gap-2 border-border border-t p-3 sm:flex-row">
+				<select
+					value={addId}
+					onChange={(e) => setAddId(e.target.value)}
+					className="h-11 flex-1 rounded-input border border-border bg-card px-3 text-foreground outline-none focus:border-brand-primary"
+				>
+					<option value="">
+						{cohort.availablePaths.length
+							? t("cohorts.add_path_placeholder", {
+									defaultValue: "Choose a path to add…",
+								})
+							: t("cohorts.no_available_paths", {
+									defaultValue: "No more paths to add",
+								})}
+					</option>
+					{cohort.availablePaths.map((p) => (
+						<option key={p.id} value={p.id}>
+							{p.title}
+							{p.status === "published" ? "" : " (draft)"}
+						</option>
+					))}
+				</select>
+				<Button
+					variant="outline"
+					disabled={!addId || add.isPending}
+					onClick={() => addId && add.mutate(addId)}
+				>
+					<Plus className="size-4" />
+					{t("cohorts.add_path", { defaultValue: "Add path" })}
+				</Button>
+			</div>
+			<div className="border-border border-t px-3 pb-3">
+				<p className="mb-2 text-muted-foreground text-xs">
+					{t("paths.or_create_path", {
+						defaultValue: "Don't see it? Create a new draft path:",
+					})}
+				</p>
+				<InlineCreate
+					kind="path"
+					attaching={add.isPending}
+					onCreated={(pathId) => add.mutate(pathId)}
+				/>
 			</div>
 		</section>
 	);
@@ -606,9 +765,9 @@ function StaffColumn({
 	});
 
 	return (
-		<div className="rounded-card border border-slate-200 bg-white shadow-card">
-			<header className="border-slate-100 border-b px-4 py-3">
-				<h3 className="font-display text-slate-900">{title}</h3>
+		<div className="rounded-card border border-border bg-card shadow-card">
+			<header className="border-border border-b px-4 py-3">
+				<h3 className="font-display text-foreground">{title}</h3>
 			</header>
 			<ul className="divide-y divide-slate-100">
 				{assigned.map((u) => (
@@ -617,7 +776,7 @@ function StaffColumn({
 							{(u.name ?? "?").slice(0, 1).toUpperCase()}
 						</span>
 						<span className="min-w-0 flex-1">
-							<span className="block truncate text-slate-800 text-sm">
+							<span className="block truncate text-foreground text-sm">
 								{u.name ?? u.email}
 							</span>
 						</span>
@@ -625,23 +784,23 @@ function StaffColumn({
 							type="button"
 							aria-label={t("editor.delete")}
 							onClick={() => remove.mutate(u.id)}
-							className="flex size-7 items-center justify-center rounded-btn text-slate-400 hover:bg-error/5 hover:text-error"
+							className="flex size-7 items-center justify-center rounded-btn text-muted-foreground hover:bg-error/5 hover:text-error"
 						>
 							<X className="size-4" />
 						</button>
 					</li>
 				))}
 				{assigned.length === 0 ? (
-					<li className="px-4 py-6 text-center text-slate-400 text-sm">
+					<li className="px-4 py-6 text-center text-muted-foreground text-sm">
 						{t("cohorts.none_assigned", { defaultValue: "None assigned yet." })}
 					</li>
 				) : null}
 			</ul>
-			<div className="flex gap-2 border-slate-100 border-t p-3">
+			<div className="flex gap-2 border-border border-t p-3">
 				<select
 					value={pick}
 					onChange={(e) => setPick(e.target.value)}
-					className="h-10 flex-1 rounded-input border border-slate-200 bg-white px-3 text-slate-900 text-sm outline-none focus:border-brand-primary"
+					className="h-10 flex-1 rounded-input border border-border bg-card px-3 text-foreground text-sm outline-none focus:border-brand-primary"
 				>
 					<option value="">
 						{assignable.length
@@ -673,7 +832,7 @@ function Field({ label, children }: { label: string; children: ReactNode }) {
 	return (
 		// biome-ignore lint/a11y/noLabelWithoutControl: control passed via children.
 		<label className="block">
-			<span className="mb-1.5 block font-medium text-slate-700 text-sm">
+			<span className="mb-1.5 block font-medium text-foreground text-sm">
 				{label}
 			</span>
 			{children}
@@ -697,7 +856,7 @@ function Select({
 		<select
 			value={value}
 			onChange={(e) => onChange(e.target.value)}
-			className="h-11 w-full rounded-input border border-slate-200 bg-white px-3 text-slate-900 outline-none focus:border-brand-primary"
+			className="h-11 w-full rounded-input border border-border bg-card px-3 text-foreground outline-none focus:border-brand-primary"
 		>
 			{options.map((o) => (
 				<option key={o} value={o}>
@@ -714,10 +873,12 @@ function Toggle({
 	checked,
 	onChange,
 	label,
+	hint,
 }: {
 	checked: boolean;
 	onChange: (on: boolean) => void;
 	label: string;
+	hint?: string;
 }) {
 	return (
 		<button
@@ -725,7 +886,14 @@ function Toggle({
 			onClick={() => onChange(!checked)}
 			className="flex w-full items-center justify-between gap-3 text-left"
 		>
-			<span className="font-medium text-slate-800 text-sm">{label}</span>
+			<span>
+				<span className="block font-medium text-foreground text-sm">
+					{label}
+				</span>
+				{hint ? (
+					<span className="text-muted-foreground text-xs">{hint}</span>
+				) : null}
+			</span>
 			<span
 				className={cn(
 					"relative h-6 w-11 shrink-0 rounded-full transition-colors",
@@ -734,7 +902,7 @@ function Toggle({
 			>
 				<span
 					className={cn(
-						"absolute top-0.5 size-5 rounded-full bg-white shadow-sm transition-all",
+						"absolute top-0.5 size-5 rounded-full bg-card shadow-sm transition-all",
 						checked ? "left-[1.375rem]" : "left-0.5",
 					)}
 				/>

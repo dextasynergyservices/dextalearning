@@ -1,16 +1,14 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { Loader2, MailCheck } from "lucide-react";
-import { useState } from "react";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { Loader2 } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { AuthLayout } from "@/components/auth/auth-layout";
 import { FormField } from "@/components/auth/form-field";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import { authClient } from "@/lib/auth-client";
 import { type ForgotValues, forgotSchema } from "@/lib/auth-schemas";
-import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/forgot-password")({
 	component: ForgotPasswordPage,
@@ -18,7 +16,7 @@ export const Route = createFileRoute("/forgot-password")({
 
 function ForgotPasswordPage() {
 	const { t } = useTranslation("auth");
-	const [sentTo, setSentTo] = useState<string | null>(null);
+	const navigate = useNavigate();
 	const {
 		register,
 		handleSubmit,
@@ -26,14 +24,15 @@ function ForgotPasswordPage() {
 	} = useForm<ForgotValues>({ resolver: zodResolver(forgotSchema) });
 
 	const onSubmit = async (values: ForgotValues) => {
+		// Email-OTP reset (the only reset method this Better Auth client exposes):
+		// sends a 6-digit code, then /reset-password collects the code + new
+		// password together in one step.
 		await authClient.forgetPassword.emailOtp(
-			{
-				email: values.email,
-			},
+			{ email: values.email },
 			{
 				onSuccess: () => {
 					toast.success(t("toasts.reset_sent"));
-					setSentTo(values.email);
+					navigate({ to: "/reset-password", search: { email: values.email } });
 				},
 				onError: (ctx) => {
 					toast.error(ctx.error.message || t("toasts.error"));
@@ -41,27 +40,6 @@ function ForgotPasswordPage() {
 			},
 		);
 	};
-
-	if (sentTo) {
-		return (
-			<AuthLayout
-				title={t("forgot.sent_title")}
-				subtitle={t("forgot.sent_body", { email: sentTo })}
-			>
-				<div className="flex flex-col items-center gap-5 py-4">
-					<span className="flex size-14 items-center justify-center rounded-full bg-success/15 text-success">
-						<MailCheck className="size-7" />
-					</span>
-					<Link
-						to="/login"
-						className={cn(buttonVariants({ variant: "outline", size: "md" }))}
-					>
-						{t("forgot.back_to_login")}
-					</Link>
-				</div>
-			</AuthLayout>
-		);
-	}
 
 	return (
 		<AuthLayout title={t("forgot.title")} subtitle={t("forgot.subtitle")}>

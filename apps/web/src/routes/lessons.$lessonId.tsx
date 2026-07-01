@@ -33,14 +33,14 @@ function LessonPage() {
 					initial={{ opacity: 0, y: 16 }}
 					animate={{ opacity: 1, y: 0 }}
 					transition={{ duration: 0.38 }}
-					className="rounded-card border border-slate-200 bg-white p-4 shadow-card sm:p-5"
+					className="rounded-card border border-border bg-card p-4 shadow-card sm:p-5"
 				>
 					<div className="flex items-start gap-3">
 						<button
 							type="button"
 							onClick={() => router.history.back()}
 							aria-label={t("lesson.back")}
-							className="flex size-10 shrink-0 items-center justify-center rounded-btn bg-slate-100 text-slate-700 transition-colors hover:bg-brand-primary-light hover:text-brand-primary"
+							className="flex size-10 shrink-0 items-center justify-center rounded-btn bg-muted text-foreground transition-colors hover:bg-brand-primary-light hover:text-brand-primary"
 						>
 							<ChevronLeft className="size-5" />
 						</button>
@@ -48,10 +48,10 @@ function LessonPage() {
 							<p className="font-stats font-semibold text-brand-primary text-xs uppercase">
 								{t("lesson.eyebrow")}
 							</p>
-							<h1 className="mt-1 font-display text-2xl leading-tight text-slate-900 sm:text-3xl">
+							<h1 className="mt-1 font-display text-2xl leading-tight text-foreground sm:text-3xl">
 								{t("lesson.heading")}
 							</h1>
-							<p className="mt-1 max-w-2xl text-slate-600 text-sm leading-relaxed">
+							<p className="mt-1 max-w-2xl text-muted-foreground text-sm leading-relaxed">
 								{t("lesson.body")}
 							</p>
 						</div>
@@ -71,7 +71,7 @@ function LessonPage() {
 					initial={{ opacity: 0, y: 18 }}
 					animate={{ opacity: 1, y: 0 }}
 					transition={{ duration: 0.38, delay: 0.08 }}
-					className="rounded-card border border-slate-200 bg-white p-2 shadow-card sm:p-3"
+					className="rounded-card border border-border bg-card p-2 shadow-card sm:p-3"
 				>
 					<LessonPlayer lessonId={lessonId} />
 				</motion.section>
@@ -83,14 +83,14 @@ function LessonPage() {
 					className="rounded-card border border-brand-primary/20 bg-brand-primary-light p-4 sm:p-5"
 				>
 					<div className="flex items-start gap-3">
-						<span className="flex size-10 shrink-0 items-center justify-center rounded-btn bg-white text-brand-primary">
+						<span className="flex size-10 shrink-0 items-center justify-center rounded-btn bg-card text-brand-primary">
 							<PanelTop className="size-5" />
 						</span>
 						<div>
-							<p className="font-display text-lg text-slate-900">
+							<p className="font-display text-lg text-foreground">
 								{t("lesson.tip_title")}
 							</p>
-							<p className="mt-1 text-slate-600 text-sm leading-relaxed">
+							<p className="mt-1 text-muted-foreground text-sm leading-relaxed">
 								{t("lesson.tip_body")}
 							</p>
 						</div>
@@ -109,9 +109,9 @@ function LessonCue({
 	label: string;
 }) {
 	return (
-		<div className="flex items-center gap-2 rounded-btn border border-slate-200 bg-slate-50 px-3 py-2">
+		<div className="flex items-center gap-2 rounded-btn border border-border bg-muted px-3 py-2">
 			<Icon className="size-4 shrink-0 text-brand-primary" />
-			<span className="truncate font-stats font-semibold text-[0.68rem] text-slate-600 uppercase">
+			<span className="truncate font-stats font-semibold text-[0.68rem] text-muted-foreground uppercase">
 				{label}
 			</span>
 		</div>

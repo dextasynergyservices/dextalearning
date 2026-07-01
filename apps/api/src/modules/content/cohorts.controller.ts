@@ -17,6 +17,7 @@ import type { AuthenticatedUser } from "../../auth/types";
 import { CohortsService } from "./cohorts.service";
 import {
 	AddCohortCourseDto,
+	AddCohortPathDto,
 	AssignUserDto,
 	CreateCohortDto,
 	ReorderCohortCoursesDto,
@@ -80,6 +81,20 @@ export class CohortsController {
 		return this.cohorts.publishCohort(id);
 	}
 
+	@Post(":id/intro")
+	@ApiOperation({
+		summary: "Create (or get) the cohort's intro/preview lesson",
+	})
+	createIntro(@Param("id") id: string) {
+		return this.cohorts.createIntro(id);
+	}
+
+	@Delete(":id/intro")
+	@ApiOperation({ summary: "Remove the cohort's intro/preview lesson" })
+	removeIntro(@Param("id") id: string) {
+		return this.cohorts.removeIntro(id);
+	}
+
 	@Post(":id/courses")
 	@ApiOperation({ summary: "Add a course to the cohort" })
 	addCourse(@Param("id") id: string, @Body() dto: AddCohortCourseDto) {
@@ -99,6 +114,18 @@ export class CohortsController {
 	@ApiOperation({ summary: "Remove a course from the cohort" })
 	removeCourse(@Param("id") id: string, @Param("courseId") courseId: string) {
 		return this.cohorts.removeCourse(id, courseId);
+	}
+
+	@Post(":id/paths")
+	@ApiOperation({ summary: "Add a learning path to the cohort (admin)" })
+	addPath(@Param("id") id: string, @Body() dto: AddCohortPathDto) {
+		return this.cohorts.addPath(id, dto.pathId);
+	}
+
+	@Delete(":id/paths/:pathId")
+	@ApiOperation({ summary: "Remove a learning path from the cohort" })
+	removePath(@Param("id") id: string, @Param("pathId") pathId: string) {
+		return this.cohorts.removePath(id, pathId);
 	}
 
 	@Post(":id/instructors")

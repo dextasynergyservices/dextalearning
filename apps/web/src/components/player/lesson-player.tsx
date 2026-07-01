@@ -1,7 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
 import { AlertCircle } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { getMediaToken } from "@/lib/content-api";
+import {
+	getIntroMediaToken,
+	getMediaToken,
+	getPreviewMediaToken,
+} from "@/lib/content-api";
 import { AudioPlayer } from "./audio-player";
 import { PdfViewer } from "./pdf-viewer";
 import { TranscriptPanel } from "./transcript-panel";
@@ -15,15 +20,58 @@ import { VideoPlayer } from "./video-player";
 export function LessonPlayer({
 	lessonId,
 	title,
+	onProgress,
+	resumePct = 0,
+	preview = false,
+	intro = false,
 }: {
 	lessonId: string;
 	title?: string;
+	/** Watched/listened/read fraction (0–100); drives auto-completion. */
+	onProgress?: (pct: number) => void;
+	/** Resume position (0–100) for video/audio. */
+	resumePct?: number;
+	/** Use the public free-preview endpoint (no auth) instead of the protected one. */
+	preview?: boolean;
+	/** Use the public path/cohort intro endpoint (no auth). */
+	intro?: boolean;
 }) {
 	const { data, isPending, isError } = useQuery({
-		queryKey: ["media-token", lessonId],
-		queryFn: () => getMediaToken(lessonId),
+		queryKey: [
+			"media-token",
+			intro ? "intro" : preview ? "preview" : "full",
+			lessonId,
+		],
+		queryFn: () =>
+			intro
+				? getIntroMediaToken(lessonId)
+				: preview
+					? getPreviewMediaToken(lessonId)
+					: getMediaToken(lessonId),
 		staleTime: 90 * 60 * 1000, // presigned URLs live 2h; refetch well before
 	});
+
+	// Current playback time (seconds) + a seek handle, shared with the transcript
+	// panel so it can highlight the active cue and scrub on click.
+	const [currentSec, setCurrentSec] = useState(0);
+	const seekRef = useRef<((seconds: number) => void) | null>(null);
+
+	// Text/PDF: "scrolled to end" when a sentinel at the bottom is reached.
+	const endRef = useRef<HTMLDivElement>(null);
+	const isReadable = data?.type === "text" || data?.type === "pdf";
+	useEffect(() => {
+		if (!onProgress || !isReadable) return;
+		const el = endRef.current;
+		if (!el) return;
+		const observer = new IntersectionObserver(
+			(entries) => {
+				if (entries.some((e) => e.isIntersecting)) onProgress(100);
+			},
+			{ threshold: 0.6 },
+		);
+		observer.observe(el);
+		return () => observer.disconnect();
+	}, [isReadable, onProgress]);
 
 	if (isPending) {
 		return <Skeleton className="aspect-video w-full rounded-card" />;
@@ -45,6 +93,10 @@ export function LessonPlayer({
 					qualities={data.qualities}
 					defaultQuality={data.defaultQuality}
 					captionUrls={data.captionUrls ?? {}}
+					onProgress={onProgress}
+					resumePct={resumePct}
+					onTime={setCurrentSec}
+					seekRef={seekRef}
 				/>
 			) : null}
 
@@ -53,6 +105,10 @@ export function LessonPlayer({
 					src={data.audioUrl}
 					captionUrls={data.captionUrls ?? {}}
 					title={title}
+					onProgress={onProgress}
+					resumePct={resumePct}
+					onTime={setCurrentSec}
+					seekRef={seekRef}
 				/>
 			) : null}
 
@@ -62,14 +118,28 @@ export function LessonPlayer({
 
 			{data.type === "text" && data.contentText ? (
 				<article
-					className="prose prose-slate max-w-none rounded-card border border-slate-200 bg-white p-6 shadow-card"
+					// Text stays selectable so learners can highlight/study; a blocked
+					// context menu is kept as a light deterrent. `dark:prose-invert`
+					// keeps the rich text readable in dark mode.
+					className="prose prose-slate max-w-none rounded-card border border-border bg-card p-6 shadow-card dark:prose-invert"
+					onContextMenu={(event) => event.preventDefault()}
 					// biome-ignore lint/security/noDangerouslySetInnerHtml: instructor rich-text authored via Tiptap, sanitized on render.
 					dangerouslySetInnerHTML={{ __html: data.contentText }}
 				/>
 			) : null}
 
+			{/* Scroll-to-end sentinel for text/PDF completion tracking. */}
+			{isReadable ? (
+				<div ref={endRef} aria-hidden className="h-px w-full" />
+			) : null}
+
 			{data.transcriptText ? (
-				<TranscriptPanel text={data.transcriptText} />
+				<TranscriptPanel
+					text={data.transcriptText}
+					cues={data.transcriptCues ?? undefined}
+					currentSec={currentSec}
+					onSeek={(seconds) => seekRef.current?.(seconds)}
+				/>
 			) : null}
 		</div>
 	);

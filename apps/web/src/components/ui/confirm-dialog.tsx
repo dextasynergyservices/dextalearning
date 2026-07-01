@@ -52,7 +52,7 @@ export function ConfirmDialog({
 				aria-describedby="confirm-dialog-description"
 				aria-labelledby="confirm-dialog-title"
 				aria-modal="true"
-				className="relative w-full max-w-md rounded-card border border-slate-200 bg-white p-4 shadow-[0_20px_60px_rgba(15,23,42,0.18)] sm:p-5"
+				className="relative w-full max-w-md rounded-card border border-border bg-popover p-4 shadow-[0_20px_60px_rgba(15,23,42,0.18)] sm:p-5"
 				role="dialog"
 			>
 				<div className="flex items-start gap-3">
@@ -62,13 +62,13 @@ export function ConfirmDialog({
 					<div className="min-w-0 flex-1">
 						<h2
 							id="confirm-dialog-title"
-							className="font-display text-slate-950 text-lg"
+							className="font-display text-foreground text-lg"
 						>
 							{title}
 						</h2>
 						<p
 							id="confirm-dialog-description"
-							className="mt-1 text-slate-500 text-sm"
+							className="mt-1 text-muted-foreground text-sm"
 						>
 							{description}
 						</p>
@@ -78,7 +78,7 @@ export function ConfirmDialog({
 						aria-label={cancelLabel}
 						disabled={isPending}
 						onClick={() => onOpenChange(false)}
-						className="flex size-9 shrink-0 items-center justify-center rounded-btn text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700 disabled:opacity-50"
+						className="flex size-9 shrink-0 items-center justify-center rounded-btn text-muted-foreground transition-colors hover:bg-accent hover:text-foreground disabled:opacity-50"
 					>
 						<X className="size-4" />
 					</button>

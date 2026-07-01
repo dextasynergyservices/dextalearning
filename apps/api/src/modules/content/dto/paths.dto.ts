@@ -72,6 +72,26 @@ export class UpdatePathDto {
 	estimatedHours?: number;
 
 	@ApiPropertyOptional({
+		description: 'Free-text duration, e.g. "6–8 weeks (self-paced)".',
+	})
+	@IsOptional()
+	@IsString()
+	@MaxLength(120)
+	estimatedDuration?: string;
+
+	@ApiPropertyOptional({ description: "Feature on the homepage (admin only)." })
+	@IsOptional()
+	@IsBoolean()
+	isFeatured?: boolean;
+
+	@ApiPropertyOptional({
+		description: "Instructor request to be featured (admin then approves).",
+	})
+	@IsOptional()
+	@IsBoolean()
+	featureRequested?: boolean;
+
+	@ApiPropertyOptional({
 		description: "Price in the chosen currency (e.g. 5000)",
 	})
 	@IsOptional()

@@ -69,7 +69,7 @@ export function UploadField({
 	return (
 		<div>
 			<div className="mb-1.5 flex items-center justify-between">
-				<span className="font-medium text-slate-700 text-sm">{label}</span>
+				<span className="font-medium text-foreground text-sm">{label}</span>
 				{status === "ready" ? (
 					<span className="inline-flex items-center gap-1 text-success text-xs">
 						<CheckCircle2 className="size-3.5" /> {t("authoring:lesson.ready")}
@@ -96,7 +96,7 @@ export function UploadField({
 					"flex w-full flex-col items-center justify-center gap-3 rounded-card border-2 border-dashed px-4 py-7 text-center transition-colors sm:py-8",
 					dragging
 						? "border-brand-primary bg-brand-primary-light"
-						: "border-slate-200 hover:border-brand-primary/50 hover:bg-slate-50",
+						: "border-border hover:border-brand-primary/50 hover:bg-accent",
 					busy && "opacity-70",
 				)}
 			>
@@ -106,16 +106,16 @@ export function UploadField({
 							<Loader2 className="size-6 animate-spin" />
 						</span>
 						<div>
-							<span className="block font-medium text-slate-700 text-sm">
+							<span className="block font-medium text-foreground text-sm">
 								{t("authoring:lesson.uploading", { pct })}
 							</span>
 							{fileName ? (
-								<span className="mt-1 block text-slate-400 text-xs">
+								<span className="mt-1 block text-muted-foreground text-xs">
 									{fileName}
 								</span>
 							) : null}
 						</div>
-						<div className="h-2 w-full max-w-sm overflow-hidden rounded-full bg-slate-200">
+						<div className="h-2 w-full max-w-sm overflow-hidden rounded-full bg-muted">
 							<div
 								className="h-full rounded-full bg-brand-primary transition-all"
 								style={{ width: `${pct}%` }}
@@ -124,7 +124,7 @@ export function UploadField({
 					</>
 				) : (
 					<>
-						<span className="flex size-12 items-center justify-center rounded-full bg-slate-100 text-slate-500">
+						<span className="flex size-12 items-center justify-center rounded-full bg-muted text-muted-foreground">
 							{dragging ? (
 								<FileUp className="size-6 text-brand-primary" />
 							) : (
@@ -132,11 +132,11 @@ export function UploadField({
 							)}
 						</span>
 						<div>
-							<span className="block font-medium text-slate-700 text-sm">
+							<span className="block font-medium text-foreground text-sm">
 								{t("authoring:lesson.drop_or_browse")}
 							</span>
 							{hint ? (
-								<span className="mt-1 block text-slate-400 text-xs">
+								<span className="mt-1 block text-muted-foreground text-xs">
 									{hint}
 								</span>
 							) : null}

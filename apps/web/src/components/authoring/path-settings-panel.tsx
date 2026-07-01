@@ -1,15 +1,19 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { ImagePlus, Loader2, Save } from "lucide-react";
+import { CheckCircle2, Clock3, ImagePlus, Loader2, Save } from "lucide-react";
 import { type ReactNode, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
+import { RichTextEditor } from "@/components/authoring/rich-text-editor";
 import { Button } from "@/components/ui/button";
+import { useSession } from "@/lib/auth-client";
 import {
 	formatMoney,
 	type PathDetail,
 	updatePath,
 	uploadPathThumbnail,
 } from "@/lib/content-api";
+import { contentLengthLabel } from "@/lib/duration";
+import { isBlankHtml } from "@/lib/rich-text";
 import { cn } from "@/lib/utils";
 
 const LEVELS = ["beginner", "intermediate", "advanced", "mixed"] as const;
@@ -23,13 +27,18 @@ const CURRENCIES = ["NGN", "USD", "GHS", "KES", "ZAR", "GBP", "EUR"] as const;
 export function PathSettingsPanel({ path }: { path: PathDetail }) {
 	const { t } = useTranslation("authoring");
 	const queryClient = useQueryClient();
+	const { data: session } = useSession();
+	const isAdmin =
+		(session?.user as { role?: string } | undefined)?.role === "admin";
 	const fileRef = useRef<HTMLInputElement>(null);
 
 	const [thumbUrl, setThumbUrl] = useState(path.thumbnailUrl);
 	const [description, setDescription] = useState(path.description ?? "");
 	const [outcome, setOutcome] = useState(path.outcomeStatement ?? "");
 	const [level, setLevel] = useState(path.level ?? "");
-	const [hours, setHours] = useState(String(path.estimatedHours ?? ""));
+	const [duration, setDuration] = useState(path.estimatedDuration ?? "");
+	const [featured, setFeatured] = useState(path.isFeatured);
+	const [requested, setRequested] = useState(path.featureRequested);
 	const [isFree, setIsFree] = useState(path.isFree);
 	const [price, setPrice] = useState(String(path.price ?? 0));
 	const [currency, setCurrency] = useState(path.currency ?? "NGN");
@@ -42,13 +51,26 @@ export function PathSettingsPanel({ path }: { path: PathDetail }) {
 	const invalidate = () =>
 		queryClient.invalidateQueries({ queryKey: ["path", path.id] });
 
+	// Featuring/request saves immediately (separate from the big "Save settings")
+	// so the toggle survives navigation and reaches the admin queue right away.
+	const featureToggle = useMutation({
+		mutationFn: (body: { isFeatured?: boolean; featureRequested?: boolean }) =>
+			updatePath(path.id, body),
+		onSuccess: () => {
+			invalidate();
+			queryClient.invalidateQueries({ queryKey: ["feature-requests"] });
+			queryClient.invalidateQueries({ queryKey: ["featured"] });
+		},
+		onError: (e) => toast.error(e.message),
+	});
+
 	const save = useMutation({
 		mutationFn: () =>
 			updatePath(path.id, {
-				description: description.trim() || undefined,
-				outcomeStatement: outcome.trim() || undefined,
+				description: isBlankHtml(description) ? undefined : description,
+				outcomeStatement: isBlankHtml(outcome) ? undefined : outcome,
 				level: level || undefined,
-				estimatedHours: hours ? Number(hours) : undefined,
+				estimatedDuration: duration.trim() || undefined,
 				isFree,
 				price: isFree ? undefined : Number(price) || 0,
 				currency,
@@ -80,14 +102,21 @@ export function PathSettingsPanel({ path }: { path: PathDetail }) {
 	const priceNum = Number(price) || 0;
 	const pctNum = Math.min(100, Math.max(1, Number(pct) || 0));
 	const earnBase = Math.round((priceNum * pctNum) / 100);
+	const contentLabel = contentLengthLabel(
+		t,
+		path.pathCourses.reduce(
+			(sum, pc) => sum + (pc.course.contentMinutes ?? 0),
+			0,
+		),
+	);
 
 	return (
-		<section className="rounded-card border border-slate-200 bg-white shadow-card">
-			<header className="border-slate-100 border-b px-4 py-3 sm:px-6">
-				<h2 className="font-display text-slate-900 text-lg">
+		<section className="rounded-card border border-border bg-card shadow-card">
+			<header className="border-border border-b px-4 py-3 sm:px-6">
+				<h2 className="font-display text-foreground text-lg">
 					{t("paths.settings_title", { defaultValue: "Path settings" })}
 				</h2>
-				<p className="mt-0.5 text-slate-500 text-sm">
+				<p className="mt-0.5 text-muted-foreground text-sm">
 					{t("paths.settings_subtitle", {
 						defaultValue:
 							"Thumbnail, outcome, pricing and Earn-Back learners see on the catalogue.",
@@ -97,21 +126,21 @@ export function PathSettingsPanel({ path }: { path: PathDetail }) {
 
 			<div className="grid gap-6 p-4 sm:p-6 lg:grid-cols-[260px_1fr]">
 				<div>
-					<p className="mb-2 font-medium text-slate-700 text-sm">
+					<p className="mb-2 font-medium text-foreground text-sm">
 						{t("settings.thumbnail", { defaultValue: "Thumbnail" })}
 					</p>
 					<button
 						type="button"
 						onClick={() => fileRef.current?.click()}
 						className={cn(
-							"group relative flex aspect-video w-full items-center justify-center overflow-hidden rounded-card border-2 border-slate-200 border-dashed bg-slate-50 transition-colors hover:border-brand-primary/50",
+							"group relative flex aspect-video w-full items-center justify-center overflow-hidden rounded-card border-2 border-border border-dashed bg-muted transition-colors hover:border-brand-primary/50",
 							thumbUrl && "border-solid",
 						)}
 					>
 						{thumbUrl ? (
 							<img src={thumbUrl} alt="" className="size-full object-cover" />
 						) : (
-							<span className="flex flex-col items-center gap-1 text-slate-400">
+							<span className="flex flex-col items-center gap-1 text-muted-foreground">
 								<ImagePlus className="size-6" />
 								<span className="text-xs">
 									{t("settings.thumb_hint", {
@@ -156,28 +185,13 @@ export function PathSettingsPanel({ path }: { path: PathDetail }) {
 					<Field
 						label={t("settings.description", { defaultValue: "Description" })}
 					>
-						<textarea
-							value={description}
-							onChange={(e) => setDescription(e.target.value)}
-							rows={2}
-							maxLength={5000}
-							className="w-full resize-none rounded-input border border-slate-200 px-3.5 py-2.5 text-slate-900 text-sm outline-none focus:border-brand-primary"
-						/>
+						<RichTextEditor value={description} onChange={setDescription} />
 					</Field>
 
 					<Field
 						label={t("paths.outcome", { defaultValue: "Outcome statement" })}
 					>
-						<textarea
-							value={outcome}
-							onChange={(e) => setOutcome(e.target.value)}
-							rows={2}
-							maxLength={2000}
-							placeholder={t("paths.outcome_ph", {
-								defaultValue: "By the end, learners will be able to…",
-							})}
-							className="w-full resize-none rounded-input border border-slate-200 px-3.5 py-2.5 text-slate-900 text-sm outline-none focus:border-brand-primary"
-						/>
+						<RichTextEditor value={outcome} onChange={setOutcome} />
 					</Field>
 
 					<div className="grid gap-4 sm:grid-cols-2">
@@ -194,21 +208,101 @@ export function PathSettingsPanel({ path }: { path: PathDetail }) {
 							</Select>
 						</Field>
 						<Field
-							label={t("paths.estimated_hours", {
-								defaultValue: "Estimated hours",
+							label={t("paths.estimated_duration", {
+								defaultValue: "Estimated duration",
 							})}
 						>
 							<input
-								type="number"
-								min={0}
-								value={hours}
-								onChange={(e) => setHours(e.target.value)}
-								className="h-11 w-full rounded-input border border-slate-200 px-3.5 text-slate-900 outline-none focus:border-brand-primary"
+								type="text"
+								value={duration}
+								onChange={(e) => setDuration(e.target.value)}
+								maxLength={120}
+								placeholder={t("paths.estimated_duration_ph", {
+									defaultValue:
+										"e.g. 6–8 weeks (self-paced or facilitator-led)",
+								})}
+								className="h-11 w-full rounded-input border border-border px-3.5 text-foreground outline-none focus:border-brand-primary"
 							/>
 						</Field>
 					</div>
 
-					<div className="rounded-card border border-slate-200 p-4">
+					<div className="flex items-center justify-between gap-3 rounded-card border border-border bg-muted px-4 py-3">
+						<div>
+							<p className="font-medium text-foreground text-sm">
+								{t("settings.content_length", {
+									defaultValue: "Content length",
+								})}
+							</p>
+							<p className="text-muted-foreground text-xs">
+								{t("settings.content_length_hint_path", {
+									defaultValue:
+										"Auto-calculated from the courses in this path.",
+								})}
+							</p>
+						</div>
+						<span className="flex shrink-0 items-center gap-1.5 font-stats font-semibold text-foreground text-sm">
+							<Clock3 className="size-4 text-brand-primary" />
+							{contentLabel ||
+								t("settings.content_length_none", { defaultValue: "—" })}
+						</span>
+					</div>
+
+					<div className="rounded-card border border-brand-primary/20 bg-brand-primary-light/30 p-4">
+						{isAdmin ? (
+							<>
+								<Toggle
+									checked={featured}
+									onChange={(on) => {
+										setFeatured(on);
+										if (on) setRequested(false);
+										featureToggle.mutate({ isFeatured: on });
+									}}
+									label={t("settings.featured", {
+										defaultValue: "Feature on homepage",
+									})}
+									hint={t("settings.featured_hint", {
+										defaultValue:
+											"Show this in the Featured carousel on the homepage.",
+									})}
+								/>
+								{requested && !featured ? (
+									<p className="mt-2 text-amber-700 text-xs">
+										{t("settings.feature_requested_note", {
+											defaultValue:
+												"The instructor requested featuring — approve above.",
+										})}
+									</p>
+								) : null}
+							</>
+						) : (
+							<>
+								<Toggle
+									checked={requested}
+									onChange={(on) => {
+										setRequested(on);
+										featureToggle.mutate({ featureRequested: on });
+									}}
+									label={t("settings.request_featuring", {
+										defaultValue: "Request featuring",
+									})}
+									hint={t("settings.request_featuring_hint", {
+										defaultValue:
+											"Ask an admin to feature this on the homepage.",
+									})}
+								/>
+								{featured ? (
+									<p className="mt-2 flex items-center gap-1 text-success text-xs">
+										<CheckCircle2 className="size-3.5" />
+										{t("settings.is_featured_note", {
+											defaultValue: "Featured on the homepage",
+										})}
+									</p>
+								) : null}
+							</>
+						)}
+					</div>
+
+					<div className="rounded-card border border-border p-4">
 						<Toggle
 							checked={!isFree}
 							onChange={(on) => setIsFree(!on)}
@@ -225,7 +319,7 @@ export function PathSettingsPanel({ path }: { path: PathDetail }) {
 										min={0}
 										value={price}
 										onChange={(e) => setPrice(e.target.value)}
-										className="h-11 w-full rounded-input border border-slate-200 px-3.5 text-slate-900 outline-none focus:border-brand-primary"
+										className="h-11 w-full rounded-input border border-border px-3.5 text-foreground outline-none focus:border-brand-primary"
 									/>
 								</Field>
 								<Field
@@ -268,7 +362,7 @@ export function PathSettingsPanel({ path }: { path: PathDetail }) {
 												max={100}
 												value={pct}
 												onChange={(e) => setPct(e.target.value)}
-												className="h-11 w-full rounded-input border border-slate-200 px-3.5 text-slate-900 outline-none focus:border-brand-primary"
+												className="h-11 w-full rounded-input border border-border px-3.5 text-foreground outline-none focus:border-brand-primary"
 											/>
 										</Field>
 										<Field
@@ -282,7 +376,7 @@ export function PathSettingsPanel({ path }: { path: PathDetail }) {
 												max={365}
 												value={deadline}
 												onChange={(e) => setDeadline(e.target.value)}
-												className="h-11 w-full rounded-input border border-slate-200 px-3.5 text-slate-900 outline-none focus:border-brand-primary"
+												className="h-11 w-full rounded-input border border-border px-3.5 text-foreground outline-none focus:border-brand-primary"
 											/>
 										</Field>
 									</div>
@@ -320,7 +414,7 @@ function Field({ label, children }: { label: string; children: ReactNode }) {
 	return (
 		// biome-ignore lint/a11y/noLabelWithoutControl: the control is passed in as `children` and wrapped by the label.
 		<label className="block">
-			<span className="mb-1.5 block font-medium text-slate-700 text-sm">
+			<span className="mb-1.5 block font-medium text-foreground text-sm">
 				{label}
 			</span>
 			{children}
@@ -341,7 +435,7 @@ function Select({
 		<select
 			value={value}
 			onChange={(e) => onChange(e.target.value)}
-			className="h-11 w-full rounded-input border border-slate-200 bg-white px-3 text-slate-900 outline-none focus:border-brand-primary"
+			className="h-11 w-full rounded-input border border-border bg-card px-3 text-foreground outline-none focus:border-brand-primary"
 		>
 			{children}
 		</select>
@@ -366,10 +460,12 @@ function Toggle({
 			className="flex w-full items-center justify-between gap-3 text-left"
 		>
 			<span>
-				<span className="block font-medium text-slate-800 text-sm">
+				<span className="block font-medium text-foreground text-sm">
 					{label}
 				</span>
-				{hint ? <span className="text-slate-500 text-xs">{hint}</span> : null}
+				{hint ? (
+					<span className="text-muted-foreground text-xs">{hint}</span>
+				) : null}
 			</span>
 			<span
 				className={cn(
@@ -379,7 +475,7 @@ function Toggle({
 			>
 				<span
 					className={cn(
-						"absolute top-0.5 size-5 rounded-full bg-white shadow-sm transition-all",
+						"absolute top-0.5 size-5 rounded-full bg-card shadow-sm transition-all",
 						checked ? "left-[1.375rem]" : "left-0.5",
 					)}
 				/>

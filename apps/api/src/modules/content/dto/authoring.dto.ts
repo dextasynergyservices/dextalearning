@@ -110,6 +110,14 @@ export class UpdateCourseDto {
 	@IsIn(LEVELS)
 	level?: (typeof LEVELS)[number];
 
+	@ApiPropertyOptional({
+		description: 'Free-text duration, e.g. "6–8 weeks (self-paced)".',
+	})
+	@IsOptional()
+	@IsString()
+	@MaxLength(120)
+	estimatedDuration?: string;
+
 	@ApiPropertyOptional({ enum: LANGS })
 	@IsOptional()
 	@IsIn(LANGS)
@@ -119,6 +127,18 @@ export class UpdateCourseDto {
 	@IsOptional()
 	@IsBoolean()
 	hasFinalAssessment?: boolean;
+
+	@ApiPropertyOptional({ description: "Feature on the homepage (admin only)." })
+	@IsOptional()
+	@IsBoolean()
+	isFeatured?: boolean;
+
+	@ApiPropertyOptional({
+		description: "Instructor request to be featured (admin then approves).",
+	})
+	@IsOptional()
+	@IsBoolean()
+	featureRequested?: boolean;
 
 	@ApiPropertyOptional({
 		description: "Price in the chosen currency (e.g. 5000)",
@@ -214,6 +234,13 @@ export class UpdateLessonDto {
 	@Min(0)
 	@Max(100)
 	minVideoWatchPct?: number;
+
+	@ApiPropertyOptional({
+		description: "Free preview lesson — viewable publicly before enrolling.",
+	})
+	@IsOptional()
+	@IsBoolean()
+	isPreview?: boolean;
 
 	@ApiPropertyOptional()
 	@IsOptional()
