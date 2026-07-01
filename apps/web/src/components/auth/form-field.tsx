@@ -25,7 +25,7 @@ export function FormField({
 		<div>
 			<label
 				htmlFor={inputId}
-				className="mb-1.5 block font-medium text-slate-700 text-sm"
+				className="mb-1.5 block font-medium text-foreground text-sm"
 			>
 				{label}
 			</label>
@@ -34,16 +34,16 @@ export function FormField({
 				name={name}
 				aria-invalid={error ? true : undefined}
 				className={cn(
-					"h-12 w-full rounded-input border bg-white px-3.5 text-slate-900 text-sm outline-none transition-colors placeholder:text-slate-400 focus:ring-2",
+					"h-12 w-full rounded-input border bg-card px-3.5 text-foreground text-sm outline-none transition-colors placeholder:text-muted-foreground focus:ring-2",
 					error
 						? "border-error focus:border-error focus:ring-error/20"
-						: "border-slate-200 focus:border-brand-primary focus:ring-brand-primary/20",
+						: "border-border focus:border-brand-primary focus:ring-brand-primary/20",
 					className,
 				)}
 				{...props}
 			/>
 			{hint && !error ? (
-				<p className="mt-1.5 text-slate-400 text-xs">{hint}</p>
+				<p className="mt-1.5 text-muted-foreground text-xs">{hint}</p>
 			) : null}
 			{error ? (
 				<p className="mt-1.5 text-error text-sm" role="alert">

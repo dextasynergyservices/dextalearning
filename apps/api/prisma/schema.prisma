@@ -291,6 +291,16 @@ model User {
   timezone              String?       @db.VarChar(50)
   preferredVideoQuality VideoQuality  @default(quality_480p) @map("preferred_video_quality")
   progressJson          Json?         @map("progress_json")
+  // Onboarding (§8.1) — learner preferences + instructor public profile.
+  onboardedAt           DateTime?     @map("onboarded_at") @db.Timestamptz(6)
+  learnerGoals          String[]      @map("learner_goals")
+  skillLevel            String?       @map("skill_level") @db.VarChar(20)
+  weeklyHours           String?       @map("weekly_hours") @db.VarChar(20)
+  studySchedule         String?       @map("study_schedule") @db.VarChar(20)
+  whatsappOptIn         Boolean       @default(false) @map("whatsapp_opt_in")
+  headline              String?       @db.VarChar(160)
+  bio                   String?       @db.Text
+  expertiseAreas        String[]      @map("expertise_areas")
   // Better Auth core fields
   name                  String?       @db.VarChar(300)
   image                 String?
@@ -305,6 +315,7 @@ model User {
   uploadedCaptions               LessonCaption[]             @relation("CaptionUploader")
   createdLearningPaths           LearningPath[]              @relation("PathCreator")
   pathEnrollments                PathEnrollment[]
+  courseEnrollments              CourseEnrollment[]
   createdCohorts                 Cohort[]                    @relation("CohortCreator")
   assignedCohortInstructors      CohortInstructor[]          @relation("CohortInstructorUser")
   assignedCohortFacilitators     CohortFacilitator[]         @relation("CohortFacilitatorUser")
@@ -400,17 +411,20 @@ model Course {
   level              CourseLevel?
   language           LanguageCode  @default(en)
   isFeatured         Boolean       @default(false) @map("is_featured")
+  featureRequested   Boolean       @default(false) @map("feature_requested")
   totalDurationHours Decimal?      @map("total_duration_hours") @db.Decimal(6, 1)
+  estimatedDuration  String?       @map("estimated_duration") @db.VarChar(120)
   enrolledCount      Int           @default(0) @map("enrolled_count")
   createdAt          DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
 
-  tenant        Tenant?        @relation(fields: [tenantId], references: [id])
-  creator       User?          @relation("CourseCreator", fields: [createdBy], references: [id])
+  tenant        Tenant?            @relation(fields: [tenantId], references: [id])
+  creator       User?              @relation("CourseCreator", fields: [createdBy], references: [id])
   modules       Module[]
   pathCourses   PathCourse[]
   cohortCourses CohortCourse[]
   assessments   Assessment[]
   projects      Project[]
+  enrollments   CourseEnrollment[]
 
   @@map("courses")
 }
@@ -432,7 +446,9 @@ model Module {
 
 model Lesson {
   id                   String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  moduleId             String             @map("module_id") @db.Uuid
+  moduleId             String?            @map("module_id") @db.Uuid
+  introForPathId       String?            @unique @map("intro_for_path_id") @db.Uuid
+  introForCohortId     String?            @unique @map("intro_for_cohort_id") @db.Uuid
   title                String             @db.VarChar(200)
   contentType          LessonContentType? @map("content_type")
   videoKeysJson        Json?              @map("video_keys_json")
@@ -445,16 +461,20 @@ model Lesson {
   pdfKey               String?            @map("pdf_key")
   captionKeysJson      Json?              @map("caption_keys_json")
   transcriptText       String?            @map("transcript_text")
+  transcriptCuesJson   Json?              @map("transcript_cues_json")
   transcriptUploadedAt DateTime?          @map("transcript_uploaded_at") @db.Timestamptz(6)
   minVideoWatchPct     Decimal            @default(80.00) @map("min_video_watch_pct") @db.Decimal(5, 2)
   hasPreQuiz           Boolean            @default(false) @map("has_pre_quiz")
   hasPostQuiz          Boolean            @default(false) @map("has_post_quiz")
   postQuizPassMark     Decimal            @default(70.00) @map("post_quiz_pass_mark") @db.Decimal(5, 2)
   isDownloadable       Boolean            @default(false) @map("is_downloadable")
+  isPreview            Boolean            @default(false) @map("is_preview")
   orderIndex           Int                @map("order_index")
   createdAt            DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
 
-  module            Module               @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  module            Module?              @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  introForPath      LearningPath?        @relation("PathIntro", fields: [introForPathId], references: [id], onDelete: Cascade)
+  introForCohort    Cohort?              @relation("CohortIntro", fields: [introForCohortId], references: [id], onDelete: Cascade)
   completions       LessonCompletion[]
   captions          LessonCaption[]
   assessments       Assessment[]
@@ -509,18 +529,22 @@ model LearningPath {
   earnBackDeadlineDays Int?        @map("earn_back_deadline_days")
   outcomeStatement   String?       @map("outcome_statement")
   estimatedHours     Decimal?      @map("estimated_hours") @db.Decimal(6, 1)
+  estimatedDuration  String?       @map("estimated_duration") @db.VarChar(120)
   level              PathLevel?
   status             PublishStatus?
   isFeatured         Boolean       @default(false) @map("is_featured")
+  featureRequested   Boolean       @default(false) @map("feature_requested")
   createdBy          String?       @map("created_by") @db.Uuid
   createdAt          DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
 
   tenant      Tenant?          @relation(fields: [tenantId], references: [id])
   creator     User?            @relation("PathCreator", fields: [createdBy], references: [id])
   pathCourses PathCourse[]
+  cohortPaths CohortPath[]
   enrollments PathEnrollment[]
   assessments Assessment[]
   projects    Project[]
+  introLesson Lesson?          @relation("PathIntro")
 
   @@map("learning_paths")
 }
@@ -536,6 +560,24 @@ model PathCourse {
 
   @@id([pathId, courseId])
   @@map("path_courses")
+}
+
+// Parallels the blueprint's path_enrollments / cohort_enrollments (a learner's
+// membership record). The blueprint records *course* access via `orders`; this
+// is the free-phase membership table that the payments phase reconciles with
+// orders + the order-time snapshot (see enrollment-foundation memory, §4.11).
+model CourseEnrollment {
+  courseId         String            @map("course_id") @db.Uuid
+  userId           String            @map("user_id") @db.Uuid
+  enrolledAt       DateTime          @default(now()) @map("enrolled_at") @db.Timestamptz(6)
+  earnBackDeadline DateTime?         @map("earn_back_deadline") @db.Timestamptz(6)
+  status           EnrollmentStatus?
+
+  course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id])
+
+  @@id([courseId, userId])
+  @@map("course_enrollments")
 }
 
 model PathEnrollment {
@@ -581,6 +623,7 @@ model Cohort {
   tenant       Tenant?              @relation(fields: [tenantId], references: [id])
   creator      User?                @relation("CohortCreator", fields: [createdBy], references: [id])
   courses      CohortCourse[]
+  paths        CohortPath[]
   instructors  CohortInstructor[]
   facilitators CohortFacilitator[]
   enrollments  CohortEnrollment[]
@@ -588,6 +631,7 @@ model Cohort {
   assessments  Assessment[]
   projects     Project[]
   scores       LeaderboardScore[]
+  introLesson  Lesson?             @relation("CohortIntro")
 
   @@map("cohorts")
 }
@@ -602,6 +646,18 @@ model CohortCourse {
 
   @@id([cohortId, courseId])
   @@map("cohort_courses")
+}
+
+model CohortPath {
+  cohortId   String @map("cohort_id") @db.Uuid
+  pathId     String @map("path_id") @db.Uuid
+  orderIndex Int?   @map("order_index")
+
+  cohort Cohort       @relation(fields: [cohortId], references: [id])
+  path   LearningPath @relation(fields: [pathId], references: [id])
+
+  @@id([cohortId, pathId])
+  @@map("cohort_paths")
 }
 
 model CohortInstructor {
@@ -764,6 +820,9 @@ model AssessmentAttempt {
   invalidated       Boolean   @default(false)
   invalidatedBy     String?   @map("invalidated_by") @db.Uuid
   invalidatedReason String?   @map("invalidated_reason")
+  escalated         Boolean   @default(false)
+  escalatedAt       DateTime? @map("escalated_at") @db.Timestamptz(6)
+  escalatedReason   String?   @map("escalated_reason")
 
   assessment Assessment?              @relation(fields: [assessmentId], references: [id])
   user       User?                    @relation("AssessmentAttemptUser", fields: [userId], references: [id])
@@ -868,6 +927,7 @@ model CompletionStatus {
   allModuleAssessmentsPassed Boolean               @default(false) @map("all_module_assessments_passed")
   finalAssessmentPassed      Boolean               @default(false) @map("final_assessment_passed")
   allProjectsPassed          Boolean               @default(false) @map("all_projects_passed")
+  progressPercent            Int                   @default(0) @map("progress_percent")
   isComplete                 Boolean               @default(false) @map("is_complete")
   completedAt                DateTime?             @map("completed_at") @db.Timestamptz(6)
   earnBackTriggered          Boolean               @default(false) @map("earn_back_triggered")
@@ -1025,4 +1085,17 @@ model BlogPost {
   createdAt   DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
 
   @@map("blog_posts")
+}
+
+/// Durable cache of AI translations (§11). Each unique source text is translated
+/// once per language and reused forever — a read-only display layer that never
+/// affects grading (which always uses the canonical authored content).
+model TranslationCache {
+  sourceHash String       @map("source_hash") @db.VarChar(64)
+  language   LanguageCode
+  text       String
+  createdAt  DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@id([sourceHash, language])
+  @@map("translation_cache")
 }

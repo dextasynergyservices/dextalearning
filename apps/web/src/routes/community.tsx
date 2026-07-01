@@ -76,7 +76,7 @@ function CommunityPage() {
 						initial={{ opacity: 0, y: 20 }}
 						animate={{ opacity: 1, y: 0 }}
 						transition={{ duration: 0.6, delay: 0.15 }}
-						className="mx-auto mt-5 max-w-2xl text-lg text-slate-300"
+						className="mx-auto mt-5 max-w-2xl text-lg text-muted-foreground"
 					>
 						{t("community.subtitle")}
 					</motion.p>
@@ -90,7 +90,7 @@ function CommunityPage() {
 			>
 				<h2
 					data-reveal
-					className="text-center font-display text-2xl tracking-tight text-slate-900 sm:text-3xl"
+					className="text-center font-display text-2xl tracking-tight text-foreground sm:text-3xl"
 				>
 					{t("community.voices_title")}
 				</h2>
@@ -99,10 +99,10 @@ function CommunityPage() {
 						<figure
 							key={voice.name}
 							data-reveal={idx % 2 === 0 ? "left" : "right"}
-							className="flex flex-col rounded-card border border-slate-200 bg-white p-7 shadow-card transition-all hover:-translate-y-1 hover:shadow-card-hover"
+							className="flex flex-col rounded-card border border-border bg-card p-7 shadow-card transition-all hover:-translate-y-1 hover:shadow-card-hover"
 						>
 							<Quote className="size-7 text-brand-accent" />
-							<blockquote className="mt-4 flex-1 text-slate-700">
+							<blockquote className="mt-4 flex-1 text-foreground">
 								"{voice.quote}"
 							</blockquote>
 							<figcaption className="mt-6 flex items-center gap-3">
@@ -110,8 +110,8 @@ function CommunityPage() {
 									{voice.name.charAt(0)}
 								</span>
 								<div>
-									<p className="font-semibold text-slate-900">{voice.name}</p>
-									<p className="text-slate-500 text-sm">{voice.role}</p>
+									<p className="font-semibold text-foreground">{voice.name}</p>
+									<p className="text-muted-foreground text-sm">{voice.role}</p>
 								</div>
 							</figcaption>
 						</figure>
@@ -120,11 +120,11 @@ function CommunityPage() {
 			</section>
 
 			{/* Ways to engage */}
-			<section ref={engageRef} className="bg-slate-50">
+			<section ref={engageRef} className="bg-muted">
 				<div className="mx-auto max-w-7xl px-6 py-14 lg:px-8 lg:py-20">
 					<h2
 						data-reveal
-						className="text-center font-display text-2xl tracking-tight text-slate-900 sm:text-3xl"
+						className="text-center font-display text-2xl tracking-tight text-foreground sm:text-3xl"
 					>
 						{t("community.engage_title")}
 					</h2>
@@ -133,15 +133,15 @@ function CommunityPage() {
 							<div
 								key={key}
 								data-reveal="scale"
-								className="rounded-card border border-slate-200 bg-white p-7 shadow-card transition-all hover:-translate-y-1 hover:shadow-card-hover"
+								className="rounded-card border border-border bg-card p-7 shadow-card transition-all hover:-translate-y-1 hover:shadow-card-hover"
 							>
 								<span className="flex size-12 items-center justify-center rounded-btn bg-brand-accent-light text-amber-700">
 									<Icon className="size-6" />
 								</span>
-								<h3 className="mt-5 font-display text-lg text-slate-900">
+								<h3 className="mt-5 font-display text-lg text-foreground">
 									{t(`community.engage.${key}.title`)}
 								</h3>
-								<p className="mt-2 text-slate-500 text-sm leading-relaxed">
+								<p className="mt-2 text-muted-foreground text-sm leading-relaxed">
 									{t(`community.engage.${key}.body`)}
 								</p>
 							</div>

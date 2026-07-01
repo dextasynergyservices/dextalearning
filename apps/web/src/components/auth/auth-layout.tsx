@@ -23,7 +23,7 @@ export function AuthLayout({ title, subtitle, children }: AuthLayoutProps) {
 	const { t } = useTranslation(["common", "landing"]);
 
 	return (
-		<div className="min-h-screen bg-white lg:grid lg:grid-cols-2">
+		<div className="min-h-screen bg-background lg:grid lg:grid-cols-2">
 			{/* Brand panel — desktop only */}
 			<aside className="hidden bg-hero-bg p-12 text-white lg:flex lg:flex-col lg:justify-between">
 				<Link to="/" className="inline-flex">
@@ -49,7 +49,7 @@ export function AuthLayout({ title, subtitle, children }: AuthLayoutProps) {
 						))}
 					</ul>
 				</div>
-				<p className="text-slate-400 text-sm">
+				<p className="text-muted-foreground text-sm">
 					© {new Date().getFullYear()} DextaLearning
 				</p>
 			</aside>
@@ -63,10 +63,10 @@ export function AuthLayout({ title, subtitle, children }: AuthLayoutProps) {
 					<Link
 						to="/"
 						aria-label="Home"
-						className="flex items-center gap-1 text-slate-700 transition-colors hover:text-brand-primary lg:hidden"
+						className="flex items-center gap-1 text-foreground transition-colors hover:text-brand-primary lg:hidden"
 					>
 						<ChevronLeft className="size-5" />
-						<Logo asLink={false} className="text-lg text-slate-900" />
+						<Logo asLink={false} className="text-lg text-foreground" />
 					</Link>
 					<span className="hidden lg:block" />
 					<LanguageSwitcher compact />
@@ -79,11 +79,11 @@ export function AuthLayout({ title, subtitle, children }: AuthLayoutProps) {
 					className="flex flex-1 items-start justify-center px-6 pb-12 lg:items-center"
 				>
 					<div className="w-full max-w-md">
-						<h1 className="font-display text-3xl tracking-tight text-slate-900">
+						<h1 className="font-display text-3xl tracking-tight text-foreground">
 							{title}
 						</h1>
 						{subtitle ? (
-							<p className="mt-2 text-slate-500">{subtitle}</p>
+							<p className="mt-2 text-muted-foreground">{subtitle}</p>
 						) : null}
 						<div className="mt-7">{children}</div>
 					</div>

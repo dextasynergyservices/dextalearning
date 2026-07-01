@@ -64,6 +64,7 @@ export interface RegisterPayload {
 	phone?: string;
 	password: string;
 	confirmPassword: string;
+	role?: "learner" | "instructor";
 }
 
 export interface RegisterResult {

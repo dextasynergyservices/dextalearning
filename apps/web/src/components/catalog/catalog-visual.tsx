@@ -59,7 +59,7 @@ export function CatalogVisual({
 					<p
 						className={cn(
 							"font-stats text-xs",
-							tone === "dark" ? "text-slate-200" : "text-slate-600",
+							tone === "dark" ? "text-slate-200" : "text-muted-foreground",
 						)}
 					>
 						{meta}

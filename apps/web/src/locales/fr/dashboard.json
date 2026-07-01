@@ -4,7 +4,8 @@
 		"explore": "Explorer",
 		"search": "Recherche",
 		"leaderboard": "Récompenses",
-		"profile": "Profil"
+		"profile": "Profil",
+		"my_learning": "Mon apprentissage"
 	},
 	"home": {
 		"greeting": "Bon retour",
@@ -41,7 +42,9 @@
 			}
 		},
 		"view_course": "Voir le cours",
-		"empty_courses": "Aucun cours publié pour le moment. Revenez bientôt !"
+		"empty_courses": "Aucun cours publié pour le moment. Revenez bientôt !",
+		"view_path": "Voir le parcours",
+		"view_cohort": "Voir la cohorte"
 	},
 	"lesson": {
 		"title": "Leçon",
@@ -88,6 +91,36 @@
 		"more": "Plus",
 		"name": "Nom",
 		"email": "E-mail",
-		"role": "Rôle"
+		"role": "Rôle",
+		"first_name": "Prénom",
+		"last_name": "Nom",
+		"other_names": "Autres noms (facultatif)",
+		"phone": "Téléphone (WhatsApp)",
+		"phone_hint": "Facultatif — pour les rappels d'étude WhatsApp.",
+		"phone_unverified": "Non vérifié — utilisé pour les rappels d'étude.",
+		"verified": "Vérifié",
+		"email_locked": "L'e-mail ne peut pas être modifié.",
+		"save": "Enregistrer",
+		"saved": "Profil enregistré.",
+		"not_verified": "Non vérifié"
+	},
+	"my": {
+		"title": "Mon apprentissage",
+		"empty": "Commencez un cours et il apparaîtra ici pour continuer à tout moment.",
+		"browse": "Parcourir les cours",
+		"in_progress": "Continuer l'apprentissage",
+		"completed_section": "Terminé",
+		"completed": "Terminé",
+		"done": "Terminé",
+		"percent": "{{n}} %",
+		"view_all": "Tout voir",
+		"type_course": "Cours",
+		"type_path": "Parcours",
+		"type_cohort": "Cohorte",
+		"subtitle": "Reprenez où vous vous êtes arrêté et suivez vos progrès.",
+		"empty_title": "Rien ici pour l'instant",
+		"resume": "Reprenez là où vous vous êtes arrêté",
+		"continue": "Continuer",
+		"more_in_progress": "En cours"
 	}
 }

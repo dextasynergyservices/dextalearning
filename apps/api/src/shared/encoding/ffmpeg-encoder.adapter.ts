@@ -132,6 +132,26 @@ export class FfmpegEncoderAdapter implements MediaEncoderPort {
 		});
 	}
 
+	extractAudioForAi(input: Buffer, sourceExt: string): Promise<Buffer> {
+		return this.withTempDir(async (dir) => {
+			const inputPath = join(dir, `src.${sourceExt}`);
+			await writeFile(inputPath, input);
+			// MP3, not m4a: Gemini's inline audio accepts mp3/wav/aac/ogg/flac but
+			// NOT the MP4/m4a container. Mono 48 kbps keeps it tiny + speech-clear.
+			const outPath = join(dir, "ai-audio.mp3");
+			await this.runFfmpeg(inputPath, (cmd) =>
+				cmd
+					.noVideo()
+					.audioCodec("libmp3lame")
+					.audioChannels(1)
+					.audioBitrate("48k")
+					.format("mp3")
+					.output(outPath),
+			);
+			return readFile(outPath);
+		});
+	}
+
 	async rasterizePdfToWebp(pdf: Buffer): Promise<Buffer[]> {
 		// pdf-to-img is ESM-only; dynamic import keeps the CJS build happy.
 		const { pdf: toImages } = await import("pdf-to-img");

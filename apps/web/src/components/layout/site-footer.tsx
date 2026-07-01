@@ -62,7 +62,7 @@ function SocialLinks() {
 					target="_blank"
 					rel="noreferrer"
 					aria-label={label}
-					className="flex size-9 items-center justify-center rounded-full border border-slate-200 text-slate-500 transition-colors hover:border-brand-primary hover:text-brand-primary"
+					className="flex size-9 items-center justify-center rounded-full border border-border text-muted-foreground transition-colors hover:border-brand-primary hover:text-brand-primary"
 				>
 					<Icon className="size-4" />
 				</a>
@@ -76,13 +76,13 @@ export function SiteFooter() {
 	const year = new Date().getFullYear();
 
 	return (
-		<footer className="border-slate-200 border-t bg-slate-50">
+		<footer className="border-border border-t bg-muted">
 			{/* Desktop — full footer */}
 			<div className="hidden lg:block">
 				<div className="mx-auto grid max-w-7xl grid-cols-5 gap-10 px-8 py-14">
 					<div className="col-span-2">
-						<Logo className="text-slate-900" />
-						<p className="mt-4 max-w-xs text-slate-500 text-sm">
+						<Logo className="text-foreground" />
+						<p className="mt-4 max-w-xs text-muted-foreground text-sm">
 							{t("footer.tagline")}
 						</p>
 						<div className="mt-6">
@@ -92,7 +92,7 @@ export function SiteFooter() {
 
 					{FOOTER_COLUMNS.map((column) => (
 						<div key={column.titleKey}>
-							<h3 className="font-stats font-semibold text-slate-400 text-xs uppercase tracking-wider">
+							<h3 className="font-stats font-semibold text-muted-foreground text-xs uppercase tracking-wider">
 								{t(column.titleKey)}
 							</h3>
 							<ul className="mt-4 space-y-3">
@@ -100,7 +100,7 @@ export function SiteFooter() {
 									<li key={link.to}>
 										<Link
 											to={link.to}
-											className="text-slate-600 text-sm transition-colors hover:text-brand-primary"
+											className="text-muted-foreground text-sm transition-colors hover:text-brand-primary"
 										>
 											{t(link.labelKey)}
 										</Link>
@@ -111,8 +111,8 @@ export function SiteFooter() {
 					))}
 				</div>
 
-				<div className="border-slate-200 border-t">
-					<div className="mx-auto flex max-w-7xl items-center justify-between px-8 py-6 text-slate-400 text-sm">
+				<div className="border-border border-t">
+					<div className="mx-auto flex max-w-7xl items-center justify-between px-8 py-6 text-muted-foreground text-sm">
 						<p>
 							© {year} DextaLearning. {t("footer.rights")}
 						</p>
@@ -123,7 +123,7 @@ export function SiteFooter() {
 
 			{/* Mobile — slim footer (bottom tab bar handles primary nav) */}
 			<div className="px-6 pt-8 pb-[calc(4.5rem+env(safe-area-inset-bottom))] lg:hidden">
-				<Logo className="text-slate-900" />
+				<Logo className="text-foreground" />
 				<div className="mt-4">
 					<SocialLinks />
 				</div>
@@ -132,14 +132,16 @@ export function SiteFooter() {
 						<Link
 							key={link.to}
 							to={link.to}
-							className="text-slate-600 text-sm transition-colors hover:text-brand-primary"
+							className="text-muted-foreground text-sm transition-colors hover:text-brand-primary"
 						>
 							{t(link.labelKey)}
 						</Link>
 					))}
 				</nav>
-				<div className="mt-6 flex items-center justify-between border-slate-200 border-t pt-4">
-					<p className="text-slate-400 text-xs">© {year} DextaLearning</p>
+				<div className="mt-6 flex items-center justify-between border-border border-t pt-4">
+					<p className="text-muted-foreground text-xs">
+						© {year} DextaLearning
+					</p>
 					<LanguageSwitcher compact />
 				</div>
 			</div>

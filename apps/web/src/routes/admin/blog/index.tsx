@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { StudioShell } from "@/components/authoring/studio-shell";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { EmptyState } from "@/components/ui/empty-state";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
 	type BlogPostSummary,
@@ -79,29 +80,29 @@ function BlogListPage() {
 					initial={{ opacity: 0, y: 14 }}
 					animate={{ opacity: 1, y: 0 }}
 					transition={{ duration: 0.34 }}
-					className="rounded-card border border-brand-primary/15 bg-white p-4 shadow-card sm:p-6"
+					className="rounded-card border border-brand-primary/15 bg-card p-4 shadow-card sm:p-6"
 				>
 					<p className="font-stats font-semibold text-brand-primary text-xs uppercase">
 						{t("blog.eyebrow", { defaultValue: "Publish ideas" })}
 					</p>
-					<h2 className="mt-2 font-display text-2xl text-slate-900 sm:text-3xl">
+					<h2 className="mt-2 font-display text-2xl text-foreground sm:text-3xl">
 						{t("blog.heading", { defaultValue: "Blog" })}
 					</h2>
-					<p className="mt-2 max-w-2xl text-slate-600 text-sm leading-relaxed">
+					<p className="mt-2 max-w-2xl text-muted-foreground text-sm leading-relaxed">
 						{t("blog.subtitle", {
 							defaultValue:
 								"Write articles that show up on the public blog — learning science, product news and more.",
 						})}
 					</p>
 					<div className="mt-4 flex gap-6 text-sm">
-						<span className="text-slate-500">
-							<b className="font-stats font-bold text-slate-900 text-lg">
+						<span className="text-muted-foreground">
+							<b className="font-stats font-bold text-foreground text-lg">
 								{isPending ? "—" : (posts?.length ?? 0)}
 							</b>{" "}
 							{t("blog.stat_total", { defaultValue: "posts" })}
 						</span>
-						<span className="text-slate-500">
-							<b className="font-stats font-bold text-slate-900 text-lg">
+						<span className="text-muted-foreground">
+							<b className="font-stats font-bold text-foreground text-lg">
 								{isPending ? "—" : published}
 							</b>{" "}
 							{t("courses.published")}
@@ -115,7 +116,7 @@ function BlogListPage() {
 							e.preventDefault();
 							if (title.trim().length >= 3) create.mutate();
 						}}
-						className="flex flex-col gap-3 rounded-card border border-slate-200 bg-white p-4 shadow-card sm:flex-row sm:items-center"
+						className="flex flex-col gap-3 rounded-card border border-border bg-card p-4 shadow-card sm:flex-row sm:items-center"
 					>
 						<input
 							// biome-ignore lint/a11y/noAutofocus: focus the field the user just opened.
@@ -125,7 +126,7 @@ function BlogListPage() {
 							placeholder={t("blog.field_title", {
 								defaultValue: "Post title",
 							})}
-							className="h-11 flex-1 rounded-input border border-slate-200 px-3.5 text-slate-900 outline-none focus:border-brand-primary"
+							className="h-11 flex-1 rounded-input border border-border px-3.5 text-foreground outline-none focus:border-brand-primary"
 						/>
 						<Button
 							type="submit"
@@ -151,7 +152,7 @@ function BlogListPage() {
 							<motion.article
 								key={post.id}
 								whileHover={{ y: -2 }}
-								className="flex items-center gap-3 rounded-card border border-slate-200 bg-white p-4 shadow-card transition-colors hover:border-brand-primary/30"
+								className="flex items-center gap-3 rounded-card border border-border bg-card p-4 shadow-card transition-colors hover:border-brand-primary/30"
 							>
 								<Link
 									to="/admin/blog/$postId"
@@ -162,10 +163,10 @@ function BlogListPage() {
 										<Newspaper className="size-5" />
 									</span>
 									<span className="min-w-0 flex-1">
-										<span className="line-clamp-1 font-display text-slate-900">
+										<span className="line-clamp-1 font-display text-foreground">
 											{post.title}
 										</span>
-										<span className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-slate-400 text-xs">
+										<span className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-muted-foreground text-xs">
 											{post.category ? <span>{post.category}</span> : null}
 											{post.readMinutes ? (
 												<span className="flex items-center gap-1">
@@ -197,21 +198,19 @@ function BlogListPage() {
 									type="button"
 									aria-label={t("editor.delete")}
 									onClick={() => setToDelete(post)}
-									className="flex size-8 items-center justify-center rounded-btn text-slate-400 transition-colors hover:bg-error/5 hover:text-error"
+									className="flex size-8 items-center justify-center rounded-btn text-muted-foreground transition-colors hover:bg-error/5 hover:text-error"
 								>
 									<Trash2 className="size-4" />
 								</button>
 							</motion.article>
 						))
 					) : (
-						<div className="rounded-card border border-slate-200 border-dashed bg-white py-16 text-center">
-							<Newspaper className="mx-auto size-8 text-slate-300" />
-							<p className="mt-3 text-slate-400">
-								{t("blog.empty", {
-									defaultValue: "No posts yet — write your first article.",
-								})}
-							</p>
-						</div>
+						<EmptyState
+							icon={Newspaper}
+							title={t("blog.empty", {
+								defaultValue: "No posts yet — write your first article.",
+							})}
+						/>
 					)}
 				</div>
 			</div>

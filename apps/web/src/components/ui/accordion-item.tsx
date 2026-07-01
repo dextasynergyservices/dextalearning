@@ -20,7 +20,7 @@ export function AccordionItem({
 	const [open, setOpen] = useState(defaultOpen);
 
 	return (
-		<div className="border-slate-200 border-b">
+		<div className="border-border border-b">
 			<button
 				type="button"
 				onClick={() => setOpen((value) => !value)}
@@ -28,16 +28,16 @@ export function AccordionItem({
 				className="flex w-full items-center gap-3 py-4 text-left"
 			>
 				<span className="flex-1">
-					<span className="block font-medium text-slate-900">{title}</span>
+					<span className="block font-medium text-foreground">{title}</span>
 					{subtitle ? (
-						<span className="mt-0.5 block text-slate-400 text-sm">
+						<span className="mt-0.5 block text-muted-foreground text-sm">
 							{subtitle}
 						</span>
 					) : null}
 				</span>
 				<ChevronDown
 					className={cn(
-						"size-5 shrink-0 text-slate-400 transition-transform duration-200",
+						"size-5 shrink-0 text-muted-foreground transition-transform duration-200",
 						open && "rotate-180",
 					)}
 				/>

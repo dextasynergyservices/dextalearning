@@ -33,7 +33,7 @@ export function GoogleButton({ label, onClick, disabled }: GoogleButtonProps) {
 			type="button"
 			onClick={onClick}
 			disabled={disabled}
-			className="flex h-12 w-full items-center justify-center gap-3 rounded-btn border border-slate-200 bg-white font-sans font-semibold text-slate-700 text-sm transition-colors hover:bg-slate-50 active:scale-[0.99] disabled:opacity-50"
+			className="flex h-12 w-full items-center justify-center gap-3 rounded-btn border border-border bg-card font-sans font-semibold text-foreground text-sm transition-colors hover:bg-accent active:scale-[0.99] disabled:opacity-50"
 		>
 			<GoogleGlyph className="size-5" /> {label}
 		</button>

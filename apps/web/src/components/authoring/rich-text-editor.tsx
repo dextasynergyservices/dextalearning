@@ -18,7 +18,7 @@ export function RichTextEditor({ value, onChange }: RichTextEditorProps) {
 		editorProps: {
 			attributes: {
 				class:
-					"prose prose-slate max-w-none min-h-[220px] px-4 py-3 focus:outline-none",
+					"prose prose-slate max-w-none min-h-[220px] px-4 py-3 focus:outline-none dark:prose-invert",
 			},
 		},
 	});
@@ -70,8 +70,8 @@ export function RichTextEditor({ value, onChange }: RichTextEditorProps) {
 	];
 
 	return (
-		<div className="overflow-hidden rounded-card border border-slate-200 bg-white">
-			<div className="flex flex-wrap gap-1 border-slate-100 border-b bg-slate-50 p-1.5">
+		<div className="overflow-hidden rounded-card border border-border bg-card">
+			<div className="flex flex-wrap gap-1 border-border border-b bg-muted p-1.5">
 				{tools.map(({ icon: Icon, label, isActive, run }) => (
 					<button
 						key={label}
@@ -83,7 +83,7 @@ export function RichTextEditor({ value, onChange }: RichTextEditorProps) {
 							"flex size-8 items-center justify-center rounded-btn transition-colors",
 							isActive
 								? "bg-brand-primary text-white"
-								: "text-slate-600 hover:bg-slate-200",
+								: "text-muted-foreground hover:bg-muted",
 						)}
 					>
 						<Icon className="size-4" />

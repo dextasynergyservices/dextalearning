@@ -15,6 +15,7 @@ import { toast } from "sonner";
 import { StudioShell } from "@/components/authoring/studio-shell";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { EmptyState } from "@/components/ui/empty-state";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
 	createPath,
@@ -83,29 +84,29 @@ export function PathsPage({
 					initial={{ opacity: 0, y: 14 }}
 					animate={{ opacity: 1, y: 0 }}
 					transition={{ duration: 0.34 }}
-					className="rounded-card border border-brand-primary/15 bg-white p-4 shadow-card sm:p-6"
+					className="rounded-card border border-brand-primary/15 bg-card p-4 shadow-card sm:p-6"
 				>
 					<p className="font-stats font-semibold text-brand-primary text-xs uppercase">
 						{t("paths.eyebrow", { defaultValue: "Curate journeys" })}
 					</p>
-					<h2 className="mt-2 font-display text-2xl text-slate-900 sm:text-3xl">
+					<h2 className="mt-2 font-display text-2xl text-foreground sm:text-3xl">
 						{t("paths.heading", { defaultValue: "Learning Paths" })}
 					</h2>
-					<p className="mt-2 max-w-2xl text-slate-600 text-sm leading-relaxed">
+					<p className="mt-2 max-w-2xl text-muted-foreground text-sm leading-relaxed">
 						{t("paths.subtitle", {
 							defaultValue:
 								"Bundle your courses into an ordered journey with its own price and Earn-Back.",
 						})}
 					</p>
 					<div className="mt-4 flex gap-6 text-sm">
-						<span className="text-slate-500">
-							<b className="font-stats font-bold text-slate-900 text-lg">
+						<span className="text-muted-foreground">
+							<b className="font-stats font-bold text-foreground text-lg">
 								{isPending ? "—" : (paths?.length ?? 0)}
 							</b>{" "}
 							{t("paths.stat_total", { defaultValue: "paths" })}
 						</span>
-						<span className="text-slate-500">
-							<b className="font-stats font-bold text-slate-900 text-lg">
+						<span className="text-muted-foreground">
+							<b className="font-stats font-bold text-foreground text-lg">
 								{isPending ? "—" : published}
 							</b>{" "}
 							{t("courses.published", { defaultValue: "published" })}
@@ -119,7 +120,7 @@ export function PathsPage({
 							e.preventDefault();
 							if (title.trim().length >= 3) create.mutate();
 						}}
-						className="flex flex-col gap-3 rounded-card border border-slate-200 bg-white p-4 shadow-card sm:flex-row sm:items-center"
+						className="flex flex-col gap-3 rounded-card border border-border bg-card p-4 shadow-card sm:flex-row sm:items-center"
 					>
 						<input
 							// biome-ignore lint/a11y/noAutofocus: focus the field the user just opened.
@@ -129,7 +130,7 @@ export function PathsPage({
 							placeholder={t("paths.field_title", {
 								defaultValue: "Path title",
 							})}
-							className="h-11 flex-1 rounded-input border border-slate-200 px-3.5 text-slate-900 outline-none focus:border-brand-primary"
+							className="h-11 flex-1 rounded-input border border-border px-3.5 text-foreground outline-none focus:border-brand-primary"
 						/>
 						<Button
 							type="submit"
@@ -155,7 +156,7 @@ export function PathsPage({
 							<motion.article
 								key={path.id}
 								whileHover={{ y: -4 }}
-								className="group flex flex-col overflow-hidden rounded-card border border-slate-200 bg-white shadow-card transition-colors hover:border-brand-primary/30 hover:shadow-card-hover"
+								className="group flex flex-col overflow-hidden rounded-card border border-border bg-card shadow-card transition-colors hover:border-brand-primary/30 hover:shadow-card-hover"
 							>
 								<Link
 									to={
@@ -166,7 +167,7 @@ export function PathsPage({
 									params={{ pathId: path.id }}
 									className="flex flex-1 flex-col"
 								>
-									<div className="relative aspect-[16/7] overflow-hidden bg-slate-100">
+									<div className="relative aspect-[16/7] overflow-hidden bg-muted">
 										{path.thumbnailUrl ? (
 											<img
 												src={path.thumbnailUrl}
@@ -187,10 +188,10 @@ export function PathsPage({
 										</span>
 									</div>
 									<div className="flex flex-1 flex-col p-4">
-										<h3 className="line-clamp-2 font-display text-slate-900">
+										<h3 className="line-clamp-2 font-display text-foreground">
 											{path.title}
 										</h3>
-										<div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-slate-400 text-xs">
+										<div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-muted-foreground text-xs">
 											<span className="flex items-center gap-1">
 												<Layers3 className="size-3.5" />
 												{t("paths.courses_count", {
@@ -209,7 +210,7 @@ export function PathsPage({
 											) : null}
 										</div>
 										<div className="mt-auto flex items-center justify-between pt-3">
-											<span className="font-stats font-bold text-slate-900 text-sm">
+											<span className="font-stats font-bold text-foreground text-sm">
 												{path.isFree
 													? t("catalog.free", {
 															ns: "academy",
@@ -230,7 +231,7 @@ export function PathsPage({
 										</div>
 									</div>
 								</Link>
-								<div className="flex items-center justify-end border-slate-100 border-t px-3 py-2">
+								<div className="flex items-center justify-end border-border border-t px-3 py-2">
 									<Button
 										variant="ghost"
 										size="sm"
@@ -244,14 +245,13 @@ export function PathsPage({
 							</motion.article>
 						))
 					) : (
-						<div className="col-span-full rounded-card border border-slate-200 border-dashed bg-white py-16 text-center">
-							<Waypoints className="mx-auto size-8 text-slate-300" />
-							<p className="mt-3 text-slate-400">
-								{t("paths.empty", {
-									defaultValue: "No paths yet — create your first journey.",
-								})}
-							</p>
-						</div>
+						<EmptyState
+							className="col-span-full"
+							icon={Waypoints}
+							title={t("paths.empty", {
+								defaultValue: "No paths yet — create your first journey.",
+							})}
+						/>
 					)}
 				</div>
 			</div>

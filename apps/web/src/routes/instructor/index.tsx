@@ -12,9 +12,10 @@ import {
 import type { ComponentType } from "react";
 import { useTranslation } from "react-i18next";
 import { StudioShell } from "@/components/authoring/studio-shell";
+import { MyLearningCard } from "@/components/learn/my-learning-card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useSession } from "@/lib/auth-client";
-import { listMyCourses, listMyPaths } from "@/lib/content-api";
+import { getMyLearning, listMyCourses, listMyPaths } from "@/lib/content-api";
 
 export const Route = createFileRoute("/instructor/")({
 	component: InstructorOverviewPage,
@@ -32,6 +33,12 @@ function InstructorOverviewPage() {
 		queryFn: listMyCourses,
 	});
 	const paths = useQuery({ queryKey: ["my-paths"], queryFn: listMyPaths });
+	const mine = useQuery({ queryKey: ["my-learning"], queryFn: getMyLearning });
+	const inProgress = mine.data
+		? [...mine.data.courses, ...mine.data.paths, ...mine.data.cohorts]
+				.filter((i) => !i.isComplete)
+				.slice(0, 3)
+		: [];
 
 	const loading = courses.isPending || paths.isPending;
 	const published =
@@ -46,21 +53,21 @@ function InstructorOverviewPage() {
 					initial={{ opacity: 0, y: 14 }}
 					animate={{ opacity: 1, y: 0 }}
 					transition={{ duration: 0.34 }}
-					className="rounded-card border border-brand-primary/15 bg-white p-4 shadow-card sm:p-6"
+					className="rounded-card border border-brand-primary/15 bg-card p-4 shadow-card sm:p-6"
 				>
 					<div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
 						<div>
 							<p className="font-stats font-semibold text-brand-primary text-xs uppercase">
 								{t("instructor.eyebrow")}
 							</p>
-							<h2 className="mt-2 font-display text-2xl text-slate-900 sm:text-3xl">
+							<h2 className="mt-2 font-display text-2xl text-foreground sm:text-3xl">
 								{session?.user?.name
 									? t("instructor.greeting", {
 											name: firstName(session.user.name),
 										})
 									: t("instructor.title")}
 							</h2>
-							<p className="mt-2 max-w-2xl text-slate-600 text-sm leading-relaxed">
+							<p className="mt-2 max-w-2xl text-muted-foreground text-sm leading-relaxed">
 								{t("instructor.body")}
 							</p>
 						</div>
@@ -114,9 +121,9 @@ function InstructorOverviewPage() {
 					/>
 				</div>
 
-				<div className="rounded-card border border-slate-200 bg-white shadow-card">
-					<div className="border-slate-100 border-b px-4 py-4 sm:px-5">
-						<p className="font-display text-xl text-slate-900">
+				<div className="rounded-card border border-border bg-card shadow-card">
+					<div className="border-border border-b px-4 py-4 sm:px-5">
+						<p className="font-display text-xl text-foreground">
 							{t("instructor.recent_title")}
 						</p>
 					</div>
@@ -132,16 +139,16 @@ function InstructorOverviewPage() {
 									key={course.id}
 									to="/instructor/courses/$courseId"
 									params={{ courseId: course.id }}
-									className="group flex items-center gap-3 px-4 py-3 transition-colors hover:bg-slate-50 sm:px-5"
+									className="group flex items-center gap-3 px-4 py-3 transition-colors hover:bg-accent sm:px-5"
 								>
 									<span className="flex size-10 shrink-0 items-center justify-center rounded-btn bg-brand-primary-light text-brand-primary">
 										<BookOpen className="size-5" />
 									</span>
 									<span className="min-w-0 flex-1">
-										<span className="line-clamp-1 font-medium text-slate-900 text-sm">
+										<span className="line-clamp-1 font-medium text-foreground text-sm">
 											{course.title}
 										</span>
-										<span className="mt-0.5 text-slate-500 text-xs">
+										<span className="mt-0.5 text-muted-foreground text-xs">
 											{t("courses.modules", { count: course._count.modules })}
 										</span>
 									</span>
@@ -156,16 +163,44 @@ function InstructorOverviewPage() {
 											? t("courses.published")
 											: t("courses.draft")}
 									</span>
-									<ArrowRight className="size-4 text-slate-300 group-hover:text-brand-primary" />
+									<ArrowRight className="size-4 text-muted-foreground group-hover:text-brand-primary" />
 								</Link>
 							))
 						) : (
-							<p className="p-6 text-center text-slate-500 text-sm">
+							<p className="p-6 text-center text-muted-foreground text-sm">
 								{t("instructor.empty")}
 							</p>
 						)}
 					</div>
 				</div>
+
+				{inProgress.length > 0 ? (
+					<section>
+						<div className="mb-3 flex items-center justify-between gap-3">
+							<p className="font-display text-xl text-foreground">
+								{t("my.in_progress", {
+									ns: "dashboard",
+									defaultValue: "Continue learning",
+								})}
+							</p>
+							<Link
+								to="/learn/mine"
+								className="inline-flex items-center gap-1 font-semibold text-brand-primary text-sm hover:gap-1.5"
+							>
+								{t("my.view_all", {
+									ns: "dashboard",
+									defaultValue: "View all",
+								})}
+								<ArrowRight className="size-4" />
+							</Link>
+						</div>
+						<div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+							{inProgress.map((item) => (
+								<MyLearningCard key={`${item.type}-${item.id}`} item={item} />
+							))}
+						</div>
+					</section>
+				) : null}
 			</div>
 		</StudioShell>
 	);
@@ -183,7 +218,7 @@ function Stat({
 	return (
 		<motion.div
 			whileHover={{ y: -2 }}
-			className="rounded-card border border-slate-200 bg-white p-4 shadow-card"
+			className="rounded-card border border-border bg-card p-4 shadow-card"
 		>
 			<span className="flex size-9 items-center justify-center rounded-btn bg-brand-primary-light text-brand-primary">
 				<Icon className="size-4" />
@@ -191,11 +226,11 @@ function Stat({
 			{value === null ? (
 				<Skeleton className="mt-4 h-7 w-16 rounded-btn" />
 			) : (
-				<p className="mt-3 font-stats font-bold text-2xl text-slate-900">
+				<p className="mt-3 font-stats font-bold text-2xl text-foreground">
 					{value}
 				</p>
 			)}
-			<p className="text-slate-500 text-xs">{label}</p>
+			<p className="text-muted-foreground text-xs">{label}</p>
 		</motion.div>
 	);
 }
@@ -216,13 +251,13 @@ function PortfolioCard({
 	return (
 		<Link
 			to={to}
-			className="group flex items-center gap-4 rounded-card border border-slate-200 bg-white p-5 shadow-card transition-all hover:-translate-y-1 hover:border-brand-primary/30 hover:shadow-card-hover"
+			className="group flex items-center gap-4 rounded-card border border-border bg-card p-5 shadow-card transition-all hover:-translate-y-1 hover:border-brand-primary/30 hover:shadow-card-hover"
 		>
 			<span className="flex size-12 items-center justify-center rounded-btn bg-brand-primary-light text-brand-primary">
 				<Icon className="size-6" />
 			</span>
 			<div className="min-w-0 flex-1">
-				<p className="font-display text-lg text-slate-900">{title}</p>
+				<p className="font-display text-lg text-foreground">{title}</p>
 				<span className="flex items-center gap-1 font-semibold text-brand-primary text-sm transition-all group-hover:gap-1.5">
 					{action}
 					<ArrowRight className="size-4" />
@@ -231,7 +266,7 @@ function PortfolioCard({
 			{count === null ? (
 				<Skeleton className="h-8 w-10 rounded-btn" />
 			) : (
-				<span className="font-stats font-bold text-3xl text-slate-900">
+				<span className="font-stats font-bold text-3xl text-foreground">
 					{count}
 				</span>
 			)}

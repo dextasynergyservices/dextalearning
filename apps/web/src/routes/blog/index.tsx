@@ -1,10 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { motion } from "framer-motion";
 import { FileText } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { CatalogVisual } from "@/components/catalog/catalog-visual";
 import { PublicShell } from "@/components/layout/public-shell";
 import { Reveal } from "@/components/marketing/reveal";
+import { EmptyState } from "@/components/ui/empty-state";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getPublishedPosts } from "@/lib/content-api";
 import { formatShortDate } from "@/lib/format";
@@ -22,17 +24,38 @@ function BlogPage() {
 	});
 
 	return (
-		<PublicShell mobileTitle={t("blog.title")}>
-			<div className="mx-auto max-w-7xl px-6 lg:px-8">
-				<div className="pt-8 lg:pt-28">
-					<h1 className="font-display text-3xl tracking-tight text-slate-900 sm:text-4xl">
+		<PublicShell darkHeader>
+			{/* Hero — matches About/Community, the other "More" nav pages */}
+			<section className="relative overflow-hidden bg-hero-bg text-white">
+				<div className="relative mx-auto max-w-4xl px-6 pt-24 pb-14 text-center lg:pt-32 lg:pb-20">
+					<motion.span
+						initial={{ opacity: 0, y: 12 }}
+						animate={{ opacity: 1, y: 0 }}
+						transition={{ duration: 0.5 }}
+						className="badge-earnback mb-5 bg-white/10 text-brand-accent"
+					>
+						{t("blog.badge", { defaultValue: "Blog" })}
+					</motion.span>
+					<motion.h1
+						initial={{ opacity: 0, y: 20 }}
+						animate={{ opacity: 1, y: 0 }}
+						transition={{ duration: 0.6, delay: 0.05 }}
+						className="font-display text-4xl leading-[1.1] tracking-tight sm:text-5xl"
+					>
 						{t("blog.title")}
-					</h1>
-					<p className="mt-2 max-w-2xl text-lg text-slate-500">
+					</motion.h1>
+					<motion.p
+						initial={{ opacity: 0, y: 20 }}
+						animate={{ opacity: 1, y: 0 }}
+						transition={{ duration: 0.6, delay: 0.15 }}
+						className="mx-auto mt-5 max-w-2xl text-lg text-muted-foreground"
+					>
 						{t("blog.subtitle")}
-					</p>
+					</motion.p>
 				</div>
+			</section>
 
+			<div className="mx-auto max-w-7xl px-6 lg:px-8">
 				{isPending ? (
 					<div className="mt-8 grid gap-6 pb-10 sm:grid-cols-2 lg:grid-cols-3">
 						{["a", "b", "c"].map((k) => (
@@ -46,9 +69,9 @@ function BlogPage() {
 								key={post.id}
 								to="/blog/$slug"
 								params={{ slug: post.slug }}
-								className="group flex flex-col overflow-hidden rounded-card border border-slate-200 bg-white shadow-card transition-all hover:-translate-y-1 hover:shadow-card-hover active:scale-[0.99]"
+								className="group flex flex-col overflow-hidden rounded-card border border-border bg-card shadow-card transition-all hover:-translate-y-1 hover:shadow-card-hover active:scale-[0.99]"
 							>
-								<div className="relative aspect-[16/9] overflow-hidden bg-slate-100">
+								<div className="relative aspect-[16/9] overflow-hidden bg-muted">
 									{post.coverUrl ? (
 										<img
 											src={post.coverUrl}
@@ -75,15 +98,15 @@ function BlogPage() {
 											{post.category}
 										</span>
 									) : null}
-									<h2 className="mt-1 line-clamp-2 font-display text-lg text-slate-900 leading-snug">
+									<h2 className="mt-1 line-clamp-2 font-display text-lg text-foreground leading-snug">
 										{post.title}
 									</h2>
 									{post.excerpt ? (
-										<p className="mt-2 line-clamp-2 flex-1 text-slate-500 text-sm">
+										<p className="mt-2 line-clamp-2 flex-1 text-muted-foreground text-sm">
 											{post.excerpt}
 										</p>
 									) : null}
-									<p className="mt-4 text-slate-400 text-xs">
+									<p className="mt-4 text-muted-foreground text-xs">
 										{[
 											post.authorName,
 											post.publishedAt
@@ -101,14 +124,13 @@ function BlogPage() {
 						))}
 					</Reveal>
 				) : (
-					<div className="mt-8 rounded-card border border-slate-200 border-dashed bg-white py-20 text-center">
-						<FileText className="mx-auto size-8 text-slate-300" />
-						<p className="mt-3 text-slate-500">
-							{t("blog.empty", {
-								defaultValue: "No articles yet — check back soon.",
-							})}
-						</p>
-					</div>
+					<EmptyState
+						className="mt-8"
+						icon={FileText}
+						title={t("blog.empty", {
+							defaultValue: "No articles yet — check back soon.",
+						})}
+					/>
 				)}
 			</div>
 		</PublicShell>

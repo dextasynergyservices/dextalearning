@@ -11,6 +11,7 @@ import {
 } from "@/components/catalog/public-cards";
 import { PublicShell } from "@/components/layout/public-shell";
 import { Reveal } from "@/components/marketing/reveal";
+import { EmptyState } from "@/components/ui/empty-state";
 import { SearchField } from "@/components/ui/search-field";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -18,6 +19,7 @@ import {
 	getPublishedCourses,
 	getPublishedPaths,
 } from "@/lib/content-api";
+import { htmlToText } from "@/lib/rich-text";
 
 const SEARCH_TYPES = ["all", "courses", "paths", "cohorts"] as const;
 
@@ -64,13 +66,20 @@ function SearchPage() {
 		const courseHits =
 			type === "all" || type === "courses"
 				? (coursesQ.data ?? []).filter((c) =>
-						matches([c.title, c.description], normalized),
+						matches([c.title, htmlToText(c.description)], normalized),
 					)
 				: [];
 		const pathHits =
 			type === "all" || type === "paths"
 				? (pathsQ.data ?? []).filter((p) =>
-						matches([p.title, p.description, p.outcomeStatement], normalized),
+						matches(
+							[
+								p.title,
+								htmlToText(p.description),
+								htmlToText(p.outcomeStatement),
+							],
+							normalized,
+						),
 					)
 				: [];
 		const cohortHits =
@@ -91,12 +100,12 @@ function SearchPage() {
 		<PublicShell mobileTitle={t("search.title")}>
 			<div className="mx-auto max-w-7xl px-4 lg:px-8">
 				<div className="hidden pt-28 lg:block">
-					<h1 className="font-display text-4xl tracking-tight text-slate-900">
+					<h1 className="font-display text-4xl tracking-tight text-foreground">
 						{t("search.title")}
 					</h1>
 				</div>
 
-				<div className="-mx-4 sticky top-[calc(3.5rem+env(safe-area-inset-top))] z-30 border-slate-100 border-b bg-white/90 px-4 py-3 backdrop-blur-md lg:static lg:mx-0 lg:mt-6 lg:border-0 lg:bg-transparent lg:px-0 lg:py-0 lg:backdrop-blur-none">
+				<div className="-mx-4 sticky top-[calc(3.5rem+env(safe-area-inset-top))] z-30 border-border border-b bg-card/90 px-4 py-3 backdrop-blur-md lg:static lg:mx-0 lg:mt-6 lg:border-0 lg:bg-transparent lg:px-0 lg:py-0 lg:backdrop-blur-none">
 					<SearchField
 						value={query}
 						onChange={setQuery}
@@ -113,17 +122,13 @@ function SearchPage() {
 				</div>
 
 				{!active ? (
-					<div className="flex flex-col items-center justify-center py-24 text-center">
-						<span className="flex size-14 items-center justify-center rounded-full bg-brand-primary-light text-brand-primary">
-							<Search className="size-7" />
-						</span>
-						<h2 className="mt-4 font-display text-slate-900 text-xl">
-							{t("search.start_title")}
-						</h2>
-						<p className="mt-1 max-w-sm text-slate-500">
-							{t("search.start_body")}
-						</p>
-					</div>
+					<EmptyState
+						variant="bare"
+						className="py-20"
+						icon={Search}
+						title={t("search.start_title")}
+						description={t("search.start_body")}
+					/>
 				) : loading ? (
 					<div className="mt-6 grid gap-5 pb-10 sm:grid-cols-2 lg:grid-cols-3">
 						{["a", "b", "c"].map((k) => (
@@ -131,24 +136,22 @@ function SearchPage() {
 						))}
 					</div>
 				) : total === 0 ? (
-					<div className="flex flex-col items-center justify-center py-24 text-center">
-						<span className="flex size-14 items-center justify-center rounded-full bg-slate-100 text-slate-400">
-							<Search className="size-7" />
-						</span>
-						<h2 className="mt-4 font-display text-slate-900 text-xl">
-							{t("search.empty_title")}
-						</h2>
-						<p className="mt-1 text-slate-500">{t("search.empty_body")}</p>
-					</div>
+					<EmptyState
+						variant="bare"
+						className="py-20"
+						icon={Search}
+						title={t("search.empty_title")}
+						description={t("search.empty_body")}
+					/>
 				) : (
 					<div className="pb-10">
-						<p className="mt-4 text-slate-500 text-sm">
+						<p className="mt-4 text-muted-foreground text-sm">
 							{t("search.results", { count: total })}
 						</p>
 
 						{courses.length > 0 ? (
 							<section className="mt-6">
-								<h2 className="font-display text-lg text-slate-900">
+								<h2 className="font-display text-lg text-foreground">
 									{t("search.section_courses")}
 								</h2>
 								<Reveal className="mt-3 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
@@ -161,7 +164,7 @@ function SearchPage() {
 
 						{paths.length > 0 ? (
 							<section className="mt-8">
-								<h2 className="font-display text-lg text-slate-900">
+								<h2 className="font-display text-lg text-foreground">
 									{t("search.section_paths")}
 								</h2>
 								<Reveal className="mt-3 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
@@ -174,7 +177,7 @@ function SearchPage() {
 
 						{cohorts.length > 0 ? (
 							<section className="mt-8">
-								<h2 className="font-display text-lg text-slate-900">
+								<h2 className="font-display text-lg text-foreground">
 									{t("search.section_cohorts")}
 								</h2>
 								<Reveal className="mt-3 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">

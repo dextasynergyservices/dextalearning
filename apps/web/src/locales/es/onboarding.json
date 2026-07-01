@@ -52,6 +52,54 @@
 	"done": {
 		"title": "¡Todo listo!",
 		"subtitle": "Bienvenido a DextaLearning — empecemos a aprender.",
-		"cta": "Ir a mi panel"
+		"cta": "Ir a mi panel",
+		"with_picks": "Bienvenido a DextaLearning — aquí tienes algunos cursos para empezar.",
+		"browse": "Ver todos los cursos"
+	},
+	"save_error": "No se pudieron guardar tus preferencias — podrás actualizarlas más tarde.",
+	"aside": {
+		"learner_title": "Personalicemos tu aprendizaje",
+		"learner_subtitle": "Unas preguntas rápidas para adaptar los cursos, el ritmo y los recordatorios.",
+		"instructor_title": "Bienvenido al Creator Studio",
+		"instructor_subtitle": "Configura tu perfil de instructor para que los estudiantes sepan de quién aprenden."
+	},
+	"whatsapp": {
+		"title": "Recordatorios de estudio en WhatsApp",
+		"subtitle": "Opcional — añade tu número para recibir recordatorios suaves.",
+		"placeholder": "ej. +234 801 234 5678",
+		"optin": "Enviarme recordatorios de estudio por WhatsApp",
+		"optin_hint": "Puedes desactivarlo cuando quieras en ajustes."
+	},
+	"instructor": {
+		"welcome_title": "Ya eres instructor 🎉",
+		"welcome_subtitle": "Esto es lo que puedes hacer en el Creator Studio:",
+		"points": {
+			"create": "Crea cursos, rutas de aprendizaje y cohortes en vivo con lecciones de vídeo, audio, PDF y texto.",
+			"earn": "Gana con tu contenido mediante el modelo Earn-Back — los estudiantes son recompensados por terminar y tú cobras por enseñar.",
+			"publish": "Publica cuando estés listo — no se necesita aprobación para empezar."
+		},
+		"profile_title": "Crea tu perfil de instructor",
+		"profile_subtitle": "Es tu presencia pública en cada curso que impartes. Podrás afinarlo más tarde.",
+		"headline": "Titular",
+		"headline_ph": "ej. Diseñador de producto senior y educador",
+		"bio": "Biografía breve",
+		"bio_ph": "Cuéntales a los estudiantes sobre tu experiencia y lo que enseñas…",
+		"expertise": "Áreas de especialización",
+		"areas": {
+			"technology": "Tecnología",
+			"business": "Negocios",
+			"design": "Diseño",
+			"data": "Datos e IA",
+			"languages": "Idiomas",
+			"science": "Ciencia",
+			"arts": "Artes",
+			"health": "Salud",
+			"education": "Educación",
+			"personal": "Crecimiento personal"
+		},
+		"enter_studio": "Entrar al Studio",
+		"ready_title": "Tu estudio está listo",
+		"ready_subtitle": "Empieza y crea tu primer curso — solo toma unos minutos.",
+		"payout_note": "💡 Configura tu cuenta de pagos más tarde en Ajustes — puedes publicar y acumular ganancias antes de eso."
 	}
 }

@@ -12,6 +12,8 @@ import {
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
+import { InlineCreate } from "@/components/authoring/inline-create";
+import { IntroManager } from "@/components/authoring/intro-manager";
 import { PathSettingsPanel } from "@/components/authoring/path-settings-panel";
 import { StudioShell } from "@/components/authoring/studio-shell";
 import { Button } from "@/components/ui/button";
@@ -19,10 +21,12 @@ import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
 	addPathCourse,
+	createPathIntro,
 	deletePath,
 	getPath,
 	publishPath,
 	removePathCourse,
+	removePathIntro,
 	reorderPathCourses,
 } from "@/lib/content-api";
 
@@ -140,7 +144,7 @@ export function PathEditorPage({
 						) : (
 							<Rocket className="size-4" />
 						)}
-						{t("editor.publish")}
+						{t("paths.publish", { defaultValue: "Publish path" })}
 					</Button>
 				</div>
 			}
@@ -154,15 +158,24 @@ export function PathEditorPage({
 				<div className="space-y-6">
 					<PathSettingsPanel path={path} />
 
+					<IntroManager
+						id={path.id}
+						intro={path.introLesson}
+						editorArea={area}
+						queryKey={["path", pathId]}
+						createFn={createPathIntro}
+						removeFn={removePathIntro}
+					/>
+
 					{/* Courses in the path */}
-					<section className="rounded-card border border-slate-200 bg-white shadow-card">
-						<header className="border-slate-100 border-b px-4 py-3 sm:px-6">
-							<h2 className="font-display text-slate-900 text-lg">
+					<section className="rounded-card border border-border bg-card shadow-card">
+						<header className="border-border border-b px-4 py-3 sm:px-6">
+							<h2 className="font-display text-foreground text-lg">
 								{t("paths.courses_title", {
 									defaultValue: "Courses in this path",
 								})}
 							</h2>
-							<p className="mt-0.5 text-slate-500 text-sm">
+							<p className="mt-0.5 text-muted-foreground text-sm">
 								{t("paths.courses_subtitle", {
 									defaultValue:
 										"Order matters — learners progress top to bottom.",
@@ -182,7 +195,7 @@ export function PathEditorPage({
 											aria-label="Move up"
 											disabled={index === 0 || reorder.isPending}
 											onClick={() => move(index, -1)}
-											className="flex size-5 items-center justify-center rounded text-slate-400 transition-colors hover:text-brand-primary disabled:opacity-30"
+											className="flex size-5 items-center justify-center rounded text-muted-foreground transition-colors hover:text-brand-primary disabled:opacity-30"
 										>
 											<ArrowUp className="size-3.5" />
 										</button>
@@ -194,7 +207,7 @@ export function PathEditorPage({
 												reorder.isPending
 											}
 											onClick={() => move(index, 1)}
-											className="flex size-5 items-center justify-center rounded text-slate-400 transition-colors hover:text-brand-primary disabled:opacity-30"
+											className="flex size-5 items-center justify-center rounded text-muted-foreground transition-colors hover:text-brand-primary disabled:opacity-30"
 										>
 											<ArrowDown className="size-3.5" />
 										</button>
@@ -203,10 +216,10 @@ export function PathEditorPage({
 										{index + 1}
 									</span>
 									<span className="min-w-0 flex-1">
-										<span className="block truncate font-medium text-slate-800 text-sm">
+										<span className="block truncate font-medium text-foreground text-sm">
 											{pc.course.title}
 										</span>
-										<span className="text-slate-400 text-xs">
+										<span className="text-muted-foreground text-xs">
 											{pc.course.status === "published"
 												? t("courses.published")
 												: t("courses.draft")}
@@ -216,14 +229,14 @@ export function PathEditorPage({
 										type="button"
 										aria-label={t("editor.delete")}
 										onClick={() => remove.mutate(pc.course.id)}
-										className="flex size-8 items-center justify-center rounded-btn text-slate-400 transition-colors hover:bg-error/5 hover:text-error"
+										className="flex size-8 items-center justify-center rounded-btn text-muted-foreground transition-colors hover:bg-error/5 hover:text-error"
 									>
 										<Trash2 className="size-4" />
 									</button>
 								</li>
 							))}
 							{path.pathCourses.length === 0 ? (
-								<li className="px-4 py-8 text-center text-slate-400 text-sm">
+								<li className="px-4 py-8 text-center text-muted-foreground text-sm">
 									{t("paths.no_courses", {
 										defaultValue: "No courses yet — add one below.",
 									})}
@@ -232,11 +245,11 @@ export function PathEditorPage({
 						</ul>
 
 						{/* Add a course */}
-						<div className="flex flex-col gap-2 border-slate-100 border-t p-3 sm:flex-row">
+						<div className="flex flex-col gap-2 border-border border-t p-3 sm:flex-row">
 							<select
 								value={addId}
 								onChange={(e) => setAddId(e.target.value)}
-								className="h-11 flex-1 rounded-input border border-slate-200 bg-white px-3 text-slate-900 outline-none focus:border-brand-primary"
+								className="h-11 flex-1 rounded-input border border-border bg-card px-3 text-foreground outline-none focus:border-brand-primary"
 							>
 								<option value="">
 									{path.availableCourses.length
@@ -266,6 +279,20 @@ export function PathEditorPage({
 								)}
 								{t("paths.add_course", { defaultValue: "Add course" })}
 							</Button>
+						</div>
+
+						{/* Don't see the course? Create a draft inline. */}
+						<div className="border-border border-t px-3 pb-3">
+							<p className="mb-2 text-muted-foreground text-xs">
+								{t("paths.or_create_course", {
+									defaultValue: "Don't see it? Create a new draft course:",
+								})}
+							</p>
+							<InlineCreate
+								kind="course"
+								attaching={add.isPending}
+								onCreated={(courseId) => add.mutate(courseId)}
+							/>
 						</div>
 					</section>
 

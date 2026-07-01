@@ -1,6 +1,8 @@
 import Plyr from "plyr";
 import "plyr/dist/plyr.css";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { type RefObject, useEffect, useMemo, useRef, useState } from "react";
+
+type ProgressCb = (pct: number) => void;
 
 const QUALITY_STORAGE_KEY = "dextalearning_preferred_quality";
 const EMPTY_CAPTION_URLS: Record<string, string | null> = {};
@@ -19,6 +21,14 @@ interface VideoPlayerProps {
 	/** Presigned .vtt URL per language (null when not provided). */
 	captionUrls?: Record<string, string | null>;
 	poster?: string;
+	/** Reports watched fraction (0–100) on play progress + 100 on end. */
+	onProgress?: ProgressCb;
+	/** Resume position as a fraction (0–100) of duration; seeks once on load. */
+	resumePct?: number;
+	/** Reports current playback time (seconds) — drives the synced transcript. */
+	onTime?: (seconds: number) => void;
+	/** Receives a seek(seconds) fn so the transcript can scrub the player. */
+	seekRef?: RefObject<((seconds: number) => void) | null>;
 }
 
 function parseQualitySize(quality: string | undefined): number | null {
@@ -28,9 +38,9 @@ function parseQualitySize(quality: string | undefined): number | null {
 }
 
 /**
- * Protected Plyr video player (§5.6, §5.7): multi-quality switching from the
+ * Protected Plyr video player: multi-quality switching from the
  * presigned renditions, instructor-uploaded caption tracks, remembers the user's
- * quality choice. No download control (content protection — §5.9 Layer 8).
+ * quality choice. No download control (content protection).
  *
  * Sources and tracks are set via Plyr's programmatic `player.source` API rather
  * than React-managed `<source>` / `<track>` elements. This avoids the conflict
@@ -42,10 +52,21 @@ export function VideoPlayer({
 	defaultQuality = "480p",
 	captionUrls = EMPTY_CAPTION_URLS,
 	poster,
+	onProgress,
+	resumePct = 0,
+	onTime,
+	seekRef,
 }: VideoPlayerProps) {
 	const containerRef = useRef<HTMLDivElement>(null);
 	const playerRef = useRef<Plyr | null>(null);
 	const [ready, setReady] = useState(false);
+	// Keep the latest callback without re-creating the Plyr instance.
+	const onProgressRef = useRef(onProgress);
+	onProgressRef.current = onProgress;
+	const onTimeRef = useRef(onTime);
+	onTimeRef.current = onTime;
+	const resumeRef = useRef(resumePct);
+	resumeRef.current = resumePct;
 
 	const sources = useMemo(
 		() =>
@@ -102,6 +123,11 @@ export function VideoPlayer({
 		video.className = "aspect-video w-full object-contain";
 		video.setAttribute("playsinline", "");
 		video.setAttribute("preload", "metadata");
+		// Content protection ("no download"): strip the native
+		// download + "save video as" affordances. A deterrent, not DRM — the
+		// presigned source URL is still reachable via devtools within its window.
+		video.setAttribute("controlsList", "nodownload");
+		video.oncontextmenu = (event) => event.preventDefault();
 		if (poster) video.setAttribute("poster", poster);
 		if (tracks.length > 0) video.setAttribute("crossorigin", "anonymous");
 		wrapper.appendChild(video);
@@ -143,7 +169,33 @@ export function VideoPlayer({
 
 		player.on("ready", () => setReady(true));
 
+		// Resume where the learner stopped (once metadata is available).
+		let resumed = false;
+		player.on("loadedmetadata", () => {
+			const pct = resumeRef.current;
+			if (!resumed && pct > 1 && pct < 98 && player.duration > 0) {
+				player.currentTime = (pct / 100) * player.duration;
+				resumed = true;
+			}
+		});
+
+		player.on("timeupdate", () => {
+			onTimeRef.current?.(player.currentTime);
+			if (player.duration > 0) {
+				onProgressRef.current?.(
+					Math.min(100, (player.currentTime / player.duration) * 100),
+				);
+			}
+		});
+		player.on("ended", () => onProgressRef.current?.(100));
+
 		playerRef.current = player;
+		if (seekRef) {
+			seekRef.current = (seconds: number) => {
+				player.currentTime = seconds;
+				void player.play();
+			};
+		}
 
 		return () => {
 			player.destroy();
@@ -151,9 +203,10 @@ export function VideoPlayer({
 			// element; clear the container to avoid orphans on re-mount.
 			while (wrapper.firstChild) wrapper.removeChild(wrapper.firstChild);
 			playerRef.current = null;
+			if (seekRef) seekRef.current = null;
 			setReady(false);
 		};
-	}, [sources, tracks, defaultQuality, poster]);
+	}, [sources, tracks, defaultQuality, poster, seekRef]);
 
 	return (
 		<div className="overflow-hidden rounded-card bg-black shadow-card">

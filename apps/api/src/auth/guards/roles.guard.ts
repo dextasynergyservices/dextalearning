@@ -10,7 +10,7 @@ import type { AuthenticatedUser } from "../types";
 
 /**
  * Enforces `@Roles(...)`. Runs after `SessionGuard`, so `req.user` is present.
- * Admin passes every role gate (full-platform authority — §2).
+ * Admin passes every role gate (full-platform authority).
  */
 @Injectable()
 export class RolesGuard implements CanActivate {

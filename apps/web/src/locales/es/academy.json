@@ -49,7 +49,8 @@
 		"clear": "Borrar filtros",
 		"earnback_pct": "{{pct}}% reembolsable",
 		"earnback": "Reembolsable",
-		"free": "Gratis"
+		"free": "Gratis",
+		"load_more": "Cargar más"
 	},
 	"detail": {
 		"back": "Volver",
@@ -88,7 +89,32 @@
 		"includes_transcript": "Transcripciones y subtítulos en 4 idiomas",
 		"minutes": "{{count}} min",
 		"not_found_title": "Curso no encontrado",
-		"not_found_body": "Este curso pudo haberse movido o ya no está disponible."
+		"not_found_body": "Este curso pudo haberse movido o ya no está disponible.",
+		"continue_learning": "Continuar aprendiendo",
+		"close": "Cerrar",
+		"start_learning": "Empezar",
+		"progress_complete": "{{percent}} % completado",
+		"path_journey_body": "Completa cada curso en orden para terminar la ruta.",
+		"optional": "Opcional",
+		"of_content": "de contenido",
+		"path_includes_title": "Esta ruta incluye",
+		"enrolled": "¡Te has inscrito!",
+		"preview_watch": "Ver vista previa gratis",
+		"free": "Gratis",
+		"preview_count": "{{count}} lecciones de vista previa gratis antes de inscribirte.",
+		"preview_watch_path": "Ver vista previa de la ruta",
+		"preview_watch_cohort": "Ver vista previa de la cohorte",
+		"instructor": "Tu instructor",
+		"view_profile": "Ver perfil completo",
+		"courses_by": "Cursos de {{name}}",
+		"no_courses_title": "Aún no hay cursos publicados",
+		"no_courses_body": "Vuelve pronto para ver nuevos cursos.",
+		"instructor_missing_title": "Instructor no encontrado",
+		"instructor_missing_body": "Este perfil de instructor no está disponible.",
+		"paths_by": "Rutas de {{name}}",
+		"cohorts_by": "Cohortes de {{name}}",
+		"no_content_title": "Aún no hay nada publicado",
+		"no_content_body": "Vuelve pronto para ver nuevo contenido."
 	},
 	"paths": {
 		"title": "Rutas de aprendizaje",
@@ -137,5 +163,22 @@
 		"section_courses": "Cursos",
 		"section_paths": "Rutas de aprendizaje",
 		"section_cohorts": "Cohortes"
+	},
+	"lesson": {
+		"transcript_synced": "Sincronizado"
+	},
+	"featured": {
+		"courses": "Cursos destacados",
+		"paths": "Rutas destacadas",
+		"cohorts": "Cohortes destacadas",
+		"see_all": "Ver todo"
+	},
+	"recommended": {
+		"courses": "Cursos recomendados",
+		"paths": "Rutas recomendadas",
+		"cohorts": "Cohortes recomendadas",
+		"because_collab": "Porque los estudiantes inscritos en tus cursos también se inscribieron en estos",
+		"because_collab_paths": "Porque los estudiantes inscritos en tus rutas también se inscribieron en estas",
+		"because_collab_cohorts": "Porque los estudiantes que se unieron a tus cohortes también se unieron a estas"
 	}
 }

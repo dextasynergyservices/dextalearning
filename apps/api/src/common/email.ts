@@ -1,8 +1,16 @@
 import { Resend } from "resend";
+import {
+	renderMagicLinkEmail,
+	renderOtpEmail,
+	renderPasswordResetEmail,
+	renderVerifyEmail,
+	renderWelcomeEmail,
+} from "../emails/render";
 
-// Resend client (blueprint §5.5). Plain module so Better Auth's config (which
+// Resend client. Plain module so Better Auth's config (which
 // lives outside Nest's DI container) can call it. Degrades gracefully to logging
-// when RESEND_API_KEY is absent, so local dev works without a key.
+// when RESEND_API_KEY is absent, so local dev works without a key. Email bodies
+// come from React Email templates in `src/emails/`.
 
 const apiKey = process.env.RESEND_API_KEY;
 const from =
@@ -28,37 +36,6 @@ async function send(to: string, subject: string, html: string): Promise<void> {
 	}
 }
 
-function layout(heading: string, body: string): string {
-	return `<!doctype html>
-<html><head><meta charset="utf-8" /><meta name="viewport" content="width=device-width" /></head>
-<body style="margin:0;background:#f8fafc;font-family:'DM Sans',Arial,sans-serif;color:#0f172a;">
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="padding:32px 16px;">
-    <tr><td align="center">
-      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:480px;background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.08);">
-        <tr><td style="background:#0a0a0a;padding:24px 28px;">
-          <span style="font-family:'Righteous',Arial,sans-serif;font-size:22px;color:#ffffff;">Dexta<span style="color:#f59e0b;">Learning</span></span>
-        </td></tr>
-        <tr><td style="padding:32px 28px;">
-          <h1 style="margin:0 0 16px;font-size:22px;color:#0f172a;">${heading}</h1>
-          ${body}
-        </td></tr>
-        <tr><td style="padding:20px 28px;border-top:1px solid #e2e8f0;color:#94a3b8;font-size:12px;">
-          © ${new Date().getFullYear()} DextaLearning · dextalearning.com
-        </td></tr>
-      </table>
-    </td></tr>
-  </table>
-</body></html>`;
-}
-
-function button(href: string, label: string): string {
-	return `<a href="${href}" style="display:inline-block;background:#1d4ed8;color:#ffffff;text-decoration:none;font-weight:600;padding:12px 22px;border-radius:12px;">${label}</a>`;
-}
-
-function otpBlock(otp: string): string {
-	return `<div style="margin:8px 0 4px;font-family:'Space Grotesk',monospace;font-size:30px;letter-spacing:8px;font-weight:700;color:#1d4ed8;">${otp}</div>`;
-}
-
 /** Single dual-channel verification email: magic link + 6-digit OTP. */
 export async function sendVerificationEmail(
 	to: string,
@@ -68,14 +45,7 @@ export async function sendVerificationEmail(
 	await send(
 		to,
 		"Verify your DextaLearning account",
-		layout(
-			"Verify your email",
-			`<p style="margin:0 0 20px;color:#334155;">Welcome to DextaLearning! Confirm your email to start learning.</p>
-       <p style="margin:0 0 24px;">${button(magicLink, "Verify my email")}</p>
-       <p style="margin:0 0 4px;color:#64748b;font-size:14px;">Or enter this code (expires in 10 minutes):</p>
-       ${otp ? otpBlock(otp) : ""}
-       <p style="margin:20px 0 0;color:#94a3b8;font-size:12px;">The link expires in 24 hours. If you didn't create an account, you can ignore this email.</p>`,
-		),
+		await renderVerifyEmail({ magicLink, otp }),
 	);
 }
 
@@ -84,11 +54,7 @@ export async function sendOtpEmail(to: string, otp: string): Promise<void> {
 	await send(
 		to,
 		"Your DextaLearning verification code",
-		layout(
-			"Your verification code",
-			`<p style="margin:0 0 8px;color:#334155;">Enter this code to continue (expires in 10 minutes):</p>
-       ${otpBlock(otp)}`,
-		),
+		await renderOtpEmail({ otp }),
 	);
 }
 
@@ -99,11 +65,7 @@ export async function sendMagicLinkEmail(
 	await send(
 		to,
 		"Your DextaLearning sign-in link",
-		layout(
-			"Sign in to DextaLearning",
-			`<p style="margin:0 0 24px;color:#334155;">Click below to sign in. This link expires shortly.</p>
-       <p style="margin:0;">${button(url, "Sign in")}</p>`,
-		),
+		await renderMagicLinkEmail({ url }),
 	);
 }
 
@@ -114,10 +76,21 @@ export async function sendPasswordResetEmail(
 	await send(
 		to,
 		"Reset your DextaLearning password",
-		layout(
-			"Reset your password",
-			`<p style="margin:0 0 24px;color:#334155;">We received a request to reset your password. If it wasn't you, ignore this email.</p>
-       <p style="margin:0;">${button(url, "Reset password")}</p>`,
-		),
+		await renderPasswordResetEmail({ url }),
+	);
+}
+
+/**
+ * Post-onboarding welcome. Not wired into a flow yet — exported as the
+ * foundation for future lifecycle emails (enrolment, earn-back, reminders).
+ */
+export async function sendWelcomeEmail(
+	to: string,
+	name?: string,
+): Promise<void> {
+	await send(
+		to,
+		"Welcome to DextaLearning",
+		await renderWelcomeEmail({ name }),
 	);
 }

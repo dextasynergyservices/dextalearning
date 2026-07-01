@@ -3,6 +3,7 @@ import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import Lenis from "lenis";
 import { useEffect, useRef } from "react";
+import { scheduleScrollTriggerRefresh } from "@/lib/scroll-trigger-refresh";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -17,7 +18,7 @@ gsap.registerPlugin(ScrollTrigger);
  */
 export function useSmoothScroll() {
 	const lenisRef = useRef<Lenis | null>(null);
-	const { hash } = useLocation();
+	const { hash, pathname } = useLocation();
 
 	useEffect(() => {
 		if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
@@ -41,6 +42,15 @@ export function useSmoothScroll() {
 			lenisRef.current = null;
 		};
 	}, []);
+
+	// Defense-in-depth: each reveal primitive (useReveal/Reveal/
+	// LearningScienceVisual) already schedules its own refresh right after
+	// creating its triggers. This additional route-level pass catches anything
+	// else on the page whose layout shifts after a client-side navigation.
+	// biome-ignore lint/correctness/useExhaustiveDependencies: pathname is a re-run trigger on route change, not referenced in the body.
+	useEffect(() => {
+		scheduleScrollTriggerRefresh();
+	}, [pathname]);
 
 	// Smoothly scroll to a `#hash` target once the destination has rendered.
 	useEffect(() => {

@@ -201,12 +201,20 @@ export class AuthoringService {
 			isEarnBackEligible,
 			earnBackPercentage,
 			earnBackDeadlineDays,
+			isFeatured,
 			...rest
 		} = dto;
+		// Featuring is admin-only; instructors set `featureRequested` (in ...rest).
+		// When an admin sets `isFeatured`, any pending request is resolved.
+		const featuring =
+			user.role === "admin" && isFeatured !== undefined
+				? { isFeatured, featureRequested: false }
+				: {};
 		const updated = await this.prisma.course.update({
 			where: { id: courseId },
 			data: {
 				...rest,
+				...featuring,
 				...this.normalizeCommercials({
 					price,
 					isFree,
@@ -280,7 +288,7 @@ export class AuthoringService {
 					issues.push({ ...tag, reason: "no_content_type" });
 					continue;
 				}
-				if (!lesson.transcriptText) {
+				if (!lesson.transcriptText?.trim()) {
 					issues.push({ ...tag, reason: "missing_transcript" });
 				}
 				if (lesson.contentType === "video" && !lesson.videoKeysJson) {
@@ -363,11 +371,18 @@ export class AuthoringService {
 			include: {
 				captions: true,
 				module: { include: { course: { select: { createdBy: true } } } },
+				introForPath: { select: { createdBy: true } },
+				introForCohort: { select: { createdBy: true } },
 			},
 		});
 		if (!lesson) throw new NotFoundException("Lesson not found");
-		if (!this.isOwnerOrAdmin(lesson.module.course.createdBy, user)) {
-			throw new ForbiddenException("You do not own this course");
+		const ownerId =
+			lesson.module?.course.createdBy ??
+			lesson.introForPath?.createdBy ??
+			lesson.introForCohort?.createdBy ??
+			null;
+		if (!this.isOwnerOrAdmin(ownerId, user)) {
+			throw new ForbiddenException("You do not own this content");
 		}
 		return this.serializeLesson(lesson);
 	}
@@ -378,7 +393,13 @@ export class AuthoringService {
 		dto: UpdateLessonDto,
 	) {
 		await this.assertLessonOwner(lessonId, user);
-		return this.prisma.lesson.update({ where: { id: lessonId }, data: dto });
+		// Must serialize: audio lessons carry a BIGINT `audioSizeBytes` that
+		// JSON cannot stringify — returning the raw row 500s the response.
+		const lesson = await this.prisma.lesson.update({
+			where: { id: lessonId },
+			data: dto,
+		});
+		return this.serializeLesson(lesson);
 	}
 
 	async deleteLesson(user: AuthenticatedUser, lessonId: string) {
@@ -471,11 +492,18 @@ export class AuthoringService {
 			where: { id: lessonId },
 			include: {
 				module: { include: { course: { select: { createdBy: true } } } },
+				introForPath: { select: { createdBy: true } },
+				introForCohort: { select: { createdBy: true } },
 			},
 		});
 		if (!lesson) throw new NotFoundException("Lesson not found");
-		if (!this.isOwnerOrAdmin(lesson.module.course.createdBy, user)) {
-			throw new ForbiddenException("You do not own this course");
+		const ownerId =
+			lesson.module?.course.createdBy ??
+			lesson.introForPath?.createdBy ??
+			lesson.introForCohort?.createdBy ??
+			null;
+		if (!this.isOwnerOrAdmin(ownerId, user)) {
+			throw new ForbiddenException("You do not own this content");
 		}
 		return lesson;
 	}
