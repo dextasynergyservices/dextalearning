@@ -14,6 +14,9 @@ node_modules
 
 # Testing
 coverage
+test-results/
+playwright-report/
+blob-report/
 
 # Turbo
 .turbo
@@ -44,3 +47,4 @@ dextalearning_blueprint.md
 todo.txt
 .agents
 memory/
+.claude

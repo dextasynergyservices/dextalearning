@@ -52,7 +52,12 @@ export function PathEditorPage({
 	const [addId, setAddId] = useState("");
 	const [deleteOpen, setDeleteOpen] = useState(false);
 
-	const { data: path, isPending } = useQuery({
+	const {
+		data: path,
+		isPending,
+		isError,
+		error,
+	} = useQuery({
 		queryKey: ["path", pathId],
 		queryFn: () => getPath(pathId),
 	});
@@ -149,10 +154,25 @@ export function PathEditorPage({
 				</div>
 			}
 		>
-			{isPending || !path ? (
+			{isPending ? (
 				<div className="space-y-4">
 					<Skeleton className="h-40 rounded-card" />
 					<Skeleton className="h-40 rounded-card" />
+				</div>
+			) : isError || !path ? (
+				<div className="rounded-card border border-error/30 bg-error/5 p-5 text-error">
+					<p className="font-semibold">
+						{t("paths.load_failed", {
+							defaultValue: "Path could not be loaded",
+						})}
+					</p>
+					<p className="mt-1 text-sm">
+						{error instanceof Error
+							? error.message
+							: t("paths.load_failed_body", {
+									defaultValue: "Refresh the page or go back and try again.",
+								})}
+					</p>
 				</div>
 			) : (
 				<div className="space-y-6">

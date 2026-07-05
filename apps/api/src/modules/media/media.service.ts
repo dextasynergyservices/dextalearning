@@ -142,6 +142,7 @@ export class MediaService {
 				lessonId,
 				sourceKey,
 				sourceExt: ext,
+				durationSec,
 			},
 			{
 				removeOnComplete: 50,

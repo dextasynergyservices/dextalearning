@@ -30,7 +30,7 @@ export function SubmissionsQueuePage({
 	const queryClient = useQueryClient();
 	const [openId, setOpenId] = useState<string | null>(null);
 
-	const { data, isPending } = useQuery({
+	const { data, isPending, isError, error } = useQuery({
 		queryKey: ["project-submissions", projectId],
 		queryFn: () => listProjectSubmissions(projectId),
 	});
@@ -49,6 +49,21 @@ export function SubmissionsQueuePage({
 				<div className="space-y-3">
 					<Skeleton className="h-16 rounded-card" />
 					<Skeleton className="h-16 rounded-card" />
+				</div>
+			) : isError ? (
+				<div className="rounded-card border border-error/30 bg-error/5 p-5 text-error">
+					<p className="font-semibold">
+						{t("grade.queue_load_failed", {
+							defaultValue: "Submissions could not be loaded",
+						})}
+					</p>
+					<p className="mt-1 text-sm">
+						{error instanceof Error
+							? error.message
+							: t("grade.queue_load_failed_body", {
+									defaultValue: "Refresh the page or go back and try again.",
+								})}
+					</p>
 				</div>
 			) : rows.length === 0 ? (
 				<EmptyState

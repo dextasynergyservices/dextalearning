@@ -31,6 +31,7 @@ import {
 	STORAGE_PORT,
 	type StoragePort,
 } from "../../../shared/storage/storage.port";
+import { thumbnailSeekSeconds } from "../media.calculator";
 import { MediaService } from "../media.service";
 
 /**
@@ -107,7 +108,7 @@ export class MediaWorkers implements OnModuleInit, OnModuleDestroy {
 		const thumbnail = await this.encoder.extractThumbnailWebp(
 			source,
 			data.sourceExt,
-			5,
+			thumbnailSeekSeconds(data.durationSec),
 		);
 		const thumbnailKey = `videos/${data.lessonId}/thumbnail.webp`;
 		await this.storage.putObject(thumbnailKey, thumbnail, "image/webp");

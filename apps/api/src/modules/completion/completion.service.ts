@@ -5,6 +5,11 @@ import {
 	STORAGE_PORT,
 	type StoragePort,
 } from "../../shared/storage/storage.port";
+import {
+	calculateCohortCompletion,
+	calculateCourseCompletion,
+	calculatePathCompletion,
+} from "./completion.calculator";
 
 /**
  * Completion engine (§4.3): a course is complete when all lessons are done, all
@@ -394,10 +399,9 @@ export class CompletionService {
 			passed: passedProjectIds.has(p.id),
 		}));
 
-		// ── Completion criteria (§4.3) ──────────────────────────────────────────
+		// ── Completion criteria (§4.3) — pure math in completion.calculator.ts ──
 		const lessonsDone = doneLessons.size;
 		const lessonsTotal = lessonIds.length;
-		const allLessonsDone = lessonsDone >= lessonsTotal;
 
 		const moduleAssessments = [...moduleAssessmentByModule.values()];
 		const allModuleAssessmentsPassed = moduleAssessments.every((a) =>
@@ -411,26 +415,16 @@ export class CompletionService {
 
 		const allProjectsPassed = projectRows.every((p) => p.passed);
 
-		const isComplete =
-			allLessonsDone &&
-			allModuleAssessmentsPassed &&
-			finalAssessmentPassed &&
-			allProjectsPassed;
-
-		// Progress % across only the requirements that ACTUALLY exist, so a
-		// content-only course reads 0% before any lesson (no inflated baseline
-		// from "passing" assessments/projects that don't exist).
-		const gates: number[] = [];
-		if (lessonsTotal > 0) gates.push(lessonsDone / lessonsTotal);
-		if (moduleAssessments.length > 0)
-			gates.push(allModuleAssessmentsPassed ? 1 : 0);
-		if (finalRequired) gates.push(finalAssessmentPassed ? 1 : 0);
-		if (projectRows.length > 0) gates.push(allProjectsPassed ? 1 : 0);
-		const percent = gates.length
-			? Math.round((gates.reduce((s, g) => s + g, 0) / gates.length) * 100)
-			: isComplete
-				? 100
-				: 0;
+		const { allLessonsDone, isComplete, percent } = calculateCourseCompletion({
+			lessonsDone,
+			lessonsTotal,
+			moduleAssessmentsCount: moduleAssessments.length,
+			allModuleAssessmentsPassed,
+			finalRequired,
+			finalAssessmentPassed,
+			projectsCount: projectRows.length,
+			allProjectsPassed,
+		});
 
 		await this.persistCompletion(user.id, "course", courseId, {
 			allLessonsDone,
@@ -546,14 +540,7 @@ export class CompletionService {
 				percent: cp.summary.percent,
 			});
 		}
-		const required = courses.filter((c) => c.isRequired);
-		const gating = required.length > 0 ? required : courses;
-		const isComplete = gating.length > 0 && gating.every((c) => c.isComplete);
-		const percent = courses.length
-			? Math.round(courses.reduce((s, c) => s + c.percent, 0) / courses.length)
-			: isComplete
-				? 100
-				: 0;
+		const { isComplete, percent } = calculatePathCompletion(courses);
 
 		await this.persistCompletion(user.id, "path", pathId, {
 			allLessonsDone: isComplete,
@@ -669,35 +656,18 @@ export class CompletionService {
 			passed: passedProjectIds.has(p.id),
 		}));
 
-		const allCoursesComplete =
-			courses.length === 0 || courses.every((c) => c.isComplete);
-		const allPathsComplete =
-			paths.length === 0 || paths.every((p) => p.isComplete);
 		const allAssessmentsPassed = assessmentRows.every((a) => a.passed);
 		const allProjectsPassed = projectRows.every((p) => p.passed);
-		const isComplete =
-			allCoursesComplete &&
-			allPathsComplete &&
-			allAssessmentsPassed &&
-			allProjectsPassed;
 
-		// Average only the dimensions this cohort actually has (no free credit).
-		const gates: number[] = [];
-		if (courses.length > 0)
-			gates.push(
-				courses.reduce((s, c) => s + c.percent, 0) / (courses.length * 100),
-			);
-		if (paths.length > 0)
-			gates.push(
-				paths.reduce((s, p) => s + p.percent, 0) / (paths.length * 100),
-			);
-		if (assessmentRows.length > 0) gates.push(allAssessmentsPassed ? 1 : 0);
-		if (projectRows.length > 0) gates.push(allProjectsPassed ? 1 : 0);
-		const percent = gates.length
-			? Math.round((gates.reduce((s, g) => s + g, 0) / gates.length) * 100)
-			: isComplete
-				? 100
-				: 0;
+		const { allCoursesComplete, allPathsComplete, isComplete, percent } =
+			calculateCohortCompletion({
+				courses,
+				paths,
+				assessmentsCount: assessmentRows.length,
+				allAssessmentsPassed,
+				projectsCount: projectRows.length,
+				allProjectsPassed,
+			});
 
 		await this.persistCompletion(user.id, "cohort", cohortId, {
 			allLessonsDone: allCoursesComplete && allPathsComplete,

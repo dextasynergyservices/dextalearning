@@ -41,7 +41,12 @@ export function GradeSubmissionDialog({
 		return () => document.removeEventListener("keydown", onKey);
 	}, [onClose]);
 
-	const { data: sub, isPending } = useQuery({
+	const {
+		data: sub,
+		isPending,
+		isError,
+		error,
+	} = useQuery({
 		queryKey: ["grade-submission", submissionId],
 		queryFn: () => getSubmissionForGrading(submissionId),
 	});
@@ -122,9 +127,25 @@ export function GradeSubmissionDialog({
 				</header>
 
 				<div className="overflow-y-auto p-5">
-					{isPending || !sub ? (
+					{isPending ? (
 						<div className="flex h-40 items-center justify-center">
 							<Loader2 className="size-6 animate-spin text-brand-primary" />
+						</div>
+					) : isError || !sub ? (
+						<div className="rounded-card border border-error/30 bg-error/5 p-4 text-error">
+							<p className="font-semibold">
+								{t("grade.load_failed", {
+									defaultValue: "Submission could not be loaded",
+								})}
+							</p>
+							<p className="mt-1 text-sm">
+								{error instanceof Error
+									? error.message
+									: t("grade.load_failed_body", {
+											defaultValue:
+												"Refresh the page or go back and try again.",
+										})}
+							</p>
 						</div>
 					) : (
 						<div className="space-y-5">

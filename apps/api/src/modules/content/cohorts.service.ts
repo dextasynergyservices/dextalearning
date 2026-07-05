@@ -6,15 +6,8 @@ import {
 } from "@nestjs/common";
 import type { AuthenticatedUser } from "../../auth/types";
 import { PrismaService } from "../../prisma/prisma.service";
+import { normalizeCommercials } from "./commercials.calculator";
 import type { CreateCohortDto, UpdateCohortDto } from "./dto/cohorts.dto";
-
-interface CommercialInput {
-	price?: number;
-	isFree?: boolean;
-	currency?: string;
-	isEarnBackEligible?: boolean;
-	earnBackPercentage?: number;
-}
 
 const USER_SELECT = {
 	id: true,
@@ -51,31 +44,6 @@ export class CohortsService {
 			select: { id: true },
 		});
 		if (!cohort) throw new NotFoundException("Cohort not found");
-	}
-
-	/** Pricing + Earn-Back rules (§4.1, §4.11) — Admin-only on cohorts. */
-	private normalizeCommercials(dto: CommercialInput): Record<string, unknown> {
-		const data: Record<string, unknown> = {};
-		if (dto.currency !== undefined) data.currency = dto.currency;
-		if (dto.isFree === true) {
-			data.isFree = true;
-			data.price = 0;
-			data.isEarnBackEligible = false;
-			data.earnBackPercentage = null;
-			return data;
-		}
-		if (dto.isFree === false) data.isFree = false;
-		if (dto.price !== undefined) data.price = dto.price;
-		if (dto.isEarnBackEligible === true) {
-			data.isEarnBackEligible = true;
-			data.earnBackPercentage = dto.earnBackPercentage ?? 100;
-		} else if (dto.isEarnBackEligible === false) {
-			data.isEarnBackEligible = false;
-			data.earnBackPercentage = null;
-		} else if (dto.earnBackPercentage !== undefined) {
-			data.earnBackPercentage = dto.earnBackPercentage;
-		}
-		return data;
 	}
 
 	private withPrice<T extends { price?: unknown }>(cohort: T) {
@@ -242,7 +210,7 @@ export class CohortsService {
 				...rest,
 				...(startsAt !== undefined ? { startsAt: new Date(startsAt) } : {}),
 				...(endsAt !== undefined ? { endsAt: new Date(endsAt) } : {}),
-				...this.normalizeCommercials({
+				...normalizeCommercials({
 					price,
 					isFree,
 					currency,

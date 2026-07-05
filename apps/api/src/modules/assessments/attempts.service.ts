@@ -21,6 +21,15 @@ import {
 	type StoragePort,
 } from "../../shared/storage/storage.port";
 import type { UploadFile } from "../media/media.constants";
+import {
+	calculateIntegrity,
+	calculateScore,
+	detectFastAnswers,
+	isAnswerCorrect,
+	isPassed,
+	resolveSeverity,
+	shouldAutoSubmit,
+} from "./attempts.calculator";
 import type {
 	IngestAntiCheatDto,
 	SaveAnswerDto,
@@ -386,48 +395,13 @@ export class AttemptsService {
 	}
 
 	// ── Anti-cheat (§4.6.1/§4.6.4) ────────────────────────────────────────────
-	private static readonly SEVERITY_WEIGHT: Record<string, number> = {
-		low: 2,
-		medium: 5,
-		high: 10,
-	};
-
-	private static readonly DEFAULT_SEVERITY: Record<
-		string,
-		"low" | "medium" | "high"
-	> = {
-		tab_switch: "medium",
-		focus_loss: "low",
-		copy_attempt: "medium",
-		paste_attempt: "medium",
-		right_click: "low",
-		keyboard_shortcut: "low",
-		fullscreen_exit: "high",
-		camera_face_missing: "medium",
-		camera_multiple_faces: "high",
-		fast_answer: "low",
-		viewport_change: "low",
-		devtools_open: "high",
-	};
-
-	private integrityFromLogs(logs: { severity: string }[]) {
-		const penalty = logs.reduce(
-			(sum, l) => sum + (AttemptsService.SEVERITY_WEIGHT[l.severity] ?? 0),
-			0,
-		);
-		return {
-			integrityScore: Math.max(0, 100 - penalty),
-			flagCount: logs.length,
-		};
-	}
-
 	/** Recompute + persist the attempt's integrity score from all its logs. */
 	private async recomputeIntegrity(attemptId: string) {
 		const logs = await this.prisma.assessmentAntiCheatLog.findMany({
 			where: { attemptId },
 			select: { eventType: true, severity: true },
 		});
-		const { integrityScore, flagCount } = this.integrityFromLogs(logs);
+		const { integrityScore, flagCount } = calculateIntegrity(logs);
 		await this.prisma.assessmentAttempt.update({
 			where: { id: attemptId },
 			data: { integrityScore, flagCount },
@@ -465,8 +439,7 @@ export class AttemptsService {
 		const rows = dto.events.slice(0, 100).map((e) => ({
 			attemptId,
 			eventType: e.eventType,
-			severity:
-				e.severity ?? AttemptsService.DEFAULT_SEVERITY[e.eventType] ?? "medium",
+			severity: resolveSeverity(e.eventType, e.severity),
 			occurredAt: e.occurredAt ? new Date(e.occurredAt) : new Date(),
 			metadataJson: (e.metadata ?? undefined) as object | undefined,
 			screenshotKey: e.screenshotKey,
@@ -479,9 +452,12 @@ export class AttemptsService {
 			await this.recomputeIntegrity(attemptId);
 		const tabSwitches = counts.tab_switch ?? 0;
 		const fullscreenExits = counts.fullscreen_exit ?? 0;
-		const autoSubmit =
-			tabSwitches >= assessment.anticheatTabSwitchLimit ||
-			(assessment.anticheatFullscreenRequired && fullscreenExits >= 2);
+		const autoSubmit = shouldAutoSubmit({
+			tabSwitches,
+			tabSwitchLimit: assessment.anticheatTabSwitchLimit,
+			fullscreenExits,
+			fullscreenRequired: assessment.anticheatFullscreenRequired,
+		});
 
 		return {
 			accepted: rows.length,
@@ -540,7 +516,7 @@ export class AttemptsService {
 			data: {
 				attemptId,
 				eventType,
-				severity: AttemptsService.DEFAULT_SEVERITY[eventType] ?? "medium",
+				severity: resolveSeverity(eventType),
 				screenshotKey: key,
 			},
 		});
@@ -590,42 +566,6 @@ export class AttemptsService {
 	}
 
 	// ── Grading + finalisation ────────────────────────────────────────────────
-	private isCorrect(question: Question | undefined, answer?: string): boolean {
-		if (!question || answer == null) return false;
-		const given = String(answer).trim();
-		const correct = (question.correctAnswer ?? "").trim();
-		if (correct.length === 0) return false;
-		if (question.type === "short_answer") {
-			return given.toLowerCase() === correct.toLowerCase();
-		}
-		return given === correct;
-	}
-
-	private detectFastAnswers(
-		assessment: Assessment,
-		attempt: AssessmentAttempt,
-		snap: AttemptSnapshot,
-	) {
-		const threshold = assessment.anticheatTimePerQuestionFlagSeconds ?? 2;
-		if (threshold <= 0) return [] as { questionId: string; seconds: number }[];
-		const sorted = Object.entries(snap.answeredAt)
-			.map(([questionId, iso]) => ({ questionId, t: new Date(iso).getTime() }))
-			.sort((a, b) => a.t - b.t);
-		const flags: { questionId: string; seconds: number }[] = [];
-		let prev = new Date(attempt.startedAt).getTime();
-		for (const entry of sorted) {
-			const gap = (entry.t - prev) / 1000;
-			if (gap >= 0 && gap < threshold) {
-				flags.push({
-					questionId: entry.questionId,
-					seconds: Math.round(gap * 100) / 100,
-				});
-			}
-			prev = entry.t;
-		}
-		return flags;
-	}
-
 	private async finalize(
 		assessment: Assessment,
 		attempt: AssessmentAttempt,
@@ -651,7 +591,7 @@ export class AttemptsService {
 		for (const sq of snap.questions) {
 			const q = byId.get(sq.id);
 			const answer = snap.answers[sq.id];
-			const exact = this.isCorrect(q, answer);
+			const exact = isAnswerCorrect(q, answer);
 			correct.set(sq.id, exact);
 			if (
 				!exact &&
@@ -685,20 +625,23 @@ export class AttemptsService {
 			}
 		}
 
-		let earned = 0;
-		let total = 0;
-		for (const sq of snap.questions) {
+		const scoredQuestions = snap.questions.map((sq) => {
 			const q = byId.get(sq.id);
-			const points = q?.points ?? sq.points ?? 1;
-			total += points;
-			if (correct.get(sq.id)) earned += points;
-		}
+			return {
+				points: q?.points ?? sq.points ?? 1,
+				correct: !!correct.get(sq.id),
+			};
+		});
 		// Freeze the graded correctness so the review matches the score (§4.4).
 		snap.correct = Object.fromEntries(correct);
-		const score = total > 0 ? Math.round((earned / total) * 10_000) / 100 : 0;
-		const passed = score >= Number(assessment.passMark);
+		const { score } = calculateScore(scoredQuestions);
+		const passed = isPassed(score, Number(assessment.passMark));
 
-		const fastFlags = this.detectFastAnswers(assessment, attempt, snap);
+		const fastFlags = detectFastAnswers({
+			thresholdSeconds: assessment.anticheatTimePerQuestionFlagSeconds ?? 2,
+			startedAt: attempt.startedAt,
+			answeredAt: snap.answeredAt,
+		});
 
 		const updated = await this.prisma.$transaction(async (tx) => {
 			if (fastFlags.length > 0) {
@@ -707,7 +650,7 @@ export class AttemptsService {
 						attemptId: attempt.id,
 						eventType: "fast_answer" as const,
 						severity: "low" as const,
-						metadataJson: f,
+						metadataJson: f as object,
 					})),
 				});
 			}
@@ -716,7 +659,7 @@ export class AttemptsService {
 				where: { attemptId: attempt.id },
 				select: { severity: true },
 			});
-			const { integrityScore, flagCount } = this.integrityFromLogs(logs);
+			const { integrityScore, flagCount } = calculateIntegrity(logs);
 			return tx.assessmentAttempt.update({
 				where: { id: attempt.id },
 				data: {
@@ -791,7 +734,7 @@ export class AttemptsService {
 					correctAnswer: q?.correctAnswer ?? null,
 					// Use the frozen graded result (incl. AI); fall back for older attempts.
 					correct:
-						snap.correct?.[sq.id] ?? this.isCorrect(q, snap.answers[sq.id]),
+						snap.correct?.[sq.id] ?? isAnswerCorrect(q, snap.answers[sq.id]),
 				};
 			}),
 		};
