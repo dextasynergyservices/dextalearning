@@ -24,7 +24,19 @@
 			"dependsOn": ["^typecheck", "prisma:generate"]
 		},
 		"test": {
-			"dependsOn": ["^build"]
+			"dependsOn": ["prisma:generate"]
+		},
+		"test:cov": {
+			"dependsOn": ["prisma:generate"],
+			"outputs": ["coverage/**"]
+		},
+		"test:integration": {
+			"dependsOn": ["prisma:generate"],
+			"cache": false
+		},
+		"test:e2e": {
+			"dependsOn": ["prisma:generate"],
+			"cache": false
 		},
 		"dev": {
 			"cache": false,

@@ -12,6 +12,8 @@ export interface VideoJobData {
 	lessonId: string;
 	sourceKey: string;
 	sourceExt: string;
+	/** Probed at upload time — lets the worker pick a safe thumbnail seek point. */
+	durationSec: number;
 }
 
 export interface AudioJobData {

@@ -4,6 +4,7 @@ import {
 	STORAGE_PORT,
 	type StoragePort,
 } from "../../shared/storage/storage.port";
+import { rotateWindow, topByScore } from "./catalog.calculator";
 
 /** Commercial fields surfaced to the public catalogue (§4.1, §4.11). */
 const COMMERCIAL_SELECT = {
@@ -20,9 +21,6 @@ interface Commercial {
 	thumbnailKey: string | null;
 }
 
-/** Homepage Featured: at most this many per shelf, rotated weekly. */
-const FEATURED_CAP = 8;
-const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
 /** How many candidates to score before keeping the top FEATURED_CAP. */
 const RECO_POOL = 60;
 
@@ -139,22 +137,6 @@ export class CatalogService {
 	}
 
 	/**
-	 * Deterministic weekly rotation: show at most `cap` items, advancing the
-	 * visible window by `cap` each calendar week (wrapping). No cron / no extra
-	 * state — every approved item gets homepage time over the weeks. If the pool
-	 * already fits the cap, show everything.
-	 */
-	private rotateWindow<T>(pool: T[], cap = FEATURED_CAP): T[] {
-		if (pool.length <= cap) return pool;
-		const week = Math.floor(Date.now() / WEEK_MS);
-		const start = (week * cap) % pool.length;
-		return Array.from(
-			{ length: cap },
-			(_, i) => pool[(start + i) % pool.length],
-		);
-	}
-
-	/**
 	 * Homepage "Featured" shelves — admin-approved (`isFeatured`) courses/paths
 	 * (published) and cohorts (open), card-shaped, on a weekly rotation.
 	 */
@@ -213,12 +195,12 @@ export class CatalogService {
 		]);
 		return {
 			courses: await Promise.all(
-				this.rotateWindow(courses).map((c) => this.withCommercials(c)),
+				rotateWindow(courses).map((c) => this.withCommercials(c)),
 			),
 			paths: await Promise.all(
-				this.rotateWindow(paths).map((p) => this.withPathCommercials(p)),
+				rotateWindow(paths).map((p) => this.withPathCommercials(p)),
 			),
-			cohorts: this.rotateWindow(cohorts).map((c) => this.withCohortPrice(c)),
+			cohorts: rotateWindow(cohorts).map((c) => this.withCohortPrice(c)),
 		};
 	}
 
@@ -362,7 +344,7 @@ export class CatalogService {
 		// false unless there's real co-enrolment history).
 		if (onboardingLevel) levels.add(onboardingLevel);
 
-		const top = this.topByScore(candidates, (c) => ({
+		const top = topByScore(candidates, (c) => ({
 			co: coMap.get(c.id) ?? 0,
 			content:
 				(c.level && levels.has(c.level) ? 1.5 : 0) +
@@ -409,7 +391,7 @@ export class CatalogService {
 			);
 		}
 
-		const top = this.topByScore(candidates, (p) => ({
+		const top = topByScore(candidates, (p) => ({
 			co: coMap.get(p.id) ?? 0,
 			content: p.level && levels.has(p.level) ? 1.5 : 0,
 		}));
@@ -442,31 +424,11 @@ export class CatalogService {
 			);
 		}
 
-		const top = this.topByScore(candidates, (c) => ({
+		const top = topByScore(candidates, (c) => ({
 			co: coMap.get(c.id) ?? 0,
 			content: 0,
 		}));
 		return { items: top.map((c) => this.withCohortPrice(c)), personalized };
-	}
-
-	/**
-	 * Rank a popularity-ordered candidate pool by `co`-enrolment (weighted ×3)
-	 * plus a `content` match bonus, keeping the top {@link FEATURED_CAP}. The
-	 * sort is stable, so equal scores (e.g. a cold-start learner with no signal)
-	 * preserve the incoming popularity order — that's the graceful fallback.
-	 */
-	private topByScore<T extends { id: string }>(
-		candidates: T[],
-		signal: (item: T) => { co: number; content: number },
-	): T[] {
-		return candidates
-			.map((item) => {
-				const { co, content } = signal(item);
-				return { item, score: co * 3 + content };
-			})
-			.sort((a, b) => b.score - a.score)
-			.slice(0, FEATURED_CAP)
-			.map(({ item }) => item);
 	}
 
 	/** Pending instructor "feature me" requests for an admin to approve (§4.1). */

@@ -14,6 +14,7 @@ import {
 	type StoragePort,
 } from "../../shared/storage/storage.port";
 import type { UploadFile } from "../media/media.constants";
+import { normalizeCommercials } from "./commercials.calculator";
 import type {
 	CreateCourseDto,
 	CreateLessonDto,
@@ -28,15 +29,6 @@ const THUMBNAIL_TYPES: Record<string, string> = {
 	"image/webp": "webp",
 };
 const MAX_THUMBNAIL_BYTES = 5 * 1024 * 1024;
-
-interface CommercialInput {
-	price?: number;
-	isFree?: boolean;
-	currency?: string;
-	isEarnBackEligible?: boolean;
-	earnBackPercentage?: number;
-	earnBackDeadlineDays?: number;
-}
 
 function slugify(title: string): string {
 	return title
@@ -78,39 +70,6 @@ export class AuthoringService {
 		return existing ? `${base}-${randomBytes(3).toString("hex")}` : base;
 	}
 
-	/**
-	 * Pricing + Earn-Back rules (§4.1, §4.11): a free course carries no price or
-	 * Earn-Back; enabling Earn-Back defaults to 100% of price; disabling it clears
-	 * the percentage. Only the fields the caller supplied are written.
-	 */
-	private normalizeCommercials(dto: CommercialInput): Record<string, unknown> {
-		const data: Record<string, unknown> = {};
-		if (dto.currency !== undefined) data.currency = dto.currency;
-		if (dto.earnBackDeadlineDays !== undefined)
-			data.earnBackDeadlineDays = dto.earnBackDeadlineDays;
-
-		if (dto.isFree === true) {
-			data.isFree = true;
-			data.price = 0;
-			data.isEarnBackEligible = false;
-			data.earnBackPercentage = null;
-			return data;
-		}
-		if (dto.isFree === false) data.isFree = false;
-		if (dto.price !== undefined) data.price = dto.price;
-
-		if (dto.isEarnBackEligible === true) {
-			data.isEarnBackEligible = true;
-			data.earnBackPercentage = dto.earnBackPercentage ?? 100;
-		} else if (dto.isEarnBackEligible === false) {
-			data.isEarnBackEligible = false;
-			data.earnBackPercentage = null;
-		} else if (dto.earnBackPercentage !== undefined) {
-			data.earnBackPercentage = dto.earnBackPercentage;
-		}
-		return data;
-	}
-
 	/** Attach a presigned thumbnail URL (Decimal `price` → number for the client). */
 	private async withCommercials<
 		T extends { thumbnailKey: string | null; price?: unknown },
@@ -137,7 +96,7 @@ export class AuthoringService {
 				tenantId: user.tenantId ?? null,
 				createdBy: user.id,
 				status: "draft",
-				...this.normalizeCommercials(commercial),
+				...normalizeCommercials(commercial),
 			},
 		});
 	}
@@ -215,7 +174,7 @@ export class AuthoringService {
 			data: {
 				...rest,
 				...featuring,
-				...this.normalizeCommercials({
+				...normalizeCommercials({
 					price,
 					isFree,
 					currency,

@@ -13,6 +13,7 @@ import {
 	type StoragePort,
 } from "../../shared/storage/storage.port";
 import type { UploadFile } from "../media/media.constants";
+import { normalizeCommercials } from "./commercials.calculator";
 import type { CreatePathDto, UpdatePathDto } from "./dto/paths.dto";
 
 const THUMBNAIL_TYPES: Record<string, string> = {
@@ -21,15 +22,6 @@ const THUMBNAIL_TYPES: Record<string, string> = {
 	"image/webp": "webp",
 };
 const MAX_THUMBNAIL_BYTES = 5 * 1024 * 1024;
-
-interface CommercialInput {
-	price?: number;
-	isFree?: boolean;
-	currency?: string;
-	isEarnBackEligible?: boolean;
-	earnBackPercentage?: number;
-	earnBackDeadlineDays?: number;
-}
 
 function slugify(title: string): string {
 	return title
@@ -69,39 +61,6 @@ export class PathsService {
 		if (!this.isOwnerOrAdmin(path.createdBy, user)) {
 			throw new ForbiddenException("You do not own this path");
 		}
-	}
-
-	/**
-	 * Pricing + Earn-Back rules (§4.1, §4.11): a free path carries no price or
-	 * Earn-Back; enabling Earn-Back defaults to 100% of price (it governs the
-	 * whole path purchase); disabling it clears the percentage.
-	 */
-	private normalizeCommercials(dto: CommercialInput): Record<string, unknown> {
-		const data: Record<string, unknown> = {};
-		if (dto.currency !== undefined) data.currency = dto.currency;
-		if (dto.earnBackDeadlineDays !== undefined)
-			data.earnBackDeadlineDays = dto.earnBackDeadlineDays;
-
-		if (dto.isFree === true) {
-			data.isFree = true;
-			data.price = 0;
-			data.isEarnBackEligible = false;
-			data.earnBackPercentage = null;
-			return data;
-		}
-		if (dto.isFree === false) data.isFree = false;
-		if (dto.price !== undefined) data.price = dto.price;
-
-		if (dto.isEarnBackEligible === true) {
-			data.isEarnBackEligible = true;
-			data.earnBackPercentage = dto.earnBackPercentage ?? 100;
-		} else if (dto.isEarnBackEligible === false) {
-			data.isEarnBackEligible = false;
-			data.earnBackPercentage = null;
-		} else if (dto.earnBackPercentage !== undefined) {
-			data.earnBackPercentage = dto.earnBackPercentage;
-		}
-		return data;
 	}
 
 	private async withCommercials<
@@ -294,7 +253,7 @@ export class PathsService {
 			data: {
 				...rest,
 				...featuring,
-				...this.normalizeCommercials({
+				...normalizeCommercials({
 					price,
 					isFree,
 					currency,
