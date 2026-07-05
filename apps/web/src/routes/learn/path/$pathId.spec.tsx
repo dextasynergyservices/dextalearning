@@ -1,0 +1,123 @@
+// @vitest-environment jsdom
+import { screen } from "@testing-library/react";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import type { PathProgress } from "@/lib/content-api";
+import { renderRoute } from "@/test/render-route";
+
+const { useSessionMock, getPathProgressMock, getMyProfileMock } = vi.hoisted(
+	() => ({
+		useSessionMock: vi.fn(),
+		getPathProgressMock: vi.fn(),
+		getMyProfileMock: vi.fn(),
+	}),
+);
+
+vi.mock("@/lib/auth-client", async (importOriginal) => {
+	const actual = await importOriginal<typeof import("@/lib/auth-client")>();
+	return { ...actual, useSession: useSessionMock };
+});
+
+vi.mock("@/lib/content-api", async (importOriginal) => {
+	const actual = await importOriginal<typeof import("@/lib/content-api")>();
+	return {
+		...actual,
+		getPathProgress: getPathProgressMock,
+		getMyProfile: getMyProfileMock,
+	};
+});
+
+function progress(overrides: Partial<PathProgress> = {}): PathProgress {
+	return {
+		path: { id: "p1", title: "Full Stack Path" },
+		courses: [
+			{
+				id: "c1",
+				title: "React Basics",
+				isRequired: true,
+				isComplete: true,
+				percent: 100,
+			},
+			{
+				id: "c2",
+				title: "Node Basics",
+				isRequired: true,
+				isComplete: false,
+				percent: 30,
+			},
+		],
+		summary: {
+			coursesTotal: 2,
+			coursesComplete: 1,
+			isComplete: false,
+			percent: 50,
+		},
+		...overrides,
+	};
+}
+
+describe("PathProgressRoute", () => {
+	beforeEach(() => {
+		useSessionMock.mockReset();
+		getPathProgressMock.mockReset();
+		getMyProfileMock.mockReset();
+		useSessionMock.mockReturnValue({
+			data: { user: { id: "u1", name: "Ada Lovelace", role: "learner" } },
+			isPending: false,
+		});
+		getMyProfileMock.mockResolvedValue({ image: null });
+	});
+
+	it("renders the path title, courses and progress", async () => {
+		getPathProgressMock.mockResolvedValue(progress());
+		renderRoute("/learn/path/p1");
+
+		expect(await screen.findByText("React Basics")).toBeInTheDocument();
+		expect(screen.getByText("Node Basics")).toBeInTheDocument();
+		expect(screen.getByText("1/2 courses complete")).toBeInTheDocument();
+	});
+
+	it("links 'Continue learning' to the next incomplete course", async () => {
+		getPathProgressMock.mockResolvedValue(progress());
+		renderRoute("/learn/path/p1");
+
+		expect(
+			await screen.findByRole("link", { name: /Continue learning/ }),
+		).toHaveAttribute("href", "/learn/course/c2");
+	});
+
+	it("shows the 'Complete!' badge when the whole path is finished", async () => {
+		getPathProgressMock.mockResolvedValue(
+			progress({
+				summary: {
+					coursesTotal: 2,
+					coursesComplete: 2,
+					isComplete: true,
+					percent: 100,
+				},
+			}),
+		);
+		renderRoute("/learn/path/p1");
+
+		expect(await screen.findByText("Complete!")).toBeInTheDocument();
+	});
+
+	it("marks a non-required course as optional", async () => {
+		getPathProgressMock.mockResolvedValue(
+			progress({
+				courses: [
+					{
+						id: "c1",
+						title: "Bonus Course",
+						isRequired: false,
+						isComplete: false,
+						percent: 0,
+					},
+				],
+			}),
+		);
+		renderRoute("/learn/path/p1");
+
+		expect(await screen.findByText("Bonus Course")).toBeInTheDocument();
+		expect(screen.getByText("· Optional")).toBeInTheDocument();
+	});
+});
