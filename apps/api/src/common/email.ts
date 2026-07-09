@@ -94,3 +94,16 @@ export async function sendWelcomeEmail(
 		await renderWelcomeEmail({ name }),
 	);
 }
+
+/**
+ * Generic pre-rendered send — the surface the `NotificationPort` adapter
+ * (Phase 4, §6.4 ports & adapters) delegates to. Callers render their own
+ * template (see src/emails/render.tsx) and pass finished HTML.
+ */
+export async function sendEmail(
+	to: string,
+	subject: string,
+	html: string,
+): Promise<void> {
+	await send(to, subject, html);
+}

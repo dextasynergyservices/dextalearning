@@ -3,9 +3,11 @@ import {
 	ConflictException,
 	ForbiddenException,
 } from "@nestjs/common";
+import { EventEmitter2 } from "@nestjs/event-emitter";
 import { beforeEach, describe, expect, it } from "vitest";
 import type { AuthenticatedUser } from "../../src/auth/types";
 import { SubmissionsService } from "../../src/modules/projects/submissions.service";
+import { LearningEvents } from "../../src/shared/events/learning-events";
 import { getTestPrisma } from "./support/db";
 import { createUser } from "./support/factories";
 import { FakeStorageAdapter } from "./support/fakes/fake-storage.adapter";
@@ -16,11 +18,22 @@ function asAuthenticatedUser(id: string): AuthenticatedUser {
 
 describe("SubmissionsService (integration)", () => {
 	const prisma = getTestPrisma();
-	const service = new SubmissionsService(prisma, new FakeStorageAdapter());
+	const events = new EventEmitter2();
+	const service = new SubmissionsService(
+		prisma,
+		new FakeStorageAdapter(),
+		events,
+	);
 
 	let learnerId: string;
+	let emitted: { event: string; payload: unknown }[] = [];
+
+	events.onAny((event, payload) => {
+		emitted.push({ event: String(event), payload });
+	});
 
 	beforeEach(async () => {
+		emitted = [];
 		learnerId = (await createUser(prisma, { role: "learner" })).id;
 	});
 
@@ -298,6 +311,20 @@ describe("SubmissionsService (integration)", () => {
 			expect(graded?.gradedAt).not.toBeNull();
 			expect(Number(graded?.score)).toBe(80); // 8/10 -> 80%
 			expect(graded?.passed).toBe(true);
+
+			// Aggregation is the grading moment → exactly one ProjectGraded,
+			// addressed to the submission's AUTHOR, not the reviewer (Phase 4, §6.4).
+			const events2 = emitted.filter(
+				(e) => e.event === LearningEvents.ProjectGraded,
+			);
+			expect(events2).toHaveLength(1);
+			expect(events2[0].payload).toMatchObject({
+				userId: author.id,
+				projectId: project.id,
+				submissionId: submission.id,
+				score: 80,
+				passed: true,
+			});
 		});
 
 		it("clamps rubric points to the criterion's maxPoints", async () => {

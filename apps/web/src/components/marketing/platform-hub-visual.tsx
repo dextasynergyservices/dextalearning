@@ -1,11 +1,10 @@
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useRef } from "react";
 import { useTranslation } from "react-i18next";
-import { scheduleScrollTriggerRefresh } from "@/lib/scroll-trigger-refresh";
+import { observeOnEnter } from "@/lib/reveal-on-enter";
 
-gsap.registerPlugin(useGSAP, ScrollTrigger);
+gsap.registerPlugin(useGSAP);
 
 const CORE = { x: 320, y: 185 };
 
@@ -34,13 +33,11 @@ export function PlatformHubVisual() {
 				gsap.set(line, { strokeDasharray: len, strokeDashoffset: len });
 			}
 
-			gsap
-				// `once` so a later position refresh (needed to correct pre-settle
-				// measurements) can never flip an already-drawn-in diagram back to
-				// hidden — see the matching note in useReveal.
-				.timeline({
-					scrollTrigger: { trigger: root, start: "top 80%", once: true },
-				})
+			// Paused timeline played by an IntersectionObserver (not
+			// ScrollTrigger — see lib/reveal-on-enter.ts): the diagram can never
+			// get stuck hidden after SPA navigation. Mirrors "top 80%".
+			const timeline = gsap
+				.timeline({ paused: true })
 				.from("[data-core]", {
 					scale: 0,
 					transformOrigin: "center",
@@ -64,9 +61,7 @@ export function PlatformHubVisual() {
 					"-=0.4",
 				);
 
-			// See scheduleScrollTriggerRefresh: recompute once this route's
-			// layout has truly settled so the diagram doesn't get stuck hidden.
-			scheduleScrollTriggerRefresh();
+			return observeOnEnter([root], () => timeline.play(), "0px 0px -20% 0px");
 		},
 		{ scope },
 	);

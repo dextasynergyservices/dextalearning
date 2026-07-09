@@ -317,7 +317,7 @@ export function PathEditorPage({
 					</section>
 
 					{path.pathCourses.some((pc) => pc.course.status !== "published") ? (
-						<p className="flex items-center gap-2 rounded-card border border-amber-200 bg-amber-50 px-4 py-3 text-amber-800 text-sm">
+						<p className="flex items-center gap-2 rounded-card border border-warning/30 bg-warning/10 px-4 py-3 text-amber-800 dark:text-amber-200 text-sm">
 							<BookOpen className="size-4 shrink-0" />
 							{t("paths.draft_courses_note", {
 								defaultValue:

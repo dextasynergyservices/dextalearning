@@ -102,7 +102,17 @@
 		"email_locked": "L'e-mail ne peut pas être modifié.",
 		"save": "Enregistrer",
 		"saved": "Profil enregistré.",
-		"not_verified": "Non vérifié"
+		"not_verified": "Non vérifié",
+		"reminders": "Rappels d'apprentissage",
+		"reminders_hint": "Les rappels arrivent à votre heure d'étude habituelle, dans votre langue. Enregistrer met à jour votre plan.",
+		"whatsapp_optin": "Rappels WhatsApp",
+		"whatsapp_optin_hint": "Des petits rappels quand vos révisions sont prêtes — jamais de spam.",
+		"whatsapp_needs_phone": "Ajoutez un numéro de téléphone ci-dessus pour activer les rappels WhatsApp.",
+		"study_schedule": "Quand étudiez-vous d'habitude ?",
+		"study_anchor": "Reliez-le à une habitude quotidienne (facultatif)",
+		"study_anchor_none": "Pas d'habitude associée",
+		"study_anchor_hint": "« Après le dîner » tient mieux que « 18 h » — les habitudes s'accrochent aux habitudes.",
+		"weekly_hours": "Temps d'apprentissage hebdomadaire"
 	},
 	"my": {
 		"title": "Mon apprentissage",

@@ -110,6 +110,8 @@ function result(overrides: Partial<AttemptResult> = {}): AttemptResult {
 		submittedAt: new Date().toISOString(),
 		autoSubmitted: false,
 		score: 100,
+		previousBest: null,
+		delta: null,
 		passed: true,
 		passMark: 70,
 		integrityScore: 100,

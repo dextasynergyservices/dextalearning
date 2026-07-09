@@ -10,11 +10,13 @@ const {
 	getLessonContextMock,
 	reportLessonProgressMock,
 	getMyProfileMock,
+	getAssessmentInfoMock,
 } = vi.hoisted(() => ({
 	useSessionMock: vi.fn(),
 	getLessonContextMock: vi.fn(),
 	reportLessonProgressMock: vi.fn(),
 	getMyProfileMock: vi.fn(),
+	getAssessmentInfoMock: vi.fn(),
 }));
 
 vi.mock("@/lib/auth-client", async (importOriginal) => {
@@ -29,6 +31,7 @@ vi.mock("@/lib/content-api", async (importOriginal) => {
 		getLessonContext: getLessonContextMock,
 		reportLessonProgress: reportLessonProgressMock,
 		getMyProfile: getMyProfileMock,
+		getAssessmentInfo: getAssessmentInfoMock,
 	};
 });
 
@@ -95,6 +98,13 @@ describe("LessonRoute", () => {
 			isPending: false,
 		});
 		getMyProfileMock.mockResolvedValue({ image: null });
+		getAssessmentInfoMock.mockReset();
+		getAssessmentInfoMock.mockResolvedValue({
+			questionCount: 2,
+			passMark: 70,
+			alreadyPassed: false,
+			bestScore: 0,
+		});
 		reportLessonProgressMock.mockResolvedValue({
 			lessonId: "l2",
 			watchedPct: 0,
@@ -123,6 +133,28 @@ describe("LessonRoute", () => {
 			await screen.findByText("Completed — well done!"),
 		).toBeInTheDocument();
 		expect(screen.getByRole("button", { name: /Previous/ })).toBeEnabled();
+		// Revisiting an already-finished lesson never re-asks the
+		// next-session question — it's a moment-of-completion prompt only.
+		expect(screen.queryByTestId("next-session-prompt")).not.toBeInTheDocument();
+	});
+
+	it("asks 'When will you study next?' at the moment of completion (§3.2)", async () => {
+		getLessonContextMock.mockResolvedValue(context({ done: false }));
+		// The on-open progress report comes back completed — a fresh flip.
+		reportLessonProgressMock.mockResolvedValue({
+			lessonId: "l2",
+			watchedPct: 100,
+			done: true,
+			course: {} as never,
+		});
+		renderRoute("/learn/lesson/l2");
+
+		expect(
+			await screen.findByTestId("next-session-prompt"),
+		).toBeInTheDocument();
+		expect(
+			screen.getByText("When will you study next? Set it now."),
+		).toBeInTheDocument();
 	});
 
 	it("disables 'Previous' when there's no earlier lesson", async () => {
@@ -143,6 +175,34 @@ describe("LessonRoute", () => {
 
 		expect(
 			await screen.findByRole("button", { name: /Back to course/ }),
+		).toBeInTheDocument();
+	});
+
+	it("renders the post-quiz gate row and the locked inline quiz before consumption (Phase 4)", async () => {
+		getLessonContextMock.mockResolvedValue(
+			context({
+				lesson: {
+					id: "l2",
+					title: "Setup",
+					contentType: "video",
+					minVideoWatchPct: 80,
+					hasPreQuiz: true,
+					hasPostQuiz: true,
+				},
+				preQuiz: { id: "a-pre", passed: true, bestScore: 40 },
+				postQuiz: { id: "a-post", passed: false, bestScore: null },
+			}),
+		);
+		renderRoute("/learn/lesson/l2");
+
+		expect(
+			await screen.findByText("Pass the post-lesson quiz to finish"),
+		).toBeInTheDocument();
+		// The inline quiz is mounted but locked until the video threshold is met.
+		expect(
+			await screen.findByText(
+				"Finish the lesson content first to unlock this quiz.",
+			),
 		).toBeInTheDocument();
 	});
 

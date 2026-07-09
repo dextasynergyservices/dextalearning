@@ -45,6 +45,11 @@ function profile(overrides: Partial<EditableProfile> = {}): EditableProfile {
 		bio: null,
 		expertiseAreas: [],
 		image: null,
+		whatsappOptIn: false,
+		studySchedule: null,
+		studyAnchor: null,
+		weeklyHours: null,
+		timezone: null,
 		...overrides,
 	};
 }
@@ -95,6 +100,55 @@ describe("ProfilePage", () => {
 			);
 		});
 		expect(toast.success).toHaveBeenCalledWith("Profile saved.");
+	});
+
+	it("disables the WhatsApp toggle until a phone number exists (Phase 4, §3.2)", async () => {
+		renderRoute("/profile");
+		await screen.findByDisplayValue("Ada");
+
+		const toggle = screen.getByRole("switch", { name: "WhatsApp reminders" });
+		expect(toggle).toBeDisabled();
+		expect(
+			screen.getByText(
+				"Add a phone number above to enable WhatsApp reminders.",
+			),
+		).toBeInTheDocument();
+	});
+
+	it("saves reminder settings (opt-in, schedule, hours, timezone) with the profile", async () => {
+		getMyProfileMock.mockResolvedValue(
+			profile({ phone: "+2348001234567", studySchedule: "evening" }),
+		);
+		updateMyProfileMock.mockResolvedValue({ ok: true });
+		const user = userEvent.setup();
+		renderRoute("/profile");
+		await screen.findByDisplayValue("Ada");
+
+		const toggle = screen.getByRole("switch", { name: "WhatsApp reminders" });
+		expect(toggle).toBeEnabled();
+		await user.click(toggle);
+		await user.selectOptions(
+			screen.getByLabelText("Weekly learning time"),
+			"medium",
+		);
+		// §3.1 habit stacking — anchor the session to a daily habit.
+		await user.selectOptions(
+			screen.getByLabelText("Tie it to a daily habit (optional)"),
+			"after_work",
+		);
+		await user.click(screen.getByRole("button", { name: "Save changes" }));
+
+		await waitFor(() => {
+			expect(updateMyProfileMock).toHaveBeenCalledWith(
+				expect.objectContaining({
+					whatsappOptIn: true,
+					studySchedule: "evening",
+					studyAnchor: "after_work",
+					weeklyHours: "medium",
+					timezone: expect.any(String),
+				}),
+			);
+		});
 	});
 
 	it("shows the 'Not verified' badge when a phone number is entered but unverified", async () => {

@@ -3,9 +3,11 @@ import {
 	ConflictException,
 	ForbiddenException,
 } from "@nestjs/common";
+import { EventEmitter2 } from "@nestjs/event-emitter";
 import { beforeEach, describe, expect, it } from "vitest";
 import type { AuthenticatedUser } from "../../src/auth/types";
 import { AttemptsService } from "../../src/modules/assessments/attempts.service";
+import { LearningEvents } from "../../src/shared/events/learning-events";
 import { getTestPrisma } from "./support/db";
 import {
 	createAssessment,
@@ -21,15 +23,23 @@ function asAuthenticatedUser(id: string): AuthenticatedUser {
 
 describe("AttemptsService (integration)", () => {
 	const prisma = getTestPrisma();
+	const events = new EventEmitter2();
 	const service = new AttemptsService(
 		prisma,
 		new FakeStorageAdapter(),
 		new FakeAiAdapter(),
+		events,
 	);
 
 	let learnerId: string;
+	let emitted: { event: string; payload: unknown }[] = [];
+
+	events.onAny((event, payload) => {
+		emitted.push({ event: String(event), payload });
+	});
 
 	beforeEach(async () => {
+		emitted = [];
 		learnerId = (await createUser(prisma, { role: "learner" })).id;
 	});
 
@@ -275,6 +285,107 @@ describe("AttemptsService (integration)", () => {
 			await expect(
 				service.getResult(asAuthenticatedUser(learnerId), state.attemptId),
 			).rejects.toThrow(BadRequestException);
+		});
+
+		it("carries previousBest + delta across attempts for growth framing (Phase 4, §3.1)", async () => {
+			const assessment = await createAssessment(prisma, { passMark: 70 });
+			const q1 = await createQuestion(prisma, assessment.id);
+			await prisma.question.update({
+				where: { id: q1.id },
+				data: { correctAnswer: "A" },
+			});
+			const q2 = await createQuestion(prisma, assessment.id);
+			await prisma.question.update({
+				where: { id: q2.id },
+				data: { correctAnswer: "B" },
+			});
+
+			// Attempt 1: 50% — below the pass mark, so a retake is allowed.
+			const first = await service.startOrResume(
+				asAuthenticatedUser(learnerId),
+				assessment.id,
+				undefined,
+				undefined,
+			);
+			await service.saveAnswer(
+				asAuthenticatedUser(learnerId),
+				first.attemptId,
+				{
+					questionId: q1.id,
+					answer: "A",
+				},
+			);
+			const r1 = await service.submit(
+				asAuthenticatedUser(learnerId),
+				first.attemptId,
+				{},
+			);
+			expect(r1.score).toBe(50);
+			expect(r1.previousBest).toBeNull();
+			expect(r1.delta).toBeNull();
+
+			// Attempt 2: 100% — growth of +50 over the previous best.
+			const second = await service.startOrResume(
+				asAuthenticatedUser(learnerId),
+				assessment.id,
+				undefined,
+				undefined,
+			);
+			for (const [qid, answer] of [
+				[q1.id, "A"],
+				[q2.id, "B"],
+			] as const) {
+				await service.saveAnswer(
+					asAuthenticatedUser(learnerId),
+					second.attemptId,
+					{ questionId: qid, answer },
+				);
+			}
+			const r2 = await service.submit(
+				asAuthenticatedUser(learnerId),
+				second.attemptId,
+				{},
+			);
+			expect(r2.score).toBe(100);
+			expect(r2.previousBest).toBe(50);
+			expect(r2.delta).toBe(50);
+		});
+
+		it("emits AttemptSubmitted with the graded snapshot on finalize (Phase 4, §6.4)", async () => {
+			const assessment = await createAssessment(prisma, { passMark: 50 });
+			const q1 = await createQuestion(prisma, assessment.id);
+			await prisma.question.update({
+				where: { id: q1.id },
+				data: { correctAnswer: "A" },
+			});
+			const state = await service.startOrResume(
+				asAuthenticatedUser(learnerId),
+				assessment.id,
+				undefined,
+				undefined,
+			);
+			await service.saveAnswer(
+				asAuthenticatedUser(learnerId),
+				state.attemptId,
+				{
+					questionId: q1.id,
+					answer: "A",
+				},
+			);
+			await service.submit(asAuthenticatedUser(learnerId), state.attemptId, {});
+
+			const submissions = emitted.filter(
+				(e) => e.event === LearningEvents.AttemptSubmitted,
+			);
+			expect(submissions).toHaveLength(1);
+			expect(submissions[0].payload).toMatchObject({
+				userId: learnerId,
+				assessmentId: assessment.id,
+				scope: assessment.scope,
+				score: 100,
+				passed: true,
+				attemptNumber: 1,
+			});
 		});
 	});
 

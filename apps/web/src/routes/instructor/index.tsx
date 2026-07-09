@@ -7,13 +7,17 @@ import {
 	CheckCircle2,
 	FileStack,
 	Plus,
+	Target,
+	UsersRound,
 	Waypoints,
 } from "lucide-react";
 import type { ComponentType } from "react";
 import { useTranslation } from "react-i18next";
+import { StatTileGrid } from "@/components/analytics/stat-tile";
 import { StudioShell } from "@/components/authoring/studio-shell";
 import { MyLearningCard } from "@/components/learn/my-learning-card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { analyticsKeys, getInstructorAnalytics } from "@/lib/analytics-api";
 import { useSession } from "@/lib/auth-client";
 import { getMyLearning, listMyCourses, listMyPaths } from "@/lib/content-api";
 
@@ -34,6 +38,11 @@ function InstructorOverviewPage() {
 	});
 	const paths = useQuery({ queryKey: ["my-paths"], queryFn: listMyPaths });
 	const mine = useQuery({ queryKey: ["my-learning"], queryFn: getMyLearning });
+	// §2.4: instructors see analytics for their OWN content.
+	const analytics = useQuery({
+		queryKey: analyticsKeys.instructor,
+		queryFn: getInstructorAnalytics,
+	});
 	const inProgress = mine.data
 		? [...mine.data.courses, ...mine.data.paths, ...mine.data.cohorts]
 				.filter((i) => !i.isComplete)
@@ -103,6 +112,64 @@ function InstructorOverviewPage() {
 						label={t("instructor.stats.drafts")}
 					/>
 				</div>
+
+				{/* Compact analytics summary — full breakdown lives on its own page
+				    so the overview stays scannable (esp. on mobile). */}
+				<section data-testid="instructor-analytics">
+					<div className="mb-3 flex items-end justify-between gap-3">
+						<div>
+							<p className="font-display text-xl text-foreground">
+								{t("analytics.title")}
+							</p>
+							<p className="mt-1 text-muted-foreground text-sm">
+								{t("analytics.subtitle_instructor")}
+							</p>
+						</div>
+						<Link
+							to="/instructor/analytics"
+							className="inline-flex shrink-0 items-center gap-1 font-semibold text-brand-primary text-sm hover:gap-1.5"
+						>
+							{t("analytics.view_all")}
+							<ArrowRight className="size-4" />
+						</Link>
+					</div>
+					<StatTileGrid
+						tiles={[
+							{
+								key: "reached",
+								icon: UsersRound,
+								value: analytics.data
+									? analytics.data.totals.learnersReached
+									: null,
+								label: t("analytics.learners_reached"),
+							},
+							{
+								key: "enrol",
+								icon: BookOpen,
+								value: analytics.data
+									? analytics.data.totals.enrollments
+									: null,
+								label: t("analytics.enrollments"),
+							},
+							{
+								key: "done",
+								icon: CheckCircle2,
+								value: analytics.data
+									? analytics.data.totals.completions
+									: null,
+								label: t("analytics.completions"),
+							},
+							{
+								key: "rate",
+								icon: Target,
+								value: analytics.data
+									? `${analytics.data.totals.completionRate}%`
+									: null,
+								label: t("analytics.completion_rate"),
+							},
+						]}
+					/>
+				</section>
 
 				<div className="grid gap-4 lg:grid-cols-2">
 					<PortfolioCard

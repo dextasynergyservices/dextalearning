@@ -12,6 +12,7 @@ import {
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
+import { GrowthLine } from "@/components/engagement/growth-line";
 import { ReadingLanguageToggle } from "@/components/learn/reading-language-toggle";
 import { Button } from "@/components/ui/button";
 import { useReadingTranslation } from "@/hooks/use-reading-translation";
@@ -35,12 +36,15 @@ export function InlineQuiz({
 	kind,
 	onPassed,
 	locked = false,
+	preQuizBest = null,
 }: {
 	assessmentId: string;
 	kind: "pre" | "post";
 	onPassed: () => void;
 	/** Gate starting the quiz (e.g. post-quiz until the lesson is consumed, §4.3). */
 	locked?: boolean;
+	/** Best pre-quiz score for this lesson — powers pre→post growth framing (§3.1). */
+	preQuizBest?: number | null;
 }) {
 	const { t } = useTranslation("authoring");
 	const [state, setState] = useState<AttemptState | null>(null);
@@ -116,7 +120,7 @@ export function InlineQuiz({
 				accent.ring,
 			)}
 		>
-			<div className="flex flex-wrap items-center gap-2.5 border-border/60 border-b bg-white/60 px-4 py-3">
+			<div className="flex flex-wrap items-center gap-2.5 border-border/60 border-b bg-card/60 px-4 py-3">
 				<accent.Icon className={cn("size-5 shrink-0", accent.tint)} />
 				<p className="flex-1 font-display text-foreground">{title}</p>
 				{state || result ? (
@@ -147,6 +151,7 @@ export function InlineQuiz({
 						tr={tr}
 						onRetry={() => start.mutate()}
 						retrying={start.isPending}
+						preQuizBest={kind === "post" ? preQuizBest : null}
 					/>
 				) : state ? (
 					<ActiveQuiz
@@ -344,17 +349,27 @@ function QuizResult({
 	tr,
 	onRetry,
 	retrying,
+	preQuizBest,
 }: {
 	result: AttemptResult;
 	tr: (text: string) => string;
 	onRetry: () => void;
 	retrying: boolean;
+	preQuizBest?: number | null;
 }) {
 	const { t } = useTranslation("authoring");
 	const passed = result.passed === true;
 
 	return (
 		<div className="space-y-3">
+			{/* Growth first (§3.1) — the raw score stays secondary, below. */}
+			<GrowthLine
+				score={Math.round(result.score)}
+				previousBest={result.previousBest}
+				delta={result.delta}
+				preQuizBest={preQuizBest}
+				className="justify-start rounded-card bg-success/10 px-3 py-2.5 text-sm"
+			/>
 			<div
 				className={cn(
 					"flex items-center gap-3 rounded-card p-3",

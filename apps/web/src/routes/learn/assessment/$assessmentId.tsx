@@ -283,7 +283,7 @@ function IntroView({
 				</div>
 
 				{blockedMsg ? (
-					<div className="mt-5 flex items-start gap-2.5 rounded-card border border-amber-200 bg-amber-50 p-3.5 text-amber-800 text-sm">
+					<div className="mt-5 flex items-start gap-2.5 rounded-card border border-warning/30 bg-warning/10 p-3.5 text-amber-800 dark:text-amber-200 text-sm">
 						<AlertTriangle className="mt-0.5 size-4 shrink-0" />
 						<div>
 							<p className="font-medium">
@@ -665,7 +665,7 @@ function ResultView({
 							: ""}
 					</p>
 					{result.flagCount > 0 ? (
-						<p className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-amber-100 px-3 py-1 text-amber-800 text-xs">
+						<p className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-warning/15 px-3 py-1 text-amber-800 dark:text-amber-200 text-xs">
 							<ShieldCheck className="size-3.5" />
 							{t("take.integrity", {
 								defaultValue: "Integrity score {{score}}/100",

@@ -8,6 +8,7 @@ import {
 	NotFoundException,
 	UnprocessableEntityException,
 } from "@nestjs/common";
+import { EventEmitter2 } from "@nestjs/event-emitter";
 import type {
 	Assessment,
 	AssessmentAttempt,
@@ -16,6 +17,10 @@ import type {
 import type { AuthenticatedUser } from "../../auth/types";
 import { PrismaService } from "../../prisma/prisma.service";
 import { AI_PORT, type AiPort } from "../../shared/ai/ai.port";
+import {
+	type AttemptSubmittedEvent,
+	LearningEvents,
+} from "../../shared/events/learning-events";
 import {
 	STORAGE_PORT,
 	type StoragePort,
@@ -79,6 +84,7 @@ export class AttemptsService {
 		private readonly prisma: PrismaService,
 		@Inject(STORAGE_PORT) private readonly storage: StoragePort,
 		@Inject(AI_PORT) private readonly ai: AiPort,
+		private readonly events: EventEmitter2,
 	) {}
 
 	// ── Timer helpers ─────────────────────────────────────────────────────────
@@ -675,6 +681,20 @@ export class AttemptsService {
 			});
 		});
 
+		// Every finalize is a new attempt entity — emit unconditionally (§6.4);
+		// Engagement/Reminders subscribe, this context never calls them.
+		if (updated.userId) {
+			this.events.emit(LearningEvents.AttemptSubmitted, {
+				userId: updated.userId,
+				assessmentId: assessment.id,
+				lessonId: assessment.lessonId,
+				scope: assessment.scope,
+				score,
+				passed,
+				attemptNumber: updated.attemptNumber,
+			} satisfies AttemptSubmittedEvent);
+		}
+
 		return this.toResult(assessment, updated, questions);
 	}
 
@@ -702,13 +722,30 @@ export class AttemptsService {
 		};
 	}
 
-	private toResult(
+	private async toResult(
 		assessment: Assessment,
 		attempt: AssessmentAttempt,
 		questions: Question[],
 	) {
 		const snap = this.snapOf(attempt);
 		const byId = new Map(questions.map((q) => [q.id, q]));
+		// Growth framing (§3.1 Dweck): the result leads with "you've grown X%"
+		// against the learner's best PRIOR valid attempt, not the raw score.
+		const previous = await this.prisma.assessmentAttempt.findFirst({
+			where: {
+				assessmentId: assessment.id,
+				userId: attempt.userId,
+				id: { not: attempt.id },
+				submittedAt: { not: null },
+				invalidated: false,
+				score: { not: null },
+			},
+			orderBy: { score: "desc" },
+			select: { score: true },
+		});
+		const score = attempt.score == null ? 0 : Number(attempt.score);
+		const previousBest =
+			previous?.score == null ? null : Number(previous.score);
 		return {
 			status: "submitted" as const,
 			attemptId: attempt.id,
@@ -717,7 +754,9 @@ export class AttemptsService {
 			attemptNumber: attempt.attemptNumber,
 			submittedAt: attempt.submittedAt,
 			autoSubmitted: attempt.autoSubmitted,
-			score: attempt.score == null ? 0 : Number(attempt.score),
+			score,
+			previousBest,
+			delta: previousBest == null ? null : score - previousBest,
 			passed: attempt.passed,
 			passMark: Number(assessment.passMark),
 			integrityScore: attempt.integrityScore,

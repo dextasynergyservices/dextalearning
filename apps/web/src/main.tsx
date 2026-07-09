@@ -3,7 +3,7 @@ import { createRouter, RouterProvider } from "@tanstack/react-router";
 import { MotionConfig } from "framer-motion";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import { Toaster } from "sonner";
+import { ThemedToaster } from "./components/ui/themed-toaster";
 import "./lib/fonts";
 import "./index.css";
 import "lenis/dist/lenis.css";
@@ -43,7 +43,7 @@ createRoot(rootElement).render(
 		<MotionConfig reducedMotion="user">
 			<QueryClientProvider client={queryClient}>
 				<RouterProvider router={router} />
-				<Toaster position="top-center" richColors closeButton />
+				<ThemedToaster />
 			</QueryClientProvider>
 		</MotionConfig>
 	</StrictMode>,

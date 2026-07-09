@@ -9,11 +9,13 @@ const {
 	getPublicCourseMock,
 	getEnrollmentStatusMock,
 	getCourseProgressMock,
+	getCourseSocialProofMock,
 } = vi.hoisted(() => ({
 	useSessionMock: vi.fn(),
 	getPublicCourseMock: vi.fn(),
 	getEnrollmentStatusMock: vi.fn(),
 	getCourseProgressMock: vi.fn(),
+	getCourseSocialProofMock: vi.fn(),
 }));
 
 vi.mock("@/lib/auth-client", async (importOriginal) => {
@@ -29,6 +31,11 @@ vi.mock("@/lib/content-api", async (importOriginal) => {
 		getEnrollmentStatus: getEnrollmentStatusMock,
 		getCourseProgress: getCourseProgressMock,
 	};
+});
+
+vi.mock("@/lib/engagement-api", async (importOriginal) => {
+	const actual = await importOriginal<typeof import("@/lib/engagement-api")>();
+	return { ...actual, getCourseSocialProof: getCourseSocialProofMock };
 });
 
 function course(overrides: Partial<PublicCourse> = {}): PublicCourse {
@@ -47,6 +54,7 @@ function course(overrides: Partial<PublicCourse> = {}): PublicCourse {
 		currency: "NGN",
 		isEarnBackEligible: false,
 		earnBackPercentage: null,
+		enrolledCount: 0,
 		instructor: {
 			id: "i1",
 			name: "Ada Lovelace",
@@ -94,6 +102,8 @@ describe("CoursePage", () => {
 		getCourseProgressMock.mockReset();
 		useSessionMock.mockReturnValue({ data: null, isPending: false });
 		getEnrollmentStatusMock.mockResolvedValue({ enrolled: false });
+		getCourseSocialProofMock.mockReset();
+		getCourseSocialProofMock.mockResolvedValue({ completedThisWeek: 0 });
 	});
 
 	it("renders the course title, module outline and instructor", async () => {
@@ -110,6 +120,17 @@ describe("CoursePage", () => {
 		expect(screen.getByText("1. Intro")).toBeInTheDocument();
 		expect(screen.getByText("2. Setup")).toBeInTheDocument();
 		expect(screen.getByText("Ada Lovelace")).toBeInTheDocument();
+	});
+
+	it("shows social proof in the hero when the counters are positive (Phase 4, §3.2)", async () => {
+		getPublicCourseMock.mockResolvedValue(course({ enrolledCount: 47 }));
+		getCourseSocialProofMock.mockResolvedValue({ completedThisWeek: 5 });
+		renderRoute("/courses/react-basics");
+
+		expect(await screen.findByText("47 enrolled")).toBeInTheDocument();
+		expect(
+			await screen.findByText("5 completed this week"),
+		).toBeInTheDocument();
 	});
 
 	it("shows the not-found state for a missing course", async () => {

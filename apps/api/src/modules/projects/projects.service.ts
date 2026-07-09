@@ -6,6 +6,7 @@ import {
 	Injectable,
 	NotFoundException,
 } from "@nestjs/common";
+import { EventEmitter2 } from "@nestjs/event-emitter";
 import type {
 	Project,
 	ProjectSubmission,
@@ -13,6 +14,10 @@ import type {
 import type { AuthenticatedUser } from "../../auth/types";
 import { PrismaService } from "../../prisma/prisma.service";
 import { AI_PORT, type AiPort, type RubricItem } from "../../shared/ai/ai.port";
+import {
+	LearningEvents,
+	type ProjectGradedEvent,
+} from "../../shared/events/learning-events";
 import {
 	STORAGE_PORT,
 	type StoragePort,
@@ -49,6 +54,7 @@ export class ProjectsService {
 		private readonly prisma: PrismaService,
 		@Inject(STORAGE_PORT) private readonly storage: StoragePort,
 		@Inject(AI_PORT) private readonly ai: AiPort,
+		private readonly events: EventEmitter2,
 	) {}
 
 	private async assertCanManage(user: AuthenticatedUser, parent: ParentRef) {
@@ -310,7 +316,11 @@ export class ProjectsService {
 		submissionId: string,
 		dto: GradeSubmissionDto,
 	) {
-		const { project } = await this.loadOwnedSubmission(user, submissionId);
+		const { submission, project } = await this.loadOwnedSubmission(
+			user,
+			submissionId,
+		);
+		const firstGrade = submission.gradedAt == null;
 		const rubric = this.rubricOf(project);
 		let score = dto.score;
 		let rubricScores: { criterionId: string; points: number }[] | undefined;
@@ -346,6 +356,17 @@ export class ProjectsService {
 				gradedAt: new Date(),
 			},
 		});
+		// Emit only on the FIRST grade — regrades adjust the record without
+		// re-firing downstream engagement/notification effects (§6.4).
+		if (firstGrade && submission.userId && submission.projectId) {
+			this.events.emit(LearningEvents.ProjectGraded, {
+				userId: submission.userId,
+				projectId: submission.projectId,
+				submissionId: updated.id,
+				score: updated.score == null ? null : Number(updated.score),
+				passed,
+			} satisfies ProjectGradedEvent);
+		}
 		return {
 			id: updated.id,
 			score: updated.score == null ? null : Number(updated.score),

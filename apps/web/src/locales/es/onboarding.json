@@ -49,6 +49,17 @@
 			"flexible": "Flexible"
 		}
 	},
+	"anchor": {
+		"title": "Únelo a un hábito diario (opcional)",
+		"subtitle": "«Después de cenar» funciona mejor que «las 18:00» — elige el hábito tras el que estudiarás.",
+		"options": {
+			"morning_routine": "Después de mi rutina matinal",
+			"commute": "En el trayecto",
+			"lunch_break": "En la pausa del almuerzo",
+			"after_work": "Después del trabajo",
+			"before_bed": "Antes de dormir"
+		}
+	},
 	"done": {
 		"title": "¡Todo listo!",
 		"subtitle": "Bienvenido a DextaLearning — empecemos a aprender.",

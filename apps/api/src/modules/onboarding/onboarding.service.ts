@@ -25,6 +25,16 @@ const MAX_AVATAR_BYTES = 5 * 1024 * 1024;
 
 const isUrl = (value: string) => /^https?:\/\//.test(value);
 
+/** A timezone is valid iff Intl can construct a formatter with it. */
+const isValidTimezone = (value: string) => {
+	try {
+		new Intl.DateTimeFormat("en-CA", { timeZone: value });
+		return true;
+	} catch {
+		return false;
+	}
+};
+
 /**
  * Persists onboarding answers + profile edits to the user record (§8.1).
  * Learner preferences feed personalization; instructor fields build the public
@@ -48,6 +58,7 @@ export class OnboardingService {
 				skillLevel: dto.skillLevel ?? null,
 				weeklyHours: dto.weeklyHours ?? null,
 				studySchedule: dto.studySchedule ?? null,
+				studyAnchor: dto.studyAnchor ?? null,
 				whatsappOptIn: dto.whatsappOptIn ?? false,
 				onboardedAt: new Date(),
 			},
@@ -96,6 +107,11 @@ export class OnboardingService {
 				expertiseAreas: true,
 				image: true,
 				avatarUrl: true,
+				whatsappOptIn: true,
+				studySchedule: true,
+				studyAnchor: true,
+				weeklyHours: true,
+				timezone: true,
 			},
 		});
 		if (!user) throw new NotFoundException("User not found");
@@ -113,6 +129,11 @@ export class OnboardingService {
 			bio: user.bio,
 			expertiseAreas: user.expertiseAreas,
 			image: await this.resolveAvatar(user.avatarUrl, user.image),
+			whatsappOptIn: user.whatsappOptIn,
+			studySchedule: user.studySchedule,
+			studyAnchor: user.studyAnchor,
+			weeklyHours: user.weeklyHours,
+			timezone: user.timezone,
 		};
 	}
 
@@ -131,6 +152,12 @@ export class OnboardingService {
 			},
 		});
 		if (!current) throw new NotFoundException("User not found");
+		if (dto.timezone !== undefined && !isValidTimezone(dto.timezone)) {
+			throw new UnprocessableEntityException({
+				code: "INVALID_TIMEZONE",
+				message: "Unknown timezone.",
+			});
+		}
 
 		const firstName = dto.firstName ?? current.firstName;
 		const lastName = dto.lastName ?? current.lastName;
@@ -167,6 +194,22 @@ export class OnboardingService {
 				...(dto.expertiseAreas !== undefined
 					? { expertiseAreas: dto.expertiseAreas }
 					: {}),
+				// Learning reminder settings (§3.2) — only when provided, so other
+				// profile forms never reset them.
+				...(dto.whatsappOptIn !== undefined
+					? { whatsappOptIn: dto.whatsappOptIn }
+					: {}),
+				...(dto.studySchedule !== undefined
+					? { studySchedule: dto.studySchedule }
+					: {}),
+				// "" clears the anchor (the profile select's "no anchor" option).
+				...(dto.studyAnchor !== undefined
+					? { studyAnchor: dto.studyAnchor || null }
+					: {}),
+				...(dto.weeklyHours !== undefined
+					? { weeklyHours: dto.weeklyHours }
+					: {}),
+				...(dto.timezone !== undefined ? { timezone: dto.timezone } : {}),
 			},
 		});
 		return { ok: true };

@@ -2,6 +2,7 @@ import { render } from "@react-email/render";
 import { MagicLinkEmail } from "./magic-link";
 import { OtpEmail } from "./otp";
 import { PasswordResetEmail } from "./password-reset";
+import { ReminderDigestEmail } from "./reminder-digest";
 import { VerifyEmail } from "./verify-email";
 import { WelcomeEmail } from "./welcome";
 
@@ -24,3 +25,13 @@ export const renderPasswordResetEmail = (props: { url: string }) =>
 
 export const renderWelcomeEmail = (props: { name?: string; ctaUrl?: string }) =>
 	render(<WelcomeEmail {...props} />);
+
+export const renderReminderDigestEmail = (props: {
+	heading: string;
+	recallLine?: string;
+	streakLine?: string;
+	reviewsIntro?: string;
+	reviewTitles: string[];
+	cta: string;
+	ctaUrl?: string;
+}) => render(<ReminderDigestEmail {...props} />);

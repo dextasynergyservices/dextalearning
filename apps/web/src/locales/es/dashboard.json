@@ -102,7 +102,17 @@
 		"email_locked": "El correo no se puede cambiar.",
 		"save": "Guardar cambios",
 		"saved": "Perfil guardado.",
-		"not_verified": "Sin verificar"
+		"not_verified": "Sin verificar",
+		"reminders": "Recordatorios de estudio",
+		"reminders_hint": "Los recordatorios llegan a tu hora habitual de estudio, en tu idioma. Guardar actualiza tu plan.",
+		"whatsapp_optin": "Recordatorios por WhatsApp",
+		"whatsapp_optin_hint": "Avisos suaves cuando tus repasos estén listos — nunca spam.",
+		"whatsapp_needs_phone": "Añade un número de teléfono arriba para activar los recordatorios por WhatsApp.",
+		"study_schedule": "¿Cuándo sueles estudiar?",
+		"study_anchor": "Únelo a un hábito diario (opcional)",
+		"study_anchor_none": "Sin hábito asociado",
+		"study_anchor_hint": "«Después de cenar» funciona mejor que «las 18:00» — los hábitos se pegan a los hábitos.",
+		"weekly_hours": "Tiempo de estudio semanal"
 	},
 	"my": {
 		"title": "Mi aprendizaje",

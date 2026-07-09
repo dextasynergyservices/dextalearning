@@ -68,6 +68,14 @@ const GOALS = ["teaching", "certificates", "methods", "career", "community"];
 const LEVELS = ["beginner", "intermediate", "advanced"];
 const HOURS = ["low", "medium", "high", "max"];
 const SCHEDULES = ["morning", "afternoon", "evening", "weekend", "flexible"];
+// Habit-stacking anchors (§3.1) — optional, stacked onto the schedule step.
+const ANCHORS = [
+	"morning_routine",
+	"commute",
+	"lunch_break",
+	"after_work",
+	"before_bed",
+];
 
 const slide = {
 	enter: (dir: number) => ({ x: dir > 0 ? 28 : -28, opacity: 0 }),
@@ -110,6 +118,7 @@ export function LearnerOnboarding() {
 	const [level, setLevel] = useState<string | null>(null);
 	const [hours, setHours] = useState<string | null>(null);
 	const [schedule, setSchedule] = useState<string | null>(null);
+	const [anchor, setAnchor] = useState<string | null>(null);
 	const [phone, setPhone] = useState("");
 	const [whatsappOptIn, setWhatsappOptIn] = useState(false);
 	const [saving, setSaving] = useState(false);
@@ -146,6 +155,7 @@ export function LearnerOnboarding() {
 			skillLevel: level ?? undefined,
 			weeklyHours: hours ?? undefined,
 			studySchedule: schedule ?? undefined,
+			studyAnchor: anchor ?? undefined,
 			whatsappOptIn,
 			phone: phone.trim() || undefined,
 		};
@@ -283,6 +293,38 @@ export function LearnerOnboarding() {
 										onClick={() => setSchedule(value)}
 									/>
 								))}
+							</div>
+
+							{/* §3.1 habit stacking — optional anchor pills. Anchored
+							    intentions ("after dinner") beat clock-time ones. */}
+							<div className="mt-6">
+								<p className="font-medium text-foreground text-sm">
+									{t("anchor.title")}
+								</p>
+								<p className="mt-0.5 text-muted-foreground text-xs">
+									{t("anchor.subtitle")}
+								</p>
+								<div className="mt-3 flex flex-wrap gap-2">
+									{ANCHORS.map((value) => (
+										<button
+											key={value}
+											type="button"
+											aria-pressed={anchor === value}
+											onClick={() =>
+												setAnchor((current) =>
+													current === value ? null : value,
+												)
+											}
+											className={`rounded-pill border px-3.5 py-2 font-medium text-sm transition-colors active:scale-[0.98] ${
+												anchor === value
+													? "border-brand-primary bg-brand-primary-light text-brand-primary"
+													: "border-border bg-card text-muted-foreground hover:border-brand-primary/40 hover:text-foreground"
+											}`}
+										>
+											{t(`anchor.options.${value}`)}
+										</button>
+									))}
+								</div>
 							</div>
 						</>
 					) : null}

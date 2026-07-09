@@ -102,7 +102,17 @@
 		"email_locked": "You no fit change email.",
 		"save": "Save changes",
 		"saved": "Profile don save.",
-		"not_verified": "No verify"
+		"not_verified": "No verify",
+		"reminders": "Learning reminders",
+		"reminders_hint": "Reminders go reach you for your normal study time, for your language. Save go update your plan.",
+		"whatsapp_optin": "WhatsApp reminders",
+		"whatsapp_optin_hint": "Small nudge when your review don ready — no spam at all.",
+		"whatsapp_needs_phone": "Put phone number for up there make WhatsApp reminders work.",
+		"study_schedule": "When you dey usually study?",
+		"study_anchor": "Join am with one daily habit (optional)",
+		"study_anchor_none": "No habit anchor",
+		"study_anchor_hint": "“After dinner” dey work pass “6pm” — habit dey stick to habit.",
+		"weekly_hours": "Time wey you get every week"
 	},
 	"my": {
 		"title": "My Learning",

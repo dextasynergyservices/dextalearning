@@ -14,6 +14,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { RequireAuth } from "@/components/auth/require-auth";
+import { NextSessionPrompt } from "@/components/engagement/next-session-prompt";
 import { InlineQuiz } from "@/components/learn/inline-quiz";
 import { LessonListPanel } from "@/components/learn/lesson-list-panel";
 import { LessonPlayer } from "@/components/player/lesson-player";
@@ -24,6 +25,7 @@ import {
 	type LessonContext,
 	reportLessonProgress,
 } from "@/lib/content-api";
+import { engagementKeys } from "@/lib/engagement-api";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/learn/lesson/$lessonId")({
@@ -175,6 +177,10 @@ function LessonBody({
 	const queryClient = useQueryClient();
 
 	const [done, setDone] = useState(ctx.done);
+	// Captured ONCE on mount — a lesson-context refetch flips ctx.done, but the
+	// next-session prompt should only greet a completion that happened NOW,
+	// never a revisit of an already-finished lesson.
+	const [wasIncompleteOnMount] = useState(!ctx.done);
 	const [watchedPct, setWatchedPct] = useState(
 		ctx.done ? 100 : Math.round(ctx.resumePct),
 	);
@@ -201,6 +207,8 @@ function LessonBody({
 		});
 		queryClient.invalidateQueries({ queryKey: ["lesson-context"] });
 		queryClient.invalidateQueries({ queryKey: ["my-learning"] });
+		// Streak + badges react to the completion events (§3.2).
+		queryClient.invalidateQueries({ queryKey: engagementKeys.me });
 	}, [queryClient, ctx.course.id]);
 
 	const report = useMutation({
@@ -306,9 +314,14 @@ function LessonBody({
 			>
 				{done ? (
 					<div className="flex items-center gap-3">
-						<span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-success text-white">
+						<motion.span
+							initial={{ scale: 0.4, opacity: 0 }}
+							animate={{ scale: 1, opacity: 1 }}
+							transition={{ type: "spring", stiffness: 260, damping: 22 }}
+							className="flex size-10 shrink-0 items-center justify-center rounded-full bg-success text-white"
+						>
 							<CheckCircle2 className="size-5" />
-						</span>
+						</motion.span>
 						<div>
 							<p className="font-display text-foreground">
 								{t("play.auto_complete_done", {
@@ -392,13 +405,20 @@ function LessonBody({
 				)}
 			</div>
 
+			{/* §3.2 implementation intention — asked at the moment of completion,
+			    one tap, feeds the reminder engine. Fresh completions only. */}
+			{done && wasIncompleteOnMount ? <NextSessionPrompt /> : null}
+
 			{/* Inline post-lesson quiz (§8.2) — locked until the content is consumed
-			    (§4.3: 80% watched / scrolled), then grades + completes in place. */}
-			{postQuiz && !postQuiz.passed && !done ? (
+			    (§4.3: 80% watched / scrolled), then grades + completes in place.
+			    A pass flips `done`, but the quiz stays mounted for THIS session so
+			    the growth-framed result (§3.1) isn't yanked away mid-read. */}
+			{postQuiz && (quizJustPassed || (!postQuiz.passed && !done)) ? (
 				<InlineQuiz
 					assessmentId={postQuiz.id}
 					kind="post"
 					locked={!consumptionMet}
+					preQuizBest={preQuiz?.bestScore ?? null}
 					onPassed={() => {
 						setQuizJustPassed(true);
 						report.mutate(bodyFor(maxRef.current));
