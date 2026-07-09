@@ -217,8 +217,8 @@ export function CourseEditorPage({
 					<CourseSettingsPanel course={course} />
 
 					{issues ? (
-						<div className="rounded-card border border-amber-300 bg-amber-50 p-4">
-							<div className="flex items-center gap-2 font-medium text-amber-800">
+						<div className="rounded-card border border-warning/40 bg-warning/10 p-4">
+							<div className="flex items-center gap-2 font-medium text-amber-800 dark:text-amber-200">
 								<CircleAlert className="size-5" />
 								{t("editor.publish_blocked", "Fix these before publishing")}
 							</div>
@@ -226,7 +226,7 @@ export function CourseEditorPage({
 								{issues.map((issue) => (
 									<li
 										key={`${issue.lessonId ?? "course"}-${issue.reason}`}
-										className="flex items-start gap-2 text-amber-800"
+										className="flex items-start gap-2 text-amber-800 dark:text-amber-200"
 									>
 										<span className="mt-1.5 size-1.5 shrink-0 rounded-full bg-amber-500" />
 										<span>

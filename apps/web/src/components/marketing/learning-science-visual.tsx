@@ -1,11 +1,10 @@
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useRef } from "react";
 import { useTranslation } from "react-i18next";
-import { scheduleScrollTriggerRefresh } from "@/lib/scroll-trigger-refresh";
+import { observeOnEnter } from "@/lib/reveal-on-enter";
 
-gsap.registerPlugin(useGSAP, ScrollTrigger);
+gsap.registerPlugin(useGSAP);
 
 // Review markers sit at the top of each spaced-recall "bounce".
 const REVIEW_DOTS = [
@@ -39,13 +38,11 @@ export function LearningScienceVisual() {
 				gsap.set(line, { strokeDasharray: len, strokeDashoffset: len });
 			}
 
-			gsap
-				// `once` so a later position refresh (needed to correct pre-settle
-				// measurements) can never flip an already-drawn-in chart back to
-				// hidden — see the matching note in useReveal.
-				.timeline({
-					scrollTrigger: { trigger: root, start: "top 78%", once: true },
-				})
+			// Paused timeline played by an IntersectionObserver (not
+			// ScrollTrigger — see lib/reveal-on-enter.ts): the draw-in can never
+			// get stuck hidden after SPA navigation. Mirrors "top 78%".
+			const timeline = gsap
+				.timeline({ paused: true })
 				.to(lines, {
 					strokeDashoffset: 0,
 					duration: 1.4,
@@ -59,10 +56,7 @@ export function LearningScienceVisual() {
 				)
 				.from("[data-area]", { opacity: 0, duration: 0.8 }, "-=1");
 
-			// See scheduleScrollTriggerRefresh: recompute once this route's
-			// layout has truly settled (client-side nav, view-transition
-			// cross-fade, late fonts) so the draw-in doesn't get stuck hidden.
-			scheduleScrollTriggerRefresh();
+			return observeOnEnter([root], () => timeline.play(), "0px 0px -22% 0px");
 		},
 		{ scope },
 	);

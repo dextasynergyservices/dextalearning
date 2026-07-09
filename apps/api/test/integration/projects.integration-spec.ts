@@ -1,7 +1,9 @@
 import { BadRequestException, ForbiddenException } from "@nestjs/common";
+import { EventEmitter2 } from "@nestjs/event-emitter";
 import { beforeEach, describe, expect, it } from "vitest";
 import type { AuthenticatedUser } from "../../src/auth/types";
 import { ProjectsService } from "../../src/modules/projects/projects.service";
+import { LearningEvents } from "../../src/shared/events/learning-events";
 import { getTestPrisma } from "./support/db";
 import {
 	createCohort,
@@ -20,17 +22,25 @@ function asAuthenticatedUser(
 
 describe("ProjectsService (integration)", () => {
 	const prisma = getTestPrisma();
+	const events = new EventEmitter2();
 	const service = new ProjectsService(
 		prisma,
 		new FakeStorageAdapter(),
 		new FakeAiAdapter(),
+		events,
 	);
 
 	let ownerId: string;
 	let otherId: string;
 	let adminId: string;
+	let emitted: { event: string; payload: unknown }[] = [];
+
+	events.onAny((event, payload) => {
+		emitted.push({ event: String(event), payload });
+	});
 
 	beforeEach(async () => {
+		emitted = [];
 		ownerId = (await createUser(prisma, { role: "instructor" })).id;
 		otherId = (await createUser(prisma, { role: "instructor" })).id;
 		adminId = (await createUser(prisma, { role: "admin" })).id;
@@ -162,6 +172,60 @@ describe("ProjectsService (integration)", () => {
 			// (40+45)/100 = 85%
 			expect(graded.score).toBe(85);
 			expect(graded.passed).toBe(true);
+		});
+
+		it("emits ProjectGraded on the first grade only — regrades stay silent (Phase 4, §6.4)", async () => {
+			const course = await prisma.course.create({
+				data: {
+					title: "Course",
+					slug: "proj-grade-events",
+					createdBy: ownerId,
+				},
+			});
+			const project = await service.createProject(
+				asAuthenticatedUser(ownerId),
+				{
+					scope: "course",
+					title: "Event project",
+					courseId: course.id,
+				},
+			);
+			const learner = await createUser(prisma, { role: "learner" });
+			const submission = await createProjectSubmission(prisma, {
+				projectId: project.id,
+				userId: learner.id,
+				passed: false,
+			});
+
+			await service.gradeSubmission(
+				asAuthenticatedUser(ownerId),
+				submission.id,
+				{
+					score: 80,
+					passed: true,
+				},
+			);
+			// Regrade — adjusts the record, must not re-fire downstream effects.
+			await service.gradeSubmission(
+				asAuthenticatedUser(ownerId),
+				submission.id,
+				{
+					score: 90,
+					passed: true,
+				},
+			);
+
+			const graded = emitted.filter(
+				(e) => e.event === LearningEvents.ProjectGraded,
+			);
+			expect(graded).toHaveLength(1);
+			expect(graded[0].payload).toMatchObject({
+				userId: learner.id,
+				projectId: project.id,
+				submissionId: submission.id,
+				score: 80,
+				passed: true,
+			});
 		});
 
 		it("respects an explicit score over rubric-derived scoring", async () => {

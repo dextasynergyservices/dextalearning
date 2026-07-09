@@ -51,6 +51,11 @@ function profile(overrides: Partial<EditableProfile> = {}): EditableProfile {
 		bio: "I teach React.",
 		expertiseAreas: ["technology"],
 		image: null,
+		whatsappOptIn: false,
+		studySchedule: null,
+		studyAnchor: null,
+		weeklyHours: null,
+		timezone: null,
 		...overrides,
 	};
 }

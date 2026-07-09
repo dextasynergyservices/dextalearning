@@ -20,6 +20,7 @@ import { type ComponentType, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { EnrollCta } from "@/components/catalog/enroll-cta";
 import { InstructorByline } from "@/components/catalog/instructor-byline";
+import { SocialProofLine } from "@/components/engagement/social-proof-line";
 import { PublicShell } from "@/components/layout/public-shell";
 import { FadeIn } from "@/components/marketing/fade-in";
 import { LessonPlayer } from "@/components/player/lesson-player";
@@ -31,6 +32,7 @@ import {
 	getPublicCourse,
 	type PublicLesson,
 } from "@/lib/content-api";
+import { engagementKeys, getCourseSocialProof } from "@/lib/engagement-api";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/courses/$slug")({
@@ -91,6 +93,13 @@ function CoursePage() {
 	});
 
 	const [preview, setPreview] = useState<PublicLesson | null>(null);
+
+	// §3.2 social proof — public endpoint, only queried once the course loads.
+	const { data: proof } = useQuery({
+		queryKey: engagementKeys.socialProof(course?.id ?? ""),
+		queryFn: () => getCourseSocialProof(course?.id ?? ""),
+		enabled: Boolean(course?.id),
+	});
 
 	const lessons = course?.modules.flatMap((mod) => mod.lessons) ?? [];
 	const previewLessons = lessons.filter((l) => l.isPreview);
@@ -199,6 +208,11 @@ function CoursePage() {
 											capitalize
 										/>
 									</div>
+									<SocialProofLine
+										enrolled={course.enrolledCount}
+										completedThisWeek={proof?.completedThisWeek}
+										className="mt-4 text-sm text-white/85"
+									/>
 								</div>
 
 								<div className="relative hidden lg:block">
@@ -430,7 +444,7 @@ function CoursePage() {
 									: formatMoney(course.currency, course.price ?? 0)}
 							</p>
 							{course.isEarnBackEligible ? (
-								<span className="text-amber-700 text-xs">
+								<span className="text-amber-700 dark:text-amber-300 text-xs">
 									{course.earnBackPercentage && course.earnBackPercentage < 100
 										? t("catalog.earnback_pct", {
 												pct: course.earnBackPercentage,

@@ -27,6 +27,17 @@ export default defineConfig({
 	plugins: [
 		swc.vite({
 			module: { type: "es6" },
+			// Phase 4's Reminders context transitively imports .tsx (React Email
+			// templates via reminders.service.ts -> emails/render.tsx). Same fix
+			// as vitest.config.e2e.ts: match tsconfig's automatic "react-jsx"
+			// runtime, or rendering throws "React is not defined".
+			jsc: {
+				transform: {
+					react: {
+						runtime: "automatic",
+					},
+				},
+			},
 		}),
 	],
 });

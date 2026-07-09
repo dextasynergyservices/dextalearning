@@ -113,7 +113,7 @@ export function IntroManager({
 									{t("intro.ready", { defaultValue: "Ready to preview" })}
 								</span>
 							) : (
-								<span className="text-amber-700">
+								<span className="text-amber-700 dark:text-amber-300">
 									{t("intro.needs_media", {
 										defaultValue: "Add media in the editor to finish",
 									})}

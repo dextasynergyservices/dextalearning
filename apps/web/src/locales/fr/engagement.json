@@ -1,0 +1,138 @@
+{
+	"streak": {
+		"title": "Votre série",
+		"flame_label": "Série de {{days}} jours",
+		"day_streak": "Jours d'affilée",
+		"longest": "Record",
+		"freezes": "Gels",
+		"freeze_hint": "Un gel sauve votre série si vous manquez un jour. Gagnez-en un tous les 7 jours — maximum 2.",
+		"at_risk": "Ne perdez pas votre série de {{days}} jours — une leçon aujourd'hui garde la flamme allumée !",
+		"today_done": "C'est fait pour aujourd'hui. Revenez demain pour entretenir la flamme.",
+		"start": "Terminez une leçon aujourd'hui pour allumer votre flamme.",
+		"keep_going": "Vous êtes lancé·e — revenez demain pour la faire grandir.",
+		"this_week": "Cette semaine"
+	},
+	"badges": {
+		"title": "Vos récompenses",
+		"subtitle": "Les petites victoires s'additionnent — collectionnez-les toutes.",
+		"earned_count": "{{earned}} sur {{total}} obtenues",
+		"earned_on": "Obtenu le {{date}}",
+		"locked": "Verrouillé",
+		"first_lesson": {
+			"name": "Premiers pas",
+			"desc": "Terminez votre première leçon"
+		},
+		"lessons_10": { "name": "Explorateur", "desc": "Terminez 10 leçons" },
+		"lessons_25": { "name": "Sur la lancée", "desc": "Terminez 25 leçons" },
+		"lessons_50": {
+			"name": "Bâtisseur de savoir",
+			"desc": "Terminez 50 leçons"
+		},
+		"first_course": {
+			"name": "Premier cours",
+			"desc": "Terminez votre premier cours"
+		},
+		"courses_3": {
+			"name": "Champion du programme",
+			"desc": "Terminez 3 cours"
+		},
+		"first_quiz_pass": {
+			"name": "Débutant du quiz",
+			"desc": "Réussissez votre premier quiz"
+		},
+		"quizzes_10": {
+			"name": "Maître du rappel",
+			"desc": "Réussissez 10 quiz différents"
+		},
+		"perfect_quiz": {
+			"name": "Score parfait",
+			"desc": "Obtenez 100 % à un quiz"
+		},
+		"growth_leap": {
+			"name": "Bond de progrès",
+			"desc": "Dépassez votre score pré-quiz de 25 points ou plus"
+		},
+		"streak_3": {
+			"name": "Échauffement",
+			"desc": "Apprenez 3 jours d'affilée"
+		},
+		"streak_7": { "name": "En feu", "desc": "Apprenez 7 jours d'affilée" },
+		"streak_14": {
+			"name": "Deux semaines de suite",
+			"desc": "Apprenez 14 jours d'affilée"
+		},
+		"streak_30": {
+			"name": "Inarrêtable",
+			"desc": "Apprenez 30 jours d'affilée"
+		},
+		"comeback": {
+			"name": "Retour gagnant",
+			"desc": "Un jour manqué, un gel utilisé — et vous continuez"
+		},
+		"first_project_pass": {
+			"name": "Pro du projet",
+			"desc": "Réussissez votre premier projet"
+		}
+	},
+	"next_badge": {
+		"eyebrow": "Votre prochaine récompense",
+		"lessons_one": "Plus que {{count}} leçon pour débloquer {{name}}",
+		"lessons_other": "Plus que {{count}} leçons pour débloquer {{name}}",
+		"courses_one": "Plus que {{count}} cours pour débloquer {{name}}",
+		"courses_other": "Plus que {{count}} cours pour débloquer {{name}}",
+		"quizzes_one": "Plus que {{count}} quiz pour débloquer {{name}}",
+		"quizzes_other": "Plus que {{count}} quiz pour débloquer {{name}}",
+		"streak_one": "Plus que {{count}} jour d'affilée pour débloquer {{name}}",
+		"streak_other": "Plus que {{count}} jours d'affilée pour débloquer {{name}}",
+		"view_awards": "Voir toutes les récompenses"
+	},
+	"next_session": {
+		"title": "Quand étudierez-vous la prochaine fois ? Décidez maintenant.",
+		"hint": "Un seul geste — vos rappels s'y adapteront.",
+		"saved": "C'est noté ! On vous fera signe {{when}}.",
+		"options": {
+			"morning": "Demain matin",
+			"afternoon": "Demain après-midi",
+			"evening": "Demain soir",
+			"weekend": "Ce week-end"
+		},
+		"saved_when": {
+			"morning": "demain matin",
+			"afternoon": "demain après-midi",
+			"evening": "demain soir",
+			"weekend": "ce week-end"
+		}
+	},
+	"celebration": {
+		"unlocked": "Récompense débloquée !",
+		"cta": "Continuer",
+		"next": "Récompense suivante"
+	},
+	"growth": {
+		"pre_post": "Vous êtes passé·e de {{pre}} % à {{post}} % — un vrai progrès !",
+		"grew": "Vous avez progressé de +{{delta}} % depuis votre dernière tentative !",
+		"baseline": "Vous avez obtenu {{score}} % — c'est votre point de départ. Tout ce qui suit est du progrès.",
+		"steady": "Votre record reste {{best}} % — chaque rappel le consolide."
+	},
+	"social": {
+		"enrolled": "{{n}} inscrits",
+		"completed_week": "{{n}} terminé(s) cette semaine"
+	},
+	"notifications": {
+		"title": "Notifications",
+		"open": "Notifications",
+		"empty": "Vous êtes à jour !",
+		"mark_all_read": "Tout marquer comme lu",
+		"types": {
+			"reminder_digest": {
+				"title": "C'est l'heure d'une petite révision",
+				"body": "Votre pratique espacée vous attend — quelques minutes suffisent."
+			},
+			"badge_awarded": {
+				"title": "Nouvelle récompense obtenue",
+				"body": "{{name}} rejoint votre collection."
+			},
+			"default": { "title": "Mise à jour", "body": "" }
+		}
+	}
+}

@@ -1,6 +1,12 @@
 import { Inject, Injectable, NotFoundException } from "@nestjs/common";
+import { EventEmitter2 } from "@nestjs/event-emitter";
 import type { AuthenticatedUser } from "../../auth/types";
 import { PrismaService } from "../../prisma/prisma.service";
+import {
+	type EntityCompletedEvent,
+	LearningEvents,
+	type LessonCompletedEvent,
+} from "../../shared/events/learning-events";
 import {
 	STORAGE_PORT,
 	type StoragePort,
@@ -16,12 +22,16 @@ import {
  * module assessments + the final assessment are passed, and all projects are
  * passed. Recomputes + persists `completion_status`; certificate / Earn-Back
  * payout are downstream systems that read the `isComplete` gate.
+ *
+ * Completion flips emit domain events (§6.4) — Engagement/Reminders/etc.
+ * subscribe; this context never calls them.
  */
 @Injectable()
 export class CompletionService {
 	constructor(
 		private readonly prisma: PrismaService,
 		@Inject(STORAGE_PORT) private readonly storage: StoragePort,
+		private readonly events: EventEmitter2,
 	) {}
 
 	/** The learner's started/completed courses, paths and cohorts (My Learning). */
@@ -149,11 +159,14 @@ export class CompletionService {
 		const lesson = await this.prisma.lesson.findUnique({
 			where: { id: lessonId },
 			select: {
+				title: true,
 				contentType: true,
 				minVideoWatchPct: true,
 				hasPostQuiz: true,
 				postQuizPassMark: true,
-				module: { select: { courseId: true } },
+				module: {
+					select: { courseId: true, course: { select: { title: true } } },
+				},
 			},
 		});
 		const courseId = lesson?.module?.courseId;
@@ -217,21 +230,65 @@ export class CompletionService {
 		const completedAt = completed
 			? (existing?.completedAt ?? new Date())
 			: null;
+		const data = { videoWatchedPct: watchedPct, postQuizScore, completedAt };
 
-		await this.prisma.lessonCompletion.upsert({
-			where: { userId_lessonId: { userId: user.id, lessonId } },
-			create: {
+		// The null→set flip is the LessonCompleted moment. A conditional write
+		// (`where completedAt: null`) is the emission gate so two concurrent
+		// reports can't both emit; the loser of a create race falls through to
+		// the same gate.
+		const flipping = completed && !existing?.completedAt;
+		let emitCompletion = false;
+		if (!existing) {
+			try {
+				await this.prisma.lessonCompletion.create({
+					data: { userId: user.id, lessonId, ...data },
+				});
+				emitCompletion = completed;
+			} catch {
+				emitCompletion = await this.flipLessonCompletion(
+					user.id,
+					lessonId,
+					data,
+				);
+			}
+		} else if (flipping) {
+			emitCompletion = await this.flipLessonCompletion(user.id, lessonId, data);
+		} else {
+			await this.prisma.lessonCompletion.update({
+				where: { userId_lessonId: { userId: user.id, lessonId } },
+				data,
+			});
+		}
+		if (emitCompletion && completedAt) {
+			this.events.emit(LearningEvents.LessonCompleted, {
 				userId: user.id,
 				lessonId,
-				videoWatchedPct: watchedPct,
-				postQuizScore,
-				completedAt,
-			},
-			update: { videoWatchedPct: watchedPct, postQuizScore, completedAt },
-		});
+				courseId,
+				lessonTitle: lesson.title,
+				courseTitle: lesson.module?.course?.title ?? "",
+				completedAt: completedAt.toISOString(),
+			} satisfies LessonCompletedEvent);
+		}
 
 		const course = await this.getCourseProgress(user, courseId);
 		return { lessonId, watchedPct, done: completedAt != null, course };
+	}
+
+	/** Conditional completion write — true only for the request that flips it. */
+	private async flipLessonCompletion(
+		userId: string,
+		lessonId: string,
+		data: {
+			videoWatchedPct: number;
+			postQuizScore: number | null;
+			completedAt: Date | null;
+		},
+	): Promise<boolean> {
+		const { count } = await this.prisma.lessonCompletion.updateMany({
+			where: { userId, lessonId, completedAt: null },
+			data,
+		});
+		return count === 1 && data.completedAt != null;
 	}
 
 	async getCourseProgress(user: AuthenticatedUser, courseId: string) {
@@ -490,18 +547,58 @@ export class CompletionService {
 		const completedAt = rest.isComplete
 			? (existing?.completedAt ?? new Date())
 			: null;
-		await this.prisma.completionStatus.upsert({
-			where: key,
-			create: {
+		const data = { ...rest, progressPercent: percent, completedAt };
+
+		// Same emission-gate pattern as lessons: only the write that flips
+		// completedAt null→set emits EntityCompleted, so the lazy recompute
+		// running inside concurrent progress reads can't double-emit.
+		let emitCompletion = false;
+		if (!existing) {
+			try {
+				await this.prisma.completionStatus.create({
+					data: { userId, entityType, entityId, ...data },
+				});
+				emitCompletion = rest.isComplete;
+			} catch {
+				emitCompletion = await this.flipEntityCompletion(
+					userId,
+					entityType,
+					entityId,
+					data,
+				);
+			}
+		} else if (rest.isComplete && !existing.completedAt) {
+			emitCompletion = await this.flipEntityCompletion(
 				userId,
 				entityType,
 				entityId,
-				...rest,
-				progressPercent: percent,
-				completedAt,
-			},
-			update: { ...rest, progressPercent: percent, completedAt },
+				data,
+			);
+		} else {
+			await this.prisma.completionStatus.update({ where: key, data });
+		}
+		if (emitCompletion && completedAt) {
+			this.events.emit(LearningEvents.EntityCompleted, {
+				userId,
+				entityType,
+				entityId,
+				completedAt: completedAt.toISOString(),
+			} satisfies EntityCompletedEvent);
+		}
+	}
+
+	/** Conditional completion write — true only for the caller that flips it. */
+	private async flipEntityCompletion(
+		userId: string,
+		entityType: "course" | "path" | "cohort",
+		entityId: string,
+		data: Record<string, unknown> & { completedAt: Date | null },
+	): Promise<boolean> {
+		const { count } = await this.prisma.completionStatus.updateMany({
+			where: { userId, entityType, entityId, completedAt: null },
+			data,
 		});
+		return count === 1 && data.completedAt != null;
 	}
 
 	// ── Path completion (§4.1): all required courses complete ─────────────────
@@ -757,26 +854,40 @@ export class CompletionService {
 		);
 
 		// Pre/post lesson quizzes (real ones, with questions) + pass state (§8.2).
+		// Best scores feed the growth-framed result display (§3.1 Dweck): the
+		// web compares pre → post from data it already loads here.
 		const activeQuizzes = quizzes.filter((q) => q._count.questions > 0);
 		const quizIds = activeQuizzes.map((q) => q.id);
-		const passedQuizIds = quizIds.length
-			? new Set(
-					(
-						await this.prisma.assessmentAttempt.findMany({
-							where: {
-								userId: user.id,
-								assessmentId: { in: quizIds },
-								passed: true,
-								invalidated: false,
-							},
-							select: { assessmentId: true },
-						})
-					).map((a) => a.assessmentId),
-				)
-			: new Set<string>();
+		const attempts = quizIds.length
+			? await this.prisma.assessmentAttempt.findMany({
+					where: {
+						userId: user.id,
+						assessmentId: { in: quizIds },
+						submittedAt: { not: null },
+						invalidated: false,
+					},
+					select: { assessmentId: true, passed: true, score: true },
+				})
+			: [];
+		const passedQuizIds = new Set(
+			attempts.filter((a) => a.passed).map((a) => a.assessmentId),
+		);
+		const bestScores = new Map<string, number>();
+		for (const a of attempts) {
+			if (a.assessmentId == null || a.score == null) continue;
+			const score = Number(a.score);
+			const prior = bestScores.get(a.assessmentId);
+			if (prior == null || score > prior) bestScores.set(a.assessmentId, score);
+		}
 		const quizOf = (scope: "lesson_pre" | "lesson_post") => {
 			const q = activeQuizzes.find((x) => x.scope === scope);
-			return q ? { id: q.id, passed: passedQuizIds.has(q.id) } : null;
+			return q
+				? {
+						id: q.id,
+						passed: passedQuizIds.has(q.id),
+						bestScore: bestScores.get(q.id) ?? null,
+					}
+				: null;
 		};
 		const postQuiz = quizOf("lesson_post");
 

@@ -1,5 +1,6 @@
 import { NotFoundException } from "@nestjs/common";
 import { describe, expect, it } from "vitest";
+import { CatalogEventsHandler } from "../../src/modules/catalog/catalog.events-handler";
 import { CatalogService } from "../../src/modules/catalog/catalog.service";
 import { getTestPrisma } from "./support/db";
 import { createCourse, createUser } from "./support/factories";
@@ -105,6 +106,43 @@ describe("CatalogService (integration)", () => {
 			const result = await service.getFeatureRequests();
 			expect(result).toHaveLength(1);
 			expect(result[0].type).toBe("course");
+		});
+	});
+
+	describe("social proof (Phase 4, §3.2)", () => {
+		it("EnrollmentCreated for a course increments enrolledCount; paths/cohorts are ignored", async () => {
+			const handler = new CatalogEventsHandler(prisma);
+			const course = await createCourse(prisma, { status: "published" });
+
+			await handler.onEnrollmentCreated({
+				userId: "00000000-0000-0000-0000-000000000000",
+				entityType: "course",
+				entityId: course.id,
+			});
+			await handler.onEnrollmentCreated({
+				userId: "00000000-0000-0000-0000-000000000000",
+				entityType: "path",
+				entityId: course.id,
+			});
+
+			const updated = await prisma.course.findUniqueOrThrow({
+				where: { id: course.id },
+			});
+			expect(updated.enrolledCount).toBe(1);
+		});
+
+		it("cards and the public detail expose enrolledCount", async () => {
+			const course = await createCourse(prisma, { status: "published" });
+			await prisma.course.update({
+				where: { id: course.id },
+				data: { enrolledCount: 47 },
+			});
+
+			const cards = await service.listPublishedCourses();
+			expect(cards.find((c) => c.id === course.id)?.enrolledCount).toBe(47);
+
+			const detail = await service.getPublishedCourse(course.slug);
+			expect(detail.enrolledCount).toBe(47);
 		});
 	});
 

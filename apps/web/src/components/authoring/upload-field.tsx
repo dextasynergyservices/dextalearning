@@ -75,7 +75,7 @@ export function UploadField({
 						<CheckCircle2 className="size-3.5" /> {t("authoring:lesson.ready")}
 					</span>
 				) : status === "processing" ? (
-					<span className="inline-flex items-center gap-1 text-amber-600 text-xs">
+					<span className="inline-flex items-center gap-1 text-amber-600 text-xs dark:text-amber-400">
 						<Loader2 className="size-3.5 animate-spin" />
 						{t("authoring:lesson.processing")}
 					</span>

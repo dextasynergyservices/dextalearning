@@ -196,14 +196,14 @@ function EncodingStatusCard({
 				"overflow-hidden rounded-card border",
 				isFailed
 					? "border-error/30 bg-error/5"
-					: "border-amber-200 bg-amber-50/70",
+					: "border-warning/30 bg-warning/10",
 			)}
 		>
 			<div className="grid gap-4 p-4 sm:grid-cols-[auto_1fr_auto] sm:items-center sm:p-5">
 				<span
 					className={cn(
 						"flex size-12 items-center justify-center rounded-full bg-card shadow-sm",
-						isFailed ? "text-error" : "text-amber-600",
+						isFailed ? "text-error" : "text-amber-600 dark:text-amber-400",
 					)}
 				>
 					{isFailed ? (
@@ -223,7 +223,7 @@ function EncodingStatusCard({
 						<span
 							className={cn(
 								"rounded-full bg-card px-2 py-0.5 font-stats text-[0.65rem] uppercase",
-								isFailed ? "text-error" : "text-amber-700",
+								isFailed ? "text-error" : "text-amber-700 dark:text-amber-300",
 							)}
 						>
 							{stateLabel}
@@ -669,7 +669,7 @@ export function LessonEditorPage({
 						<div className="rounded-card border border-border bg-card p-5 shadow-card">
 							<p className="flex items-center gap-2 font-medium text-foreground text-sm">
 								{t("lesson.transcript")}
-								<span className="rounded-pill bg-brand-accent-light px-2 py-0.5 font-stats font-semibold text-[0.6rem] text-amber-700 uppercase">
+								<span className="rounded-pill bg-brand-accent-light px-2 py-0.5 font-stats font-semibold text-[0.6rem] text-amber-700 dark:text-amber-300 uppercase">
 									{t("lesson.required", {
 										defaultValue: "Required to publish",
 									})}
@@ -679,7 +679,7 @@ export function LessonEditorPage({
 								{t("lesson.transcript_hint")}
 							</p>
 							{!transcript.trim() ? (
-								<p className="mt-2 flex items-center gap-1.5 rounded-btn bg-brand-accent-light/50 px-3 py-2 text-amber-800 text-xs">
+								<p className="mt-2 flex items-center gap-1.5 rounded-btn bg-brand-accent-light/50 px-3 py-2 text-amber-800 dark:text-amber-200 text-xs">
 									<CircleAlert className="size-3.5 shrink-0" />
 									{t("lesson.transcript_required_warn", {
 										defaultValue:

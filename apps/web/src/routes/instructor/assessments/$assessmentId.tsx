@@ -807,7 +807,7 @@ function AiGenerateDialog({
 				</div>
 
 				{lessons.length === 0 ? (
-					<p className="flex items-center gap-2 rounded-card border border-amber-200 bg-amber-50 p-3 text-amber-800 text-sm">
+					<p className="flex items-center gap-2 rounded-card border border-warning/30 bg-warning/10 p-3 text-amber-800 dark:text-amber-200 text-sm">
 						<CircleHelp className="size-4 shrink-0" />
 						{t("assessment.ai_no_lessons", {
 							defaultValue:
@@ -839,7 +839,7 @@ function AiGenerateDialog({
 							))}
 						</select>
 						{!hasUsableLesson ? (
-							<span className="mt-1 block text-amber-700 text-xs">
+							<span className="mt-1 block text-amber-700 dark:text-amber-300 text-xs">
 								{t("assessment.ai_need_transcript", {
 									defaultValue:
 										"None of these lessons have a transcript yet — add one to generate from it.",

@@ -1,6 +1,8 @@
+import { EventEmitter2 } from "@nestjs/event-emitter";
 import { beforeEach, describe, expect, it } from "vitest";
 import type { AuthenticatedUser } from "../../src/auth/types";
 import { CompletionService } from "../../src/modules/completion/completion.service";
+import { LearningEvents } from "../../src/shared/events/learning-events";
 import { getTestPrisma } from "./support/db";
 import {
 	createAssessment,
@@ -25,11 +27,22 @@ function asAuthenticatedUser(id: string): AuthenticatedUser {
 
 describe("CompletionService (integration)", () => {
 	const prisma = getTestPrisma();
-	const service = new CompletionService(prisma, new FakeStorageAdapter());
+	const events = new EventEmitter2();
+	const service = new CompletionService(
+		prisma,
+		new FakeStorageAdapter(),
+		events,
+	);
 
 	let learnerId: string;
+	let emitted: { event: string; payload: unknown }[] = [];
+
+	events.onAny((event, payload) => {
+		emitted.push({ event: String(event), payload });
+	});
 
 	beforeEach(async () => {
+		emitted = [];
 		const learner = await createUser(prisma, { role: "learner" });
 		learnerId = learner.id;
 	});
@@ -143,6 +156,96 @@ describe("CompletionService (integration)", () => {
 				{ videoWatchedPct: 100 },
 			);
 			expect(afterPass.done).toBe(true);
+		});
+
+		it("getLessonContext exposes each quiz's bestScore for growth framing (Phase 4, §3.1)", async () => {
+			const course = await createCourse(prisma);
+			const mod = await createModule(prisma, course.id);
+			const lesson = await createLesson(prisma, mod.id, {
+				contentType: "video",
+				hasPreQuiz: true,
+				hasPostQuiz: true,
+			});
+			const pre = await createAssessment(prisma, {
+				scope: "lesson_pre",
+				lessonId: lesson.id,
+			});
+			await createQuestion(prisma, pre.id);
+			const post = await createAssessment(prisma, {
+				scope: "lesson_post",
+				lessonId: lesson.id,
+			});
+			await createQuestion(prisma, post.id);
+
+			await createAssessmentAttempt(prisma, {
+				assessmentId: pre.id,
+				userId: learnerId,
+				passed: false,
+				score: 40,
+			});
+			await createAssessmentAttempt(prisma, {
+				assessmentId: post.id,
+				userId: learnerId,
+				passed: false,
+				score: 30,
+				attemptNumber: 1,
+			});
+			await createAssessmentAttempt(prisma, {
+				assessmentId: post.id,
+				userId: learnerId,
+				passed: true,
+				score: 80,
+				attemptNumber: 2,
+			});
+			// Invalidated attempts never count towards the best score.
+			await createAssessmentAttempt(prisma, {
+				assessmentId: post.id,
+				userId: learnerId,
+				passed: true,
+				score: 100,
+				invalidated: true,
+				attemptNumber: 3,
+			});
+
+			const context = await service.getLessonContext(
+				asAuthenticatedUser(learnerId),
+				lesson.id,
+			);
+			expect(context.preQuiz).toEqual({
+				id: pre.id,
+				passed: false,
+				bestScore: 40,
+			});
+			expect(context.postQuiz).toEqual({
+				id: post.id,
+				passed: true,
+				bestScore: 80,
+			});
+		});
+
+		it("getLessonContext reports bestScore null when a quiz is unattempted", async () => {
+			const course = await createCourse(prisma);
+			const mod = await createModule(prisma, course.id);
+			const lesson = await createLesson(prisma, mod.id, {
+				contentType: "video",
+				hasPostQuiz: true,
+			});
+			const post = await createAssessment(prisma, {
+				scope: "lesson_post",
+				lessonId: lesson.id,
+			});
+			await createQuestion(prisma, post.id);
+
+			const context = await service.getLessonContext(
+				asAuthenticatedUser(learnerId),
+				lesson.id,
+			);
+			expect(context.preQuiz).toBeNull();
+			expect(context.postQuiz).toEqual({
+				id: post.id,
+				passed: false,
+				bestScore: null,
+			});
 		});
 
 		it("does not gate on a flagged post-quiz that has no real questions", async () => {
@@ -405,6 +508,89 @@ describe("CompletionService (integration)", () => {
 			);
 			expect(progress.summary.isComplete).toBe(true);
 			expect(progress.summary.percent).toBe(100);
+		});
+	});
+
+	describe("learning events (Phase 4, §6.4)", () => {
+		it("emits LessonCompleted exactly once on the completion flip", async () => {
+			const course = await createCourse(prisma, { title: "Event Course" });
+			const mod = await createModule(prisma, course.id);
+			const lesson = await createLesson(prisma, mod.id, {
+				contentType: "video",
+				title: "Event Lesson",
+			});
+
+			// Below threshold → no event.
+			await service.recordLessonProgress(
+				asAuthenticatedUser(learnerId),
+				lesson.id,
+				{ videoWatchedPct: 50 },
+			);
+			expect(
+				emitted.filter((e) => e.event === LearningEvents.LessonCompleted),
+			).toHaveLength(0);
+
+			// Crossing the threshold flips completion → exactly one event, with
+			// the snapshot payload consumers rely on (titles included).
+			await service.recordLessonProgress(
+				asAuthenticatedUser(learnerId),
+				lesson.id,
+				{ videoWatchedPct: 100 },
+			);
+			const completions = emitted.filter(
+				(e) => e.event === LearningEvents.LessonCompleted,
+			);
+			expect(completions).toHaveLength(1);
+			expect(completions[0].payload).toMatchObject({
+				userId: learnerId,
+				lessonId: lesson.id,
+				courseId: course.id,
+				lessonTitle: "Event Lesson",
+				courseTitle: "Event Course",
+			});
+
+			// Re-reporting an already-complete lesson must NOT re-emit.
+			await service.recordLessonProgress(
+				asAuthenticatedUser(learnerId),
+				lesson.id,
+				{ videoWatchedPct: 100 },
+			);
+			expect(
+				emitted.filter((e) => e.event === LearningEvents.LessonCompleted),
+			).toHaveLength(1);
+		});
+
+		it("emits EntityCompleted once when the course completion flips (lazy recompute)", async () => {
+			const course = await createCourse(prisma);
+			const mod = await createModule(prisma, course.id);
+			const lesson = await createLesson(prisma, mod.id, {
+				contentType: "video",
+			});
+
+			// Completing the single lesson recomputes the course → one flip.
+			await service.recordLessonProgress(
+				asAuthenticatedUser(learnerId),
+				lesson.id,
+				{ videoWatchedPct: 100 },
+			);
+			const flips = emitted.filter(
+				(e) => e.event === LearningEvents.EntityCompleted,
+			);
+			expect(flips).toHaveLength(1);
+			expect(flips[0].payload).toMatchObject({
+				userId: learnerId,
+				entityType: "course",
+				entityId: course.id,
+			});
+
+			// Re-reading progress re-runs persistCompletion but must not re-emit.
+			await service.getCourseProgress(
+				asAuthenticatedUser(learnerId),
+				course.id,
+			);
+			expect(
+				emitted.filter((e) => e.event === LearningEvents.EntityCompleted),
+			).toHaveLength(1);
 		});
 	});
 });

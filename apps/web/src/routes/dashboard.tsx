@@ -17,39 +17,38 @@ import type { ComponentType } from "react";
 import { useTranslation } from "react-i18next";
 import { Carousel } from "@/components/catalog/carousel";
 import { PublicCourseCard } from "@/components/catalog/public-cards";
+import { NextBadgeNudge } from "@/components/engagement/next-badge-nudge";
+import { StreakPanel } from "@/components/engagement/streak-panel";
 import { LearnerShell } from "@/components/layout/learner-shell";
 import { MyLearningCard } from "@/components/learn/my-learning-card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useSession } from "@/lib/auth-client";
 import { getMyLearning, getPublishedCourses } from "@/lib/content-api";
+import { engagementKeys, getEngagementMe } from "@/lib/engagement-api";
 
 export const Route = createFileRoute("/dashboard")({
 	component: DashboardPage,
 });
 
-const STATS: {
+const STAT_META: {
 	key: string;
 	icon: ComponentType<{ className?: string }>;
-	value: string;
 	tint: string;
 }[] = [
 	{
 		key: "streak",
 		icon: Flame,
-		value: "0",
 		tint: "bg-brand-accent-light text-brand-accent",
 	},
 	{
 		key: "courses",
 		icon: GraduationCap,
-		value: "0",
 		tint: "bg-brand-primary-light text-brand-primary",
 	},
 	{
 		key: "certificates",
 		icon: Award,
-		value: "0",
 		tint: "bg-muted text-foreground",
 	},
 ];
@@ -107,11 +106,18 @@ function DashboardPage() {
 		queryKey: ["my-learning"],
 		queryFn: getMyLearning,
 	});
-	const inProgress = mine
-		? [...mine.courses, ...mine.paths, ...mine.cohorts]
-				.filter((i) => !i.isComplete)
-				.slice(0, 3)
-		: [];
+	const { data: engagement } = useQuery({
+		queryKey: engagementKeys.me,
+		queryFn: getEngagementMe,
+	});
+	const allMine = mine ? [...mine.courses, ...mine.paths, ...mine.cohorts] : [];
+	const inProgress = allMine.filter((i) => !i.isComplete).slice(0, 3);
+	const statValues: Record<string, number> = {
+		streak: engagement?.streak.current ?? 0,
+		courses: allMine.filter((i) => !i.isComplete).length,
+		// Certificates issue in the payments phase — until then this stays 0.
+		certificates: 0,
+	};
 
 	return (
 		<LearnerShell title={t("home.greeting")}>
@@ -148,11 +154,12 @@ function DashboardPage() {
 					</div>
 
 					<div className="mt-5 grid grid-cols-3 gap-2 sm:gap-3">
-						{STATS.map(({ key, icon: Icon, value, tint }) => (
+						{STAT_META.map(({ key, icon: Icon, tint }) => (
 							<motion.div
 								key={key}
 								whileHover={{ y: -2 }}
 								whileTap={{ scale: 0.98 }}
+								data-testid={`stat-${key}`}
 								className="rounded-btn border border-border bg-muted p-3 sm:p-4"
 							>
 								<span
@@ -161,7 +168,7 @@ function DashboardPage() {
 									<Icon className="size-4" />
 								</span>
 								<p className="mt-3 font-stats font-bold text-2xl text-foreground">
-									{value}
+									{statValues[key]}
 								</p>
 								<p className="text-muted-foreground text-xs leading-tight">
 									{t(`home.stats.${key}`)}
@@ -170,6 +177,17 @@ function DashboardPage() {
 						))}
 					</div>
 				</motion.section>
+
+				{engagement ? (
+					<motion.div variants={itemMotion} className="space-y-4">
+						<StreakPanel
+							streak={engagement.streak}
+							weekActivity={engagement.weekActivity}
+						/>
+						{/* §3.2 goal gradient — the next award is always in sight. */}
+						<NextBadgeNudge nextBadge={engagement.nextBadge} />
+					</motion.div>
+				) : null}
 
 				<motion.section
 					variants={itemMotion}

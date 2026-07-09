@@ -176,6 +176,17 @@ export async function seedCohort(): Promise<{ cohortId: string }> {
 	});
 }
 
+/** The persisted habit-stacking anchor (§3.1) — set by onboarding/profile. */
+export async function getStudyAnchor(email: string): Promise<string | null> {
+	return withClient(async (client) => {
+		const res = await client.query<{ study_anchor: string | null }>(
+			`SELECT study_anchor FROM "users" WHERE email = $1`,
+			[email],
+		);
+		return res.rows[0]?.study_anchor ?? null;
+	});
+}
+
 export async function findUserIdByEmail(email: string): Promise<string> {
 	return withClient(async (client) => {
 		const res = await client.query<{ id: string }>(
@@ -493,6 +504,60 @@ export async function seedLearnerCohort(): Promise<{
 			courseId,
 			lessonId: lessonRes.rows[0].id,
 		};
+	});
+}
+
+/**
+ * Phase 4 golden-path fixture: a published free course whose single TEXT
+ * lesson gates on a post-lesson quiz (`has_post_quiz` + a `lesson_post`
+ * assessment with one MCQ). Passing the quiz is what flips the lesson —
+ * and, it being the only lesson, the course — emitting the learning events
+ * the engagement loop (streak/badges/social proof/bell) hangs off.
+ */
+export async function seedEngagementCourse(): Promise<{
+	courseId: string;
+	courseSlug: string;
+	courseTitle: string;
+	lessonId: string;
+}> {
+	return withClient(async (client) => {
+		const suffix = randomUUID().slice(0, 8);
+		const slug = `e2e-engage-${suffix}`;
+		const title = `Engagement Basics ${suffix}`;
+		const courseRes = await client.query<{ id: string }>(
+			`INSERT INTO "courses" (title, slug, status, is_free)
+			 VALUES ($1, $2, 'published', true) RETURNING id`,
+			[title, slug],
+		);
+		const courseId = courseRes.rows[0].id;
+
+		const moduleRes = await client.query<{ id: string }>(
+			`INSERT INTO "modules" (course_id, title, order_index)
+			 VALUES ($1, 'Getting started', 1) RETURNING id`,
+			[courseId],
+		);
+		const lessonRes = await client.query<{ id: string }>(
+			`INSERT INTO "lessons" (module_id, title, content_type, content_text, order_index, has_post_quiz)
+			 VALUES ($1, 'Habits that stick', 'text', '<p>Show up daily — streaks build habits.</p>', 1, true) RETURNING id`,
+			[moduleRes.rows[0].id],
+		);
+		const lessonId = lessonRes.rows[0].id;
+
+		const assessmentRes = await client.query<{ id: string }>(
+			`INSERT INTO "assessments" (lesson_id, scope, type, title, pass_mark)
+			 VALUES ($1, 'lesson_post', 'quiz', 'Recall check', 50) RETURNING id`,
+			[lessonId],
+		);
+		await client.query(
+			`INSERT INTO "questions" (assessment_id, type, body, options_json, correct_answer, points, order_index)
+			 VALUES ($1, 'mcq', 'What builds a learning habit?', $2, 'Showing up daily', 1, 1)`,
+			[
+				assessmentRes.rows[0].id,
+				JSON.stringify(["Cramming", "Showing up daily", "Luck", "Waiting"]),
+			],
+		);
+
+		return { courseId, courseSlug: slug, courseTitle: title, lessonId };
 	});
 }
 

@@ -10,7 +10,7 @@ const badgeVariants = cva(
 				open: "bg-success/10 text-success",
 				soon: "bg-muted text-muted-foreground",
 				free: "bg-brand-primary-light text-brand-primary",
-				earnback: "bg-brand-accent-light text-amber-700",
+				earnback: "bg-brand-accent-light text-amber-700 dark:text-amber-300",
 				neutral: "bg-muted text-muted-foreground",
 			},
 		},

@@ -23,7 +23,7 @@ import { cn } from "@/lib/utils";
 /** Integrity score → traffic-light colour. */
 function integrityTone(score: number) {
 	if (score >= 85) return "text-success";
-	if (score >= 60) return "text-amber-600";
+	if (score >= 60) return "text-amber-600 dark:text-amber-400";
 	return "text-error";
 }
 
@@ -342,7 +342,7 @@ function Banner({
 				"flex items-start gap-2 rounded-card border p-3 text-sm",
 				tone === "error"
 					? "border-error/30 bg-error/5 text-error"
-					: "border-amber-300 bg-amber-50 text-amber-800",
+					: "border-warning/40 bg-warning/10 text-amber-800 dark:text-amber-200",
 			)}
 		>
 			<span className="mt-0.5 shrink-0">{icon}</span>

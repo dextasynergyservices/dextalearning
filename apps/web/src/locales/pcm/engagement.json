@@ -1,0 +1,126 @@
+{
+	"streak": {
+		"title": "Your streak",
+		"flame_label": "{{days}}-day streak",
+		"day_streak": "Day streak",
+		"longest": "Longest",
+		"freezes": "Freezes",
+		"freeze_hint": "Freeze go save your streak if you miss one day. You go earn one every 7 days — you fit keep 2.",
+		"at_risk": "No lose your {{days}}-day streak o — one lesson today go keep di flame dey burn!",
+		"today_done": "You don show today. Come back tomorrow make di flame still dey burn.",
+		"start": "Finish one lesson today make your flame start to burn.",
+		"keep_going": "You dey move well — show tomorrow make e grow.",
+		"this_week": "Dis week"
+	},
+	"badges": {
+		"title": "Your awards",
+		"subtitle": "Small wins dey add up — gather all of dem.",
+		"earned_count": "{{earned}} of {{total}} wey you don earn",
+		"earned_on": "You earn am {{date}}",
+		"locked": "E still lock",
+		"first_lesson": {
+			"name": "First Steps",
+			"desc": "Finish your first lesson"
+		},
+		"lessons_10": { "name": "Deep Diver", "desc": "Finish 10 lessons" },
+		"lessons_25": { "name": "Momentum Maker", "desc": "Finish 25 lessons" },
+		"lessons_50": { "name": "Knowledge Builder", "desc": "Finish 50 lessons" },
+		"first_course": {
+			"name": "Course Finisher",
+			"desc": "Finish your first course"
+		},
+		"courses_3": { "name": "Curriculum Champion", "desc": "Finish 3 courses" },
+		"first_quiz_pass": {
+			"name": "Quiz Rookie",
+			"desc": "Pass your first quiz"
+		},
+		"quizzes_10": {
+			"name": "Recall Master",
+			"desc": "Pass 10 different quizzes"
+		},
+		"perfect_quiz": {
+			"name": "Perfect Score",
+			"desc": "Score 100% for one quiz"
+		},
+		"growth_leap": {
+			"name": "Growth Leap",
+			"desc": "Beat your pre-quiz score by 25+ points"
+		},
+		"streak_3": { "name": "Warming Up", "desc": "Learn 3 days straight" },
+		"streak_7": { "name": "On Fire", "desc": "Learn 7 days straight" },
+		"streak_14": {
+			"name": "Two-Week Wonder",
+			"desc": "Learn 14 days straight"
+		},
+		"streak_30": { "name": "Unstoppable", "desc": "Learn 30 days straight" },
+		"comeback": {
+			"name": "Comeback",
+			"desc": "You miss one day, use freeze, still dey go"
+		},
+		"first_project_pass": {
+			"name": "Project Pro",
+			"desc": "Pass your first project"
+		}
+	},
+	"next_badge": {
+		"eyebrow": "Your next award",
+		"lessons_one": "{{count}} more lesson go unlock {{name}}",
+		"lessons_other": "{{count}} more lessons go unlock {{name}}",
+		"courses_one": "{{count}} more course go unlock {{name}}",
+		"courses_other": "{{count}} more courses go unlock {{name}}",
+		"quizzes_one": "{{count}} more quiz go unlock {{name}}",
+		"quizzes_other": "{{count}} more quizzes go unlock {{name}}",
+		"streak_one": "{{count}} more day straight go unlock {{name}}",
+		"streak_other": "{{count}} more days straight go unlock {{name}}",
+		"view_awards": "See all awards"
+	},
+	"next_session": {
+		"title": "When you go study next? Set am now.",
+		"hint": "One tap — your reminders go follow am.",
+		"saved": "E don set! We go remind you {{when}}.",
+		"options": {
+			"morning": "Tomorrow morning",
+			"afternoon": "Tomorrow afternoon",
+			"evening": "Tomorrow evening",
+			"weekend": "Dis weekend"
+		},
+		"saved_when": {
+			"morning": "tomorrow morning",
+			"afternoon": "tomorrow afternoon",
+			"evening": "tomorrow evening",
+			"weekend": "dis weekend"
+		}
+	},
+	"celebration": {
+		"unlocked": "You don unlock award!",
+		"cta": "Continue dey go",
+		"next": "Next award"
+	},
+	"growth": {
+		"pre_post": "You move from {{pre}}% go {{post}}% — na real growth be dat!",
+		"grew": "You don grow +{{delta}}% since your last try!",
+		"baseline": "You score {{score}}% — na your starting point be dat. Anything wey follow na growth.",
+		"steady": "Your best still be {{best}}% — every practice dey make am strong."
+	},
+	"social": {
+		"enrolled": "{{n}} people don join",
+		"completed_week": "{{n}} people finish am dis week"
+	},
+	"notifications": {
+		"title": "Notifications",
+		"open": "Notifications",
+		"empty": "You don catch up finish!",
+		"mark_all_read": "Mark all as read",
+		"types": {
+			"reminder_digest": {
+				"title": "Time to do small review",
+				"body": "Your practice don ready — small minutes go lock am for your head."
+			},
+			"badge_awarded": {
+				"title": "You don earn new award",
+				"body": "{{name}} don enter your collection."
+			},
+			"default": { "title": "Update", "body": "" }
+		}
+	}
+}

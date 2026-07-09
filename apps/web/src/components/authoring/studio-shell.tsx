@@ -57,11 +57,15 @@ const INSTRUCTOR_NAV: NavItem[] = [
 	},
 	{ to: "/instructor/paths", labelKey: "studio.nav.paths", icon: Waypoints },
 	{
+		to: "/instructor/analytics",
+		labelKey: "studio.nav.analytics",
+		icon: BarChart3,
+	},
+	{
 		to: "/learn/mine",
 		labelKey: "studio.nav.my_learning",
 		icon: Library,
 	},
-	{ labelKey: "studio.nav.analytics", icon: BarChart3, soon: true },
 	{ labelKey: "studio.nav.settings", icon: Settings, soon: true },
 ];
 
@@ -85,8 +89,12 @@ const ADMIN_NAV: NavItem[] = [
 		labelKey: "studio.nav.integrity",
 		icon: ShieldCheck,
 	},
+	{
+		to: "/admin/analytics",
+		labelKey: "studio.nav.analytics",
+		icon: BarChart3,
+	},
 	{ labelKey: "studio.nav.users", icon: UsersRound, soon: true },
-	{ labelKey: "studio.nav.analytics", icon: BarChart3, soon: true },
 	{ labelKey: "studio.nav.settings", icon: Settings, soon: true },
 ];
 

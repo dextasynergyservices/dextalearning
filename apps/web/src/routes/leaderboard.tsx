@@ -1,3 +1,4 @@
+import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { AnimatePresence, motion } from "framer-motion";
 import {
@@ -14,8 +15,10 @@ import {
 } from "lucide-react";
 import { type ComponentType, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { BadgeGrid } from "@/components/engagement/badge-grid";
 import { LearnerShell } from "@/components/layout/learner-shell";
 import { useSession } from "@/lib/auth-client";
+import { engagementKeys, getEngagementMe } from "@/lib/engagement-api";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/leaderboard")({
@@ -134,7 +137,7 @@ const PODIUM_META: Record<
 > = {
 	1: {
 		ring: "ring-amber-400",
-		bar: "bg-amber-100",
+		bar: "bg-amber-500/20",
 		badge: "bg-amber-400",
 		height: "h-20 sm:h-24",
 	},
@@ -146,7 +149,7 @@ const PODIUM_META: Record<
 	},
 	3: {
 		ring: "ring-orange-300",
-		bar: "bg-orange-100",
+		bar: "bg-orange-500/20",
 		badge: "bg-orange-400",
 		height: "h-10 sm:h-12",
 	},
@@ -157,6 +160,10 @@ function AwardsPage() {
 	const { data: session } = useSession();
 	const user = session?.user;
 	const [type, setType] = useState("overall");
+	const { data: engagement } = useQuery({
+		queryKey: engagementKeys.me,
+		queryFn: getEngagementMe,
+	});
 
 	const entries = useMemo<Entry[]>(() => {
 		const youName = user?.name?.trim() || t("leaderboard.you");
@@ -187,8 +194,16 @@ function AwardsPage() {
 					</p>
 				</div>
 
+				{/* Live awards (Phase 4) — the roster below stays a Phase 5 preview */}
+				{engagement ? (
+					<BadgeGrid
+						badges={engagement.badges}
+						allKeys={engagement.allBadgeKeys}
+					/>
+				) : null}
+
 				{/* Preview banner */}
-				<div className="flex items-start gap-2.5 rounded-card border border-amber-200 bg-amber-50 px-4 py-3 text-amber-800 text-sm">
+				<div className="flex items-start gap-2.5 rounded-card border border-warning/30 bg-warning/10 px-4 py-3 text-amber-800 text-sm dark:text-amber-200">
 					<Info className="mt-0.5 size-4 shrink-0" />
 					<p>{t("leaderboard.preview_note")}</p>
 				</div>

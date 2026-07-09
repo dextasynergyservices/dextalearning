@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { expect, test } from "@playwright/test";
-import { getEmailOtp, isOnboarded } from "./support/db";
+import { getEmailOtp, getStudyAnchor, isOnboarded } from "./support/db";
 
 const PASSWORD = "TestPass123!";
 
@@ -49,8 +49,9 @@ test("learner verifies with a real OTP and completes the full onboarding wizard"
 	await page.getByRole("button", { name: "1–2 hours" }).click();
 	await page.getByRole("button", { name: "Continue" }).click();
 
-	// Step 5: schedule (radio)
+	// Step 5: schedule (radio) + optional habit anchor (§3.1 habit stacking)
 	await page.getByRole("button", { name: "Mornings" }).click();
+	await page.getByRole("button", { name: "After my morning routine" }).click();
 	await page.getByRole("button", { name: "Continue" }).click();
 
 	// Step 6: WhatsApp (optional — phone + opt-in never gate Continue) → finish
@@ -64,4 +65,6 @@ test("learner verifies with a real OTP and completes the full onboarding wizard"
 	// The save call is fire-and-forget (errors don't block finishing) — check
 	// the real DB outcome, not just that the wizard let us through.
 	await expect.poll(() => isOnboarded(email)).toBe(true);
+	// The habit anchor persisted too — reminders will reference it (§3.1).
+	await expect.poll(() => getStudyAnchor(email)).toBe("morning_routine");
 });
