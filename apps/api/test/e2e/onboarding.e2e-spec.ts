@@ -53,4 +53,33 @@ describe("OnboardingController (e2e)", () => {
 		const profile = await agent.get("/api/v1/onboarding/profile").expect(200);
 		expect(profile.body.data.name).toBe("Grace Hopper");
 	});
+
+	it("saves reminder settings and rejects an unknown studySchedule (Phase 4, §3.2)", async () => {
+		const { agent } = await registerAndLogin(app, prisma, { role: "learner" });
+		await agent
+			.patch("/api/v1/onboarding/profile")
+			.send({ studySchedule: "midnight" })
+			.expect(400);
+		await agent
+			.patch("/api/v1/onboarding/profile")
+			.send({ studyAnchor: "after_church" })
+			.expect(400);
+
+		await agent
+			.patch("/api/v1/onboarding/profile")
+			.send({
+				whatsappOptIn: true,
+				studySchedule: "evening",
+				studyAnchor: "after_work",
+				weeklyHours: "medium",
+				timezone: "Africa/Lagos",
+			})
+			.expect(200);
+		const profile = await agent.get("/api/v1/onboarding/profile").expect(200);
+		expect(profile.body.data.whatsappOptIn).toBe(true);
+		expect(profile.body.data.studySchedule).toBe("evening");
+		expect(profile.body.data.studyAnchor).toBe("after_work");
+		expect(profile.body.data.weeklyHours).toBe("medium");
+		expect(profile.body.data.timezone).toBe("Africa/Lagos");
+	});
 });

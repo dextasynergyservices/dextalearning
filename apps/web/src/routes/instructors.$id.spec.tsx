@@ -82,6 +82,7 @@ describe("InstructorProfilePage", () => {
 						currency: "NGN",
 						isEarnBackEligible: false,
 						earnBackPercentage: null,
+						enrolledCount: 0,
 						_count: { modules: 4 },
 					},
 				],

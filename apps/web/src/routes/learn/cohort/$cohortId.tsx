@@ -163,7 +163,7 @@ function CohortBody({ data }: { data: CohortProgress }) {
 								{path.isComplete ? (
 									<CheckCircle2 className="size-7 shrink-0 text-success" />
 								) : (
-									<span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-brand-accent/10 font-stats font-bold text-amber-700 text-xs">
+									<span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-brand-accent/10 font-stats font-bold text-amber-700 text-xs dark:text-amber-300">
 										{i + 1}
 									</span>
 								)}

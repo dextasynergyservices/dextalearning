@@ -135,7 +135,7 @@ function CommunityPage() {
 								data-reveal="scale"
 								className="rounded-card border border-border bg-card p-7 shadow-card transition-all hover:-translate-y-1 hover:shadow-card-hover"
 							>
-								<span className="flex size-12 items-center justify-center rounded-btn bg-brand-accent-light text-amber-700">
+								<span className="flex size-12 items-center justify-center rounded-btn bg-brand-accent-light text-amber-700 dark:text-amber-300">
 									<Icon className="size-6" />
 								</span>
 								<h3 className="mt-5 font-display text-lg text-foreground">

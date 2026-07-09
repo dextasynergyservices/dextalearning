@@ -351,7 +351,7 @@ function SettingsCard({
 										className="h-11 w-full rounded-input border border-border px-3.5 text-foreground outline-none focus:border-brand-primary sm:max-w-40"
 									/>
 								</Field>
-								<p className="mt-2 text-amber-800 text-sm">
+								<p className="mt-2 text-amber-800 dark:text-amber-200 text-sm">
 									{t("settings.earnback_preview", {
 										defaultValue:
 											"Learners can earn back {{pct}}% — {{amount}} of {{price}}.",
@@ -631,7 +631,7 @@ function PathManager({
 						key={cp.path.id}
 						className="flex items-center gap-2 px-3 py-2.5 sm:px-4"
 					>
-						<span className="flex size-8 shrink-0 items-center justify-center rounded-btn bg-brand-accent-light font-stats font-semibold text-amber-700 text-xs">
+						<span className="flex size-8 shrink-0 items-center justify-center rounded-btn bg-brand-accent-light font-stats font-semibold text-amber-700 dark:text-amber-300 text-xs">
 							{index + 1}
 						</span>
 						<span className="flex-1 truncate font-medium text-foreground text-sm">

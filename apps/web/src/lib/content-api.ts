@@ -68,6 +68,8 @@ export interface PublishedCourse extends Commercials {
 	language: string;
 	thumbnailKey: string | null;
 	previewLessonId?: string | null;
+	/** Denormalized social-proof counter (§3.2 "N enrolled"). */
+	enrolledCount: number;
 	_count: { modules: number };
 }
 
@@ -100,6 +102,8 @@ export interface PublicCourse extends Commercials {
 	language: string;
 	estimatedDuration: string | null;
 	earnBackDeadlineDays: number | null;
+	/** Denormalized social-proof counter (§3.2 "N enrolled"). */
+	enrolledCount: number;
 	instructor?: InstructorPublic | null;
 	modules: {
 		id: string;
@@ -1061,6 +1065,10 @@ export interface AttemptResult {
 	submittedAt: string | null;
 	autoSubmitted: boolean;
 	score: number;
+	/** Best prior submitted score, for growth framing (§3.1); null on attempt 1. */
+	previousBest: number | null;
+	/** score − previousBest ("You've grown +X%"); null on attempt 1. */
+	delta: number | null;
 	passed: boolean | null;
 	passMark: number;
 	integrityScore: number;
@@ -1591,6 +1599,8 @@ export interface LessonContextItem {
 export interface LessonQuizRef {
 	id: string;
 	passed: boolean;
+	/** Best non-invalidated score, so the player can frame pre→post growth (§3.1). */
+	bestScore: number | null;
 }
 
 export interface LessonContext {
@@ -1714,6 +1724,8 @@ export interface LearnerOnboardingPayload {
 	skillLevel?: string;
 	weeklyHours?: string;
 	studySchedule?: string;
+	/** Habit-stacking anchor (§3.1) — the daily habit study time is tied to. */
+	studyAnchor?: string;
 	whatsappOptIn?: boolean;
 	phone?: string;
 }
@@ -1751,6 +1763,11 @@ export interface EditableProfile {
 	bio: string | null;
 	expertiseAreas: string[];
 	image: string | null;
+	whatsappOptIn: boolean;
+	studySchedule: string | null;
+	studyAnchor: string | null;
+	weeklyHours: string | null;
+	timezone: string | null;
 }
 
 export interface UpdateProfilePayload {
@@ -1762,6 +1779,12 @@ export interface UpdateProfilePayload {
 	headline?: string;
 	bio?: string;
 	expertiseAreas?: string[];
+	whatsappOptIn?: boolean;
+	studySchedule?: string;
+	/** "" clears the anchor. */
+	studyAnchor?: string;
+	weeklyHours?: string;
+	timezone?: string;
 }
 
 export const getMyProfile = () =>

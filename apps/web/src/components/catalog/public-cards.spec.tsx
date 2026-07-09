@@ -31,6 +31,7 @@ function course(overrides: Partial<PublishedCourse> = {}): PublishedCourse {
 		level: "beginner",
 		language: "en",
 		thumbnailKey: null,
+		enrolledCount: 0,
 		_count: { modules: 4 },
 		...commercials,
 		...overrides,
@@ -75,6 +76,18 @@ describe("PublicCourseCard", () => {
 		renderWithRouter(<PublicCourseCard course={course()} />);
 		expect(await screen.findByText("Intro to Testing")).toBeInTheDocument();
 		expect(screen.getByText("4 modules")).toBeInTheDocument();
+	});
+
+	it("shows enrolled social proof when positive, hides it at zero (Phase 4, §3.2)", async () => {
+		renderWithRouter(
+			<PublicCourseCard course={course({ enrolledCount: 47 })} />,
+		);
+		expect(await screen.findByText("47 enrolled")).toBeInTheDocument();
+
+		renderWithRouter(
+			<PublicCourseCard course={course({ enrolledCount: 0 })} />,
+		);
+		expect(screen.getAllByText(/enrolled/)).toHaveLength(1); // only the 47 card
 	});
 
 	it("shows 'Free' instead of a price for free courses", async () => {

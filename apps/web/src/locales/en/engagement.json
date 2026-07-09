@@ -1,0 +1,129 @@
+{
+	"streak": {
+		"title": "Your streak",
+		"flame_label": "{{days}}-day streak",
+		"day_streak": "Day streak",
+		"longest": "Longest",
+		"freezes": "Freezes",
+		"freeze_hint": "A freeze saves your streak when you miss a day. Earn one every 7 days — you can hold 2.",
+		"at_risk": "Don't lose your {{days}}-day streak — one lesson today keeps the flame alive!",
+		"today_done": "Today is in the bag. Come back tomorrow to keep the flame burning.",
+		"start": "Complete a lesson today to light your flame.",
+		"keep_going": "You're on a roll — show up tomorrow to grow it.",
+		"this_week": "This week"
+	},
+	"badges": {
+		"title": "Your awards",
+		"subtitle": "Small wins add up — collect them all.",
+		"earned_count": "{{earned}} of {{total}} earned",
+		"earned_on": "Earned {{date}}",
+		"locked": "Locked",
+		"first_lesson": {
+			"name": "First Steps",
+			"desc": "Complete your first lesson"
+		},
+		"lessons_10": { "name": "Deep Diver", "desc": "Complete 10 lessons" },
+		"lessons_25": { "name": "Momentum Maker", "desc": "Complete 25 lessons" },
+		"lessons_50": {
+			"name": "Knowledge Builder",
+			"desc": "Complete 50 lessons"
+		},
+		"first_course": {
+			"name": "Course Finisher",
+			"desc": "Complete your first course"
+		},
+		"courses_3": {
+			"name": "Curriculum Champion",
+			"desc": "Complete 3 courses"
+		},
+		"first_quiz_pass": {
+			"name": "Quiz Rookie",
+			"desc": "Pass your first quiz"
+		},
+		"quizzes_10": {
+			"name": "Recall Master",
+			"desc": "Pass 10 different quizzes"
+		},
+		"perfect_quiz": { "name": "Perfect Score", "desc": "Score 100% on a quiz" },
+		"growth_leap": {
+			"name": "Growth Leap",
+			"desc": "Beat your pre-quiz score by 25+ points"
+		},
+		"streak_3": { "name": "Warming Up", "desc": "Learn 3 days in a row" },
+		"streak_7": { "name": "On Fire", "desc": "Learn 7 days in a row" },
+		"streak_14": {
+			"name": "Two-Week Wonder",
+			"desc": "Learn 14 days in a row"
+		},
+		"streak_30": { "name": "Unstoppable", "desc": "Learn 30 days in a row" },
+		"comeback": {
+			"name": "Comeback",
+			"desc": "Miss a day, use a freeze, and keep going"
+		},
+		"first_project_pass": {
+			"name": "Project Pro",
+			"desc": "Pass your first project"
+		}
+	},
+	"next_badge": {
+		"eyebrow": "Your next award",
+		"lessons_one": "{{count}} more lesson unlocks {{name}}",
+		"lessons_other": "{{count}} more lessons unlock {{name}}",
+		"courses_one": "{{count}} more course unlocks {{name}}",
+		"courses_other": "{{count}} more courses unlock {{name}}",
+		"quizzes_one": "{{count}} more quiz unlocks {{name}}",
+		"quizzes_other": "{{count}} more quizzes unlock {{name}}",
+		"streak_one": "{{count}} more day in a row unlocks {{name}}",
+		"streak_other": "{{count}} more days in a row unlock {{name}}",
+		"view_awards": "See all awards"
+	},
+	"next_session": {
+		"title": "When will you study next? Set it now.",
+		"hint": "One tap — your reminders will match it.",
+		"saved": "Locked in! We'll nudge you {{when}}.",
+		"options": {
+			"morning": "Tomorrow morning",
+			"afternoon": "Tomorrow afternoon",
+			"evening": "Tomorrow evening",
+			"weekend": "This weekend"
+		},
+		"saved_when": {
+			"morning": "tomorrow morning",
+			"afternoon": "tomorrow afternoon",
+			"evening": "tomorrow evening",
+			"weekend": "this weekend"
+		}
+	},
+	"celebration": {
+		"unlocked": "Award unlocked!",
+		"cta": "Keep going",
+		"next": "Next award"
+	},
+	"growth": {
+		"pre_post": "You went from {{pre}}% to {{post}}% — that's real growth!",
+		"grew": "You've grown +{{delta}}% since your last attempt!",
+		"baseline": "You scored {{score}}% — that's your baseline. Everything from here is growth.",
+		"steady": "Your best is still {{best}}% — every retrieval makes it stick."
+	},
+	"social": {
+		"enrolled": "{{n}} enrolled",
+		"completed_week": "{{n}} completed this week"
+	},
+	"notifications": {
+		"title": "Notifications",
+		"open": "Notifications",
+		"empty": "You're all caught up!",
+		"mark_all_read": "Mark all as read",
+		"types": {
+			"reminder_digest": {
+				"title": "Time for a quick review",
+				"body": "Your spaced practice is due — a few minutes locks it in."
+			},
+			"badge_awarded": {
+				"title": "You earned a new award",
+				"body": "{{name}} is now in your collection."
+			},
+			"default": { "title": "Update", "body": "" }
+		}
+	}
+}

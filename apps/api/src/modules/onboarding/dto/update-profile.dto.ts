@@ -1,6 +1,7 @@
 import { ApiPropertyOptional } from "@nestjs/swagger";
 import {
 	IsArray,
+	IsBoolean,
 	IsIn,
 	IsOptional,
 	IsString,
@@ -9,6 +10,23 @@ import {
 } from "class-validator";
 
 const LANGUAGES = ["en", "fr", "es", "pcm"] as const;
+// Pinned onboarding enums (§8.1) — must match the learner wizard's options.
+const SCHEDULES = [
+	"morning",
+	"afternoon",
+	"evening",
+	"weekend",
+	"flexible",
+] as const;
+const HOURS = ["low", "medium", "high", "max"] as const;
+// Habit-stacking anchors (§3.1) — must match reminder.messages.ts STUDY_ANCHORS.
+const ANCHORS = [
+	"morning_routine",
+	"commute",
+	"lunch_break",
+	"after_work",
+	"before_bed",
+] as const;
 
 /** Full profile edit (Studio + learner profile) — everything except email. */
 export class UpdateProfileDto {
@@ -58,4 +76,35 @@ export class UpdateProfileDto {
 	@IsArray()
 	@IsString({ each: true })
 	expertiseAreas?: string[];
+
+	// ── Learning reminder settings (§3.2 implementation intentions) ──────────
+
+	@ApiPropertyOptional({ description: "WhatsApp reminder opt-in" })
+	@IsOptional()
+	@IsBoolean()
+	whatsappOptIn?: boolean;
+
+	@ApiPropertyOptional({ enum: SCHEDULES })
+	@IsOptional()
+	@IsIn(SCHEDULES)
+	studySchedule?: string;
+
+	@ApiPropertyOptional({ enum: HOURS })
+	@IsOptional()
+	@IsIn(HOURS)
+	weeklyHours?: string;
+
+	@ApiPropertyOptional({
+		enum: ANCHORS,
+		description: "Daily habit study time is stacked on (§3.1); '' clears it",
+	})
+	@IsOptional()
+	@IsIn([...ANCHORS, ""])
+	studyAnchor?: string;
+
+	@ApiPropertyOptional({ description: "IANA timezone, e.g. Africa/Lagos" })
+	@IsOptional()
+	@IsString()
+	@MaxLength(50)
+	timezone?: string;
 }

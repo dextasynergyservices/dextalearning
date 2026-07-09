@@ -113,6 +113,62 @@ describe("OnboardingService (integration)", () => {
 		});
 	});
 
+	describe("learning reminder settings (Phase 4, §3.2)", () => {
+		it("round-trips whatsappOptIn/studySchedule/studyAnchor/weeklyHours/timezone through update + getProfile", async () => {
+			await service.updateProfile(userId, {
+				whatsappOptIn: true,
+				studySchedule: "morning",
+				studyAnchor: "after_work",
+				weeklyHours: "high",
+				timezone: "Africa/Lagos",
+			});
+			const profile = await service.getProfile(userId);
+			expect(profile.whatsappOptIn).toBe(true);
+			expect(profile.studySchedule).toBe("morning");
+			expect(profile.studyAnchor).toBe("after_work");
+			expect(profile.weeklyHours).toBe("high");
+			expect(profile.timezone).toBe("Africa/Lagos");
+
+			// "" clears the anchor (habit un-stacked).
+			await service.updateProfile(userId, { studyAnchor: "" });
+			const cleared = await service.getProfile(userId);
+			expect(cleared.studyAnchor).toBeNull();
+		});
+
+		it("saveLearner persists the habit-stacking anchor from onboarding (§3.1)", async () => {
+			await service.saveLearner(userId, {
+				studySchedule: "evening",
+				studyAnchor: "before_bed",
+			});
+			const user = await prisma.user.findUnique({ where: { id: userId } });
+			expect(user?.studyAnchor).toBe("before_bed");
+		});
+
+		it("leaves reminder settings untouched when a profile edit omits them", async () => {
+			await prisma.user.update({
+				where: { id: userId },
+				data: {
+					whatsappOptIn: true,
+					studySchedule: "weekend",
+					weeklyHours: "low",
+					timezone: "Europe/Paris",
+				},
+			});
+			await service.updateProfile(userId, { firstName: "Updated" });
+			const user = await prisma.user.findUnique({ where: { id: userId } });
+			expect(user?.whatsappOptIn).toBe(true);
+			expect(user?.studySchedule).toBe("weekend");
+			expect(user?.weeklyHours).toBe("low");
+			expect(user?.timezone).toBe("Europe/Paris");
+		});
+
+		it("rejects a timezone Intl doesn't know", async () => {
+			await expect(
+				service.updateProfile(userId, { timezone: "Mars/Olympus_Mons" }),
+			).rejects.toThrow(UnprocessableEntityException);
+		});
+	});
+
 	describe("avatar upload/delete", () => {
 		it("rejects an unsupported image type", async () => {
 			await expect(

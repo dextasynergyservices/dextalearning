@@ -8,6 +8,7 @@ import {
 	Waypoints,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { SocialProofLine } from "@/components/engagement/social-proof-line";
 import {
 	formatMoney,
 	type PublishedCohort,
@@ -85,6 +86,7 @@ export function PublicCourseCard({ course }: { course: PublishedCourse }) {
 						count: course._count.modules,
 					})}
 				</span>
+				<SocialProofLine enrolled={course.enrolledCount} className="mt-1" />
 				<div className="mt-auto flex items-center justify-between pt-3">
 					<span className="font-stats font-bold text-foreground text-sm">
 						{l.price(course)}

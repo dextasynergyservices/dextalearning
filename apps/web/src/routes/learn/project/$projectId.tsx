@@ -202,7 +202,7 @@ function ProjectBody({
 							? mine.passed
 								? "border-success/30 bg-success/5"
 								: "border-error/30 bg-error/5"
-							: "border-amber-200 bg-amber-50",
+							: "border-warning/30 bg-warning/10",
 					)}
 				>
 					{mine.graded ? (
@@ -230,7 +230,7 @@ function ProjectBody({
 							) : null}
 						</div>
 					) : (
-						<p className="flex items-center gap-2 text-amber-800">
+						<p className="flex items-center gap-2 text-amber-800 dark:text-amber-200">
 							<Clock className="size-4" />
 							{t("submit.pending", {
 								defaultValue: "Submitted — awaiting grading.",

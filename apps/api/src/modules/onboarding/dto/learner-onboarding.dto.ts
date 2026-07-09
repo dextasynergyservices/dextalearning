@@ -10,6 +10,14 @@ import {
 } from "class-validator";
 
 const LANGUAGES = ["en", "fr", "es", "pcm"] as const;
+// Habit-stacking anchors (§3.1) — must match reminder.messages.ts STUDY_ANCHORS.
+const ANCHORS = [
+	"morning_routine",
+	"commute",
+	"lunch_break",
+	"after_work",
+	"before_bed",
+] as const;
 
 /** Learner onboarding answers (§8.1). All optional — the wizard is skippable. */
 export class LearnerOnboardingDto {
@@ -41,6 +49,14 @@ export class LearnerOnboardingDto {
 	@IsString()
 	@MaxLength(20)
 	studySchedule?: string;
+
+	@ApiPropertyOptional({
+		enum: ANCHORS,
+		description: "Daily habit study time is stacked on (§3.1)",
+	})
+	@IsOptional()
+	@IsIn(ANCHORS)
+	studyAnchor?: string;
 
 	@ApiPropertyOptional()
 	@IsOptional()

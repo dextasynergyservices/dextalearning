@@ -49,6 +49,17 @@
 			"flexible": "Anytime"
 		}
 	},
+	"anchor": {
+		"title": "Join am with one daily habit (optional)",
+		"subtitle": "“After dinner” dey work pass “6pm” — pick di habit wey you go study after.",
+		"options": {
+			"morning_routine": "After my morning runs",
+			"commute": "As I dey go road",
+			"lunch_break": "For lunch break",
+			"after_work": "After work",
+			"before_bed": "Before I sleep"
+		}
+	},
 	"done": {
 		"title": "Everything don set!",
 		"subtitle": "Welcome to DextaLearning — make we start learning.",

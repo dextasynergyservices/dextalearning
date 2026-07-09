@@ -49,6 +49,17 @@
 			"flexible": "Flexible"
 		}
 	},
+	"anchor": {
+		"title": "Tie it to a daily habit (optional)",
+		"subtitle": "“After dinner” sticks better than “6pm” — pick the habit you'll study after.",
+		"options": {
+			"morning_routine": "After my morning routine",
+			"commute": "On my commute",
+			"lunch_break": "During lunch break",
+			"after_work": "After work",
+			"before_bed": "Before bed"
+		}
+	},
 	"done": {
 		"title": "You're all set!",
 		"subtitle": "Welcome to DextaLearning — let's start learning.",

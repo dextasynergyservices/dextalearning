@@ -56,6 +56,7 @@ export function createCourse(
 		slug: string;
 		status: PublishStatus | null;
 		level: CourseLevel;
+		createdBy: string;
 	}> = {},
 ): Promise<Course> {
 	const id = randomUUID().slice(0, 8);
@@ -65,6 +66,7 @@ export function createCourse(
 			slug: overrides.slug ?? `test-course-${id}`,
 			status: overrides.status ?? "published",
 			...(overrides.level ? { level: overrides.level } : {}),
+			...(overrides.createdBy ? { createdBy: overrides.createdBy } : {}),
 		},
 	});
 }
@@ -129,6 +131,7 @@ export function createLesson(
 		orderIndex: number;
 		contentType: LessonContentType;
 		minVideoWatchPct: number;
+		hasPreQuiz: boolean;
 		hasPostQuiz: boolean;
 	}> = {},
 ): Promise<Lesson> {
@@ -140,6 +143,9 @@ export function createLesson(
 			contentType: overrides.contentType ?? "video",
 			...(overrides.minVideoWatchPct !== undefined
 				? { minVideoWatchPct: overrides.minVideoWatchPct }
+				: {}),
+			...(overrides.hasPreQuiz !== undefined
+				? { hasPreQuiz: overrides.hasPreQuiz }
 				: {}),
 			...(overrides.hasPostQuiz !== undefined
 				? { hasPostQuiz: overrides.hasPostQuiz }

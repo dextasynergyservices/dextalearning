@@ -99,8 +99,18 @@ function Field({
 	);
 }
 
+const SCHEDULES = ["morning", "afternoon", "evening", "weekend", "flexible"];
+const HOURS = ["low", "medium", "high", "max"];
+const ANCHORS = [
+	"morning_routine",
+	"commute",
+	"lunch_break",
+	"after_work",
+	"before_bed",
+];
+
 function ProfilePage() {
-	const { t, i18n } = useTranslation(["dashboard", "common"]);
+	const { t, i18n } = useTranslation(["dashboard", "common", "onboarding"]);
 	const navigate = useNavigate();
 	const { data: session } = useSession();
 	const role = (session?.user as { role?: string } | undefined)?.role;
@@ -115,6 +125,10 @@ function ProfilePage() {
 	const [otherNames, setOtherNames] = useState("");
 	const [phone, setPhone] = useState("");
 	const [image, setImage] = useState<string | null>(null);
+	const [whatsappOptIn, setWhatsappOptIn] = useState(false);
+	const [studySchedule, setStudySchedule] = useState("");
+	const [studyAnchor, setStudyAnchor] = useState("");
+	const [weeklyHours, setWeeklyHours] = useState("");
 	const [ready, setReady] = useState(false);
 
 	useEffect(() => {
@@ -124,6 +138,10 @@ function ProfilePage() {
 			setOtherNames(data.otherNames ?? "");
 			setPhone(data.phone ?? "");
 			setImage(data.image ?? null);
+			setWhatsappOptIn(data.whatsappOptIn ?? false);
+			setStudySchedule(data.studySchedule ?? "");
+			setStudyAnchor(data.studyAnchor ?? "");
+			setWeeklyHours(data.weeklyHours ?? "");
 			setReady(true);
 		}
 	}, [data, ready]);
@@ -136,6 +154,13 @@ function ProfilePage() {
 				otherNames: otherNames.trim(),
 				phone: phone.trim(),
 				language: i18n.resolvedLanguage,
+				// Reminder settings (§3.2 implementation intentions).
+				whatsappOptIn: phone.trim() ? whatsappOptIn : false,
+				...(studySchedule ? { studySchedule } : {}),
+				// "" is a valid value here — it clears the habit anchor.
+				studyAnchor,
+				...(weeklyHours ? { weeklyHours } : {}),
+				timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
 			}),
 		onSuccess: () => {
 			toast.success(t("profile.saved", { defaultValue: "Profile saved." }));
@@ -298,6 +323,144 @@ function ProfilePage() {
 									) : null}
 									{t("profile.save", { defaultValue: "Save changes" })}
 								</Button>
+							</div>
+						</Group>
+
+						{/* §3.2 implementation intentions — when/how the learner studies. */}
+						<Group
+							label={t("profile.reminders", {
+								defaultValue: "Learning reminders",
+							})}
+						>
+							<div className="space-y-4 p-4">
+								<div className="flex items-start justify-between gap-3">
+									<div className="min-w-0">
+										<p className="font-medium text-foreground text-sm">
+											{t("profile.whatsapp_optin", {
+												defaultValue: "WhatsApp reminders",
+											})}
+										</p>
+										<p className="mt-0.5 text-muted-foreground text-xs">
+											{phoneTrimmed
+												? t("profile.whatsapp_optin_hint", {
+														defaultValue:
+															"Gentle nudges when your reviews are due — never spam.",
+													})
+												: t("profile.whatsapp_needs_phone", {
+														defaultValue:
+															"Add a phone number above to enable WhatsApp reminders.",
+													})}
+										</p>
+									</div>
+									<button
+										type="button"
+										role="switch"
+										aria-checked={whatsappOptIn && Boolean(phoneTrimmed)}
+										aria-label={t("profile.whatsapp_optin", {
+											defaultValue: "WhatsApp reminders",
+										})}
+										disabled={!phoneTrimmed}
+										onClick={() => setWhatsappOptIn((v) => !v)}
+										className={cn(
+											"relative h-6 w-11 shrink-0 rounded-full transition-colors",
+											whatsappOptIn && phoneTrimmed
+												? "bg-brand-primary"
+												: "bg-muted-foreground/30",
+											!phoneTrimmed && "cursor-not-allowed opacity-50",
+										)}
+									>
+										<span
+											className={cn(
+												"absolute top-0.5 left-0.5 size-5 rounded-full bg-white shadow transition-transform",
+												whatsappOptIn && phoneTrimmed && "translate-x-5",
+											)}
+										/>
+									</button>
+								</div>
+
+								<label className="block">
+									<span className="mb-1.5 block font-medium text-foreground text-sm">
+										{t("profile.study_schedule", {
+											defaultValue: "When do you usually study?",
+										})}
+									</span>
+									<select
+										value={studySchedule}
+										onChange={(e) => setStudySchedule(e.target.value)}
+										className="h-12 w-full cursor-pointer rounded-input border border-border bg-card px-4 text-foreground outline-none transition-colors focus:border-brand-primary"
+									>
+										<option value="" disabled>
+											—
+										</option>
+										{SCHEDULES.map((value) => (
+											<option key={value} value={value}>
+												{t(`onboarding:schedule.options.${value}`)}
+											</option>
+										))}
+									</select>
+								</label>
+
+								{/* §3.1 habit stacking — anchored intentions beat clock times. */}
+								<div>
+									<label className="block">
+										<span className="mb-1.5 block font-medium text-foreground text-sm">
+											{t("profile.study_anchor", {
+												defaultValue: "Tie it to a daily habit (optional)",
+											})}
+										</span>
+										<select
+											value={studyAnchor}
+											onChange={(e) => setStudyAnchor(e.target.value)}
+											className="h-12 w-full cursor-pointer rounded-input border border-border bg-card px-4 text-foreground outline-none transition-colors focus:border-brand-primary"
+										>
+											<option value="">
+												{t("profile.study_anchor_none", {
+													defaultValue: "No habit anchor",
+												})}
+											</option>
+											{ANCHORS.map((value) => (
+												<option key={value} value={value}>
+													{t(`onboarding:anchor.options.${value}`)}
+												</option>
+											))}
+										</select>
+									</label>
+									<span className="mt-1 block text-muted-foreground text-xs">
+										{t("profile.study_anchor_hint", {
+											defaultValue:
+												"“After dinner” beats “6pm” — habits stick to habits.",
+										})}
+									</span>
+								</div>
+
+								<label className="block">
+									<span className="mb-1.5 block font-medium text-foreground text-sm">
+										{t("profile.weekly_hours", {
+											defaultValue: "Weekly learning time",
+										})}
+									</span>
+									<select
+										value={weeklyHours}
+										onChange={(e) => setWeeklyHours(e.target.value)}
+										className="h-12 w-full cursor-pointer rounded-input border border-border bg-card px-4 text-foreground outline-none transition-colors focus:border-brand-primary"
+									>
+										<option value="" disabled>
+											—
+										</option>
+										{HOURS.map((value) => (
+											<option key={value} value={value}>
+												{t(`onboarding:hours.options.${value}`)}
+											</option>
+										))}
+									</select>
+								</label>
+
+								<p className="text-muted-foreground text-xs">
+									{t("profile.reminders_hint", {
+										defaultValue:
+											"Reminders arrive at your usual study time, in your language. Saving updates your plan.",
+									})}
+								</p>
 							</div>
 						</Group>
 

@@ -49,6 +49,17 @@
 			"flexible": "Flexible"
 		}
 	},
+	"anchor": {
+		"title": "Reliez-le à une habitude quotidienne (facultatif)",
+		"subtitle": "« Après le dîner » tient mieux que « 18 h » — choisissez l'habitude après laquelle vous étudierez.",
+		"options": {
+			"morning_routine": "Après ma routine du matin",
+			"commute": "Pendant mon trajet",
+			"lunch_break": "À la pause déjeuner",
+			"after_work": "Après le travail",
+			"before_bed": "Avant de dormir"
+		}
+	},
 	"done": {
 		"title": "Tout est prêt !",
 		"subtitle": "Bienvenue sur DextaLearning — commençons à apprendre.",

@@ -1,0 +1,132 @@
+{
+	"streak": {
+		"title": "Tu racha",
+		"flame_label": "Racha de {{days}} días",
+		"day_streak": "Días seguidos",
+		"longest": "Récord",
+		"freezes": "Protectores",
+		"freeze_hint": "Un protector salva tu racha si faltas un día. Gana uno cada 7 días — máximo 2.",
+		"at_risk": "No pierdas tu racha de {{days}} días — ¡una lección hoy mantiene viva la llama!",
+		"today_done": "Hoy ya está hecho. Vuelve mañana para mantener la llama encendida.",
+		"start": "Completa una lección hoy para encender tu llama.",
+		"keep_going": "Vas muy bien — vuelve mañana para hacerla crecer.",
+		"this_week": "Esta semana"
+	},
+	"badges": {
+		"title": "Tus premios",
+		"subtitle": "Las pequeñas victorias suman — colecciónalas todas.",
+		"earned_count": "{{earned}} de {{total}} conseguidos",
+		"earned_on": "Conseguido el {{date}}",
+		"locked": "Bloqueado",
+		"first_lesson": {
+			"name": "Primeros pasos",
+			"desc": "Completa tu primera lección"
+		},
+		"lessons_10": { "name": "Explorador", "desc": "Completa 10 lecciones" },
+		"lessons_25": { "name": "Con impulso", "desc": "Completa 25 lecciones" },
+		"lessons_50": {
+			"name": "Constructor de saber",
+			"desc": "Completa 50 lecciones"
+		},
+		"first_course": {
+			"name": "Primer curso",
+			"desc": "Completa tu primer curso"
+		},
+		"courses_3": {
+			"name": "Campeón del programa",
+			"desc": "Completa 3 cursos"
+		},
+		"first_quiz_pass": {
+			"name": "Novato del quiz",
+			"desc": "Aprueba tu primer cuestionario"
+		},
+		"quizzes_10": {
+			"name": "Maestro del repaso",
+			"desc": "Aprueba 10 cuestionarios distintos"
+		},
+		"perfect_quiz": {
+			"name": "Puntuación perfecta",
+			"desc": "Consigue el 100 % en un cuestionario"
+		},
+		"growth_leap": {
+			"name": "Salto de crecimiento",
+			"desc": "Supera tu puntuación previa por 25+ puntos"
+		},
+		"streak_3": { "name": "Calentando", "desc": "Aprende 3 días seguidos" },
+		"streak_7": { "name": "En llamas", "desc": "Aprende 7 días seguidos" },
+		"streak_14": {
+			"name": "Dos semanas seguidas",
+			"desc": "Aprende 14 días seguidos"
+		},
+		"streak_30": { "name": "Imparable", "desc": "Aprende 30 días seguidos" },
+		"comeback": {
+			"name": "Regreso triunfal",
+			"desc": "Falta un día, usa un protector y sigue adelante"
+		},
+		"first_project_pass": {
+			"name": "Pro del proyecto",
+			"desc": "Aprueba tu primer proyecto"
+		}
+	},
+	"next_badge": {
+		"eyebrow": "Tu próximo premio",
+		"lessons_one": "{{count}} lección más desbloquea {{name}}",
+		"lessons_other": "{{count}} lecciones más desbloquean {{name}}",
+		"courses_one": "{{count}} curso más desbloquea {{name}}",
+		"courses_other": "{{count}} cursos más desbloquean {{name}}",
+		"quizzes_one": "{{count}} cuestionario más desbloquea {{name}}",
+		"quizzes_other": "{{count}} cuestionarios más desbloquean {{name}}",
+		"streak_one": "{{count}} día seguido más desbloquea {{name}}",
+		"streak_other": "{{count}} días seguidos más desbloquean {{name}}",
+		"view_awards": "Ver todos los premios"
+	},
+	"next_session": {
+		"title": "¿Cuándo estudiarás la próxima vez? Decídelo ahora.",
+		"hint": "Un toque — tus recordatorios se ajustarán.",
+		"saved": "¡Anotado! Te avisaremos {{when}}.",
+		"options": {
+			"morning": "Mañana por la mañana",
+			"afternoon": "Mañana por la tarde",
+			"evening": "Mañana por la noche",
+			"weekend": "Este fin de semana"
+		},
+		"saved_when": {
+			"morning": "mañana por la mañana",
+			"afternoon": "mañana por la tarde",
+			"evening": "mañana por la noche",
+			"weekend": "este fin de semana"
+		}
+	},
+	"celebration": {
+		"unlocked": "¡Premio desbloqueado!",
+		"cta": "Seguir adelante",
+		"next": "Siguiente premio"
+	},
+	"growth": {
+		"pre_post": "Pasaste de {{pre}} % a {{post}} % — ¡eso es crecimiento real!",
+		"grew": "¡Has crecido +{{delta}} % desde tu último intento!",
+		"baseline": "Obtuviste {{score}} % — esa es tu base. Todo lo que sigue es crecimiento.",
+		"steady": "Tu mejor marca sigue siendo {{best}} % — cada repaso la afianza."
+	},
+	"social": {
+		"enrolled": "{{n}} inscritos",
+		"completed_week": "{{n}} lo completaron esta semana"
+	},
+	"notifications": {
+		"title": "Notificaciones",
+		"open": "Notificaciones",
+		"empty": "¡Estás al día!",
+		"mark_all_read": "Marcar todo como leído",
+		"types": {
+			"reminder_digest": {
+				"title": "Hora de un repaso rápido",
+				"body": "Tu práctica espaciada está lista — unos minutos bastan."
+			},
+			"badge_awarded": {
+				"title": "Ganaste un nuevo premio",
+				"body": "{{name}} ya está en tu colección."
+			},
+			"default": { "title": "Novedad", "body": "" }
+		}
+	}
+}

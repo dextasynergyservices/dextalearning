@@ -111,7 +111,7 @@ function SubmissionRowItem({
 					className={cn(
 						"flex size-10 shrink-0 items-center justify-center rounded-btn",
 						!row.graded
-							? "bg-amber-100 text-amber-600"
+							? "bg-warning/15 text-amber-600 dark:text-amber-400"
 							: row.passed
 								? "bg-success/10 text-success"
 								: "bg-error/10 text-error",

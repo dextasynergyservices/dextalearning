@@ -41,10 +41,12 @@ import { Route as TeachersCoursesIndexRouteImport } from './routes/teachers/cour
 import { Route as TeachersCohortsIndexRouteImport } from './routes/teachers/cohorts/index'
 import { Route as InstructorPathsIndexRouteImport } from './routes/instructor/paths/index'
 import { Route as InstructorCoursesIndexRouteImport } from './routes/instructor/courses/index'
+import { Route as InstructorAnalyticsIndexRouteImport } from './routes/instructor/analytics/index'
 import { Route as AdminPathsIndexRouteImport } from './routes/admin/paths/index'
 import { Route as AdminCoursesIndexRouteImport } from './routes/admin/courses/index'
 import { Route as AdminCohortsIndexRouteImport } from './routes/admin/cohorts/index'
 import { Route as AdminBlogIndexRouteImport } from './routes/admin/blog/index'
+import { Route as AdminAnalyticsIndexRouteImport } from './routes/admin/analytics/index'
 import { Route as TeachersPathsSlugRouteImport } from './routes/teachers/paths/$slug'
 import { Route as TeachersCoursesSlugRouteImport } from './routes/teachers/courses/$slug'
 import { Route as TeachersCohortsSlugRouteImport } from './routes/teachers/cohorts/$slug'
@@ -71,6 +73,8 @@ import { Route as AdminCohortsCohortIdRouteImport } from './routes/admin/cohorts
 import { Route as AdminBlogPostIdRouteImport } from './routes/admin/blog/$postId'
 import { Route as AdminAttemptReportsAssessmentIdRouteImport } from './routes/admin/attempt-reports/$assessmentId'
 import { Route as AdminAssessmentsAssessmentIdRouteImport } from './routes/admin/assessments/$assessmentId'
+import { Route as InstructorAnalyticsEntityTypeEntityIdRouteImport } from './routes/instructor/analytics/$entityType.$entityId'
+import { Route as AdminAnalyticsEntityTypeEntityIdRouteImport } from './routes/admin/analytics/$entityType.$entityId'
 
 const VerifyEmailRoute = VerifyEmailRouteImport.update({
   id: '/verify-email',
@@ -232,6 +236,12 @@ const InstructorCoursesIndexRoute = InstructorCoursesIndexRouteImport.update({
   path: '/instructor/courses/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const InstructorAnalyticsIndexRoute =
+  InstructorAnalyticsIndexRouteImport.update({
+    id: '/instructor/analytics/',
+    path: '/instructor/analytics/',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const AdminPathsIndexRoute = AdminPathsIndexRouteImport.update({
   id: '/paths/',
   path: '/paths/',
@@ -250,6 +260,11 @@ const AdminCohortsIndexRoute = AdminCohortsIndexRouteImport.update({
 const AdminBlogIndexRoute = AdminBlogIndexRouteImport.update({
   id: '/blog/',
   path: '/blog/',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminAnalyticsIndexRoute = AdminAnalyticsIndexRouteImport.update({
+  id: '/analytics/',
+  path: '/analytics/',
   getParentRoute: () => AdminRoute,
 } as any)
 const TeachersPathsSlugRoute = TeachersPathsSlugRouteImport.update({
@@ -393,6 +408,18 @@ const AdminAssessmentsAssessmentIdRoute =
     path: '/assessments/$assessmentId',
     getParentRoute: () => AdminRoute,
   } as any)
+const InstructorAnalyticsEntityTypeEntityIdRoute =
+  InstructorAnalyticsEntityTypeEntityIdRouteImport.update({
+    id: '/instructor/analytics/$entityType/$entityId',
+    path: '/instructor/analytics/$entityType/$entityId',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const AdminAnalyticsEntityTypeEntityIdRoute =
+  AdminAnalyticsEntityTypeEntityIdRouteImport.update({
+    id: '/analytics/$entityType/$entityId',
+    path: '/analytics/$entityType/$entityId',
+    getParentRoute: () => AdminRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -448,15 +475,19 @@ export interface FileRoutesByFullPath {
   '/teachers/cohorts/$slug': typeof TeachersCohortsSlugRoute
   '/teachers/courses/$slug': typeof TeachersCoursesSlugRoute
   '/teachers/paths/$slug': typeof TeachersPathsSlugRoute
+  '/admin/analytics/': typeof AdminAnalyticsIndexRoute
   '/admin/blog/': typeof AdminBlogIndexRoute
   '/admin/cohorts/': typeof AdminCohortsIndexRoute
   '/admin/courses/': typeof AdminCoursesIndexRoute
   '/admin/paths/': typeof AdminPathsIndexRoute
+  '/instructor/analytics/': typeof InstructorAnalyticsIndexRoute
   '/instructor/courses/': typeof InstructorCoursesIndexRoute
   '/instructor/paths/': typeof InstructorPathsIndexRoute
   '/teachers/cohorts/': typeof TeachersCohortsIndexRoute
   '/teachers/courses/': typeof TeachersCoursesIndexRoute
   '/teachers/paths/': typeof TeachersPathsIndexRoute
+  '/admin/analytics/$entityType/$entityId': typeof AdminAnalyticsEntityTypeEntityIdRoute
+  '/instructor/analytics/$entityType/$entityId': typeof InstructorAnalyticsEntityTypeEntityIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -511,15 +542,19 @@ export interface FileRoutesByTo {
   '/teachers/cohorts/$slug': typeof TeachersCohortsSlugRoute
   '/teachers/courses/$slug': typeof TeachersCoursesSlugRoute
   '/teachers/paths/$slug': typeof TeachersPathsSlugRoute
+  '/admin/analytics': typeof AdminAnalyticsIndexRoute
   '/admin/blog': typeof AdminBlogIndexRoute
   '/admin/cohorts': typeof AdminCohortsIndexRoute
   '/admin/courses': typeof AdminCoursesIndexRoute
   '/admin/paths': typeof AdminPathsIndexRoute
+  '/instructor/analytics': typeof InstructorAnalyticsIndexRoute
   '/instructor/courses': typeof InstructorCoursesIndexRoute
   '/instructor/paths': typeof InstructorPathsIndexRoute
   '/teachers/cohorts': typeof TeachersCohortsIndexRoute
   '/teachers/courses': typeof TeachersCoursesIndexRoute
   '/teachers/paths': typeof TeachersPathsIndexRoute
+  '/admin/analytics/$entityType/$entityId': typeof AdminAnalyticsEntityTypeEntityIdRoute
+  '/instructor/analytics/$entityType/$entityId': typeof InstructorAnalyticsEntityTypeEntityIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -576,15 +611,19 @@ export interface FileRoutesById {
   '/teachers/cohorts/$slug': typeof TeachersCohortsSlugRoute
   '/teachers/courses/$slug': typeof TeachersCoursesSlugRoute
   '/teachers/paths/$slug': typeof TeachersPathsSlugRoute
+  '/admin/analytics/': typeof AdminAnalyticsIndexRoute
   '/admin/blog/': typeof AdminBlogIndexRoute
   '/admin/cohorts/': typeof AdminCohortsIndexRoute
   '/admin/courses/': typeof AdminCoursesIndexRoute
   '/admin/paths/': typeof AdminPathsIndexRoute
+  '/instructor/analytics/': typeof InstructorAnalyticsIndexRoute
   '/instructor/courses/': typeof InstructorCoursesIndexRoute
   '/instructor/paths/': typeof InstructorPathsIndexRoute
   '/teachers/cohorts/': typeof TeachersCohortsIndexRoute
   '/teachers/courses/': typeof TeachersCoursesIndexRoute
   '/teachers/paths/': typeof TeachersPathsIndexRoute
+  '/admin/analytics/$entityType/$entityId': typeof AdminAnalyticsEntityTypeEntityIdRoute
+  '/instructor/analytics/$entityType/$entityId': typeof InstructorAnalyticsEntityTypeEntityIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -642,15 +681,19 @@ export interface FileRouteTypes {
     | '/teachers/cohorts/$slug'
     | '/teachers/courses/$slug'
     | '/teachers/paths/$slug'
+    | '/admin/analytics/'
     | '/admin/blog/'
     | '/admin/cohorts/'
     | '/admin/courses/'
     | '/admin/paths/'
+    | '/instructor/analytics/'
     | '/instructor/courses/'
     | '/instructor/paths/'
     | '/teachers/cohorts/'
     | '/teachers/courses/'
     | '/teachers/paths/'
+    | '/admin/analytics/$entityType/$entityId'
+    | '/instructor/analytics/$entityType/$entityId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -705,15 +748,19 @@ export interface FileRouteTypes {
     | '/teachers/cohorts/$slug'
     | '/teachers/courses/$slug'
     | '/teachers/paths/$slug'
+    | '/admin/analytics'
     | '/admin/blog'
     | '/admin/cohorts'
     | '/admin/courses'
     | '/admin/paths'
+    | '/instructor/analytics'
     | '/instructor/courses'
     | '/instructor/paths'
     | '/teachers/cohorts'
     | '/teachers/courses'
     | '/teachers/paths'
+    | '/admin/analytics/$entityType/$entityId'
+    | '/instructor/analytics/$entityType/$entityId'
   id:
     | '__root__'
     | '/'
@@ -769,15 +816,19 @@ export interface FileRouteTypes {
     | '/teachers/cohorts/$slug'
     | '/teachers/courses/$slug'
     | '/teachers/paths/$slug'
+    | '/admin/analytics/'
     | '/admin/blog/'
     | '/admin/cohorts/'
     | '/admin/courses/'
     | '/admin/paths/'
+    | '/instructor/analytics/'
     | '/instructor/courses/'
     | '/instructor/paths/'
     | '/teachers/cohorts/'
     | '/teachers/courses/'
     | '/teachers/paths/'
+    | '/admin/analytics/$entityType/$entityId'
+    | '/instructor/analytics/$entityType/$entityId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -822,11 +873,13 @@ export interface RootRouteChildren {
   TeachersCohortsSlugRoute: typeof TeachersCohortsSlugRoute
   TeachersCoursesSlugRoute: typeof TeachersCoursesSlugRoute
   TeachersPathsSlugRoute: typeof TeachersPathsSlugRoute
+  InstructorAnalyticsIndexRoute: typeof InstructorAnalyticsIndexRoute
   InstructorCoursesIndexRoute: typeof InstructorCoursesIndexRoute
   InstructorPathsIndexRoute: typeof InstructorPathsIndexRoute
   TeachersCohortsIndexRoute: typeof TeachersCohortsIndexRoute
   TeachersCoursesIndexRoute: typeof TeachersCoursesIndexRoute
   TeachersPathsIndexRoute: typeof TeachersPathsIndexRoute
+  InstructorAnalyticsEntityTypeEntityIdRoute: typeof InstructorAnalyticsEntityTypeEntityIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -1055,6 +1108,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof InstructorCoursesIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/instructor/analytics/': {
+      id: '/instructor/analytics/'
+      path: '/instructor/analytics'
+      fullPath: '/instructor/analytics/'
+      preLoaderRoute: typeof InstructorAnalyticsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin/paths/': {
       id: '/admin/paths/'
       path: '/paths'
@@ -1081,6 +1141,13 @@ declare module '@tanstack/react-router' {
       path: '/blog'
       fullPath: '/admin/blog/'
       preLoaderRoute: typeof AdminBlogIndexRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/analytics/': {
+      id: '/admin/analytics/'
+      path: '/analytics'
+      fullPath: '/admin/analytics/'
+      preLoaderRoute: typeof AdminAnalyticsIndexRouteImport
       parentRoute: typeof AdminRoute
     }
     '/teachers/paths/$slug': {
@@ -1265,6 +1332,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminAssessmentsAssessmentIdRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/instructor/analytics/$entityType/$entityId': {
+      id: '/instructor/analytics/$entityType/$entityId'
+      path: '/instructor/analytics/$entityType/$entityId'
+      fullPath: '/instructor/analytics/$entityType/$entityId'
+      preLoaderRoute: typeof InstructorAnalyticsEntityTypeEntityIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/analytics/$entityType/$entityId': {
+      id: '/admin/analytics/$entityType/$entityId'
+      path: '/analytics/$entityType/$entityId'
+      fullPath: '/admin/analytics/$entityType/$entityId'
+      preLoaderRoute: typeof AdminAnalyticsEntityTypeEntityIdRouteImport
+      parentRoute: typeof AdminRoute
+    }
   }
 }
 
@@ -1281,10 +1362,12 @@ interface AdminRouteChildren {
   AdminPathsPathIdRoute: typeof AdminPathsPathIdRoute
   AdminProjectSubmissionsProjectIdRoute: typeof AdminProjectSubmissionsProjectIdRoute
   AdminProjectsProjectIdRoute: typeof AdminProjectsProjectIdRoute
+  AdminAnalyticsIndexRoute: typeof AdminAnalyticsIndexRoute
   AdminBlogIndexRoute: typeof AdminBlogIndexRoute
   AdminCohortsIndexRoute: typeof AdminCohortsIndexRoute
   AdminCoursesIndexRoute: typeof AdminCoursesIndexRoute
   AdminPathsIndexRoute: typeof AdminPathsIndexRoute
+  AdminAnalyticsEntityTypeEntityIdRoute: typeof AdminAnalyticsEntityTypeEntityIdRoute
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
@@ -1300,10 +1383,12 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminPathsPathIdRoute: AdminPathsPathIdRoute,
   AdminProjectSubmissionsProjectIdRoute: AdminProjectSubmissionsProjectIdRoute,
   AdminProjectsProjectIdRoute: AdminProjectsProjectIdRoute,
+  AdminAnalyticsIndexRoute: AdminAnalyticsIndexRoute,
   AdminBlogIndexRoute: AdminBlogIndexRoute,
   AdminCohortsIndexRoute: AdminCohortsIndexRoute,
   AdminCoursesIndexRoute: AdminCoursesIndexRoute,
   AdminPathsIndexRoute: AdminPathsIndexRoute,
+  AdminAnalyticsEntityTypeEntityIdRoute: AdminAnalyticsEntityTypeEntityIdRoute,
 }
 
 const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
@@ -1353,11 +1438,14 @@ const rootRouteChildren: RootRouteChildren = {
   TeachersCohortsSlugRoute: TeachersCohortsSlugRoute,
   TeachersCoursesSlugRoute: TeachersCoursesSlugRoute,
   TeachersPathsSlugRoute: TeachersPathsSlugRoute,
+  InstructorAnalyticsIndexRoute: InstructorAnalyticsIndexRoute,
   InstructorCoursesIndexRoute: InstructorCoursesIndexRoute,
   InstructorPathsIndexRoute: InstructorPathsIndexRoute,
   TeachersCohortsIndexRoute: TeachersCohortsIndexRoute,
   TeachersCoursesIndexRoute: TeachersCoursesIndexRoute,
   TeachersPathsIndexRoute: TeachersPathsIndexRoute,
+  InstructorAnalyticsEntityTypeEntityIdRoute:
+    InstructorAnalyticsEntityTypeEntityIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

@@ -1,3 +1,4 @@
+import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import {
 	Compass,
@@ -11,8 +12,12 @@ import type { ComponentType, ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { RequireAuth } from "@/components/auth/require-auth";
 import { Logo } from "@/components/brand/logo";
+import { BadgeCelebration } from "@/components/engagement/badge-celebration";
+import { StreakFlame } from "@/components/engagement/streak-flame";
 import { AccountMenu } from "@/components/layout/account-menu";
 import { LanguageSwitcher } from "@/components/layout/language-switcher";
+import { NotificationBell } from "@/components/layout/notification-bell";
+import { engagementKeys, getEngagementMe } from "@/lib/engagement-api";
 import { cn } from "@/lib/utils";
 
 interface LearnerTab {
@@ -48,6 +53,10 @@ export function LearnerShell({
 	title: string;
 }) {
 	const { t } = useTranslation("dashboard");
+	const { data: engagement } = useQuery({
+		queryKey: engagementKeys.me,
+		queryFn: getEngagementMe,
+	});
 
 	return (
 		<RequireAuth>
@@ -74,10 +83,19 @@ export function LearnerShell({
 							))}
 						</nav>
 						<div className="flex items-center gap-1.5">
+							{engagement ? (
+								<StreakFlame
+									current={engagement.streak.current}
+									atRisk={engagement.streak.atRisk}
+									compact
+									className="mr-0.5"
+								/>
+							) : null}
+							<NotificationBell />
 							<Link
 								to="/teachers/courses"
 								aria-label={t("nav.explore")}
-								className="flex size-9 items-center justify-center rounded-btn text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+								className="hidden size-9 items-center justify-center rounded-btn text-muted-foreground transition-colors hover:bg-accent hover:text-foreground sm:flex"
 							>
 								<Compass className="size-5" />
 							</Link>
@@ -98,6 +116,8 @@ export function LearnerShell({
 					<h1 className="sr-only">{title}</h1>
 					{children}
 				</main>
+
+				<BadgeCelebration />
 
 				<nav
 					aria-label="Primary"

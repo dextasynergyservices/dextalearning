@@ -6,7 +6,9 @@ import {
 	QUEUE_AUDIO,
 	QUEUE_CAPTION,
 	QUEUE_CONNECTION,
+	QUEUE_REMINDERS,
 	QUEUE_VIDEO,
+	REMINDERS_QUEUE,
 	VIDEO_QUEUE,
 } from "./queue.constants";
 
@@ -46,7 +48,14 @@ function queueProvider(token: symbol, name: string): Provider {
 		queueProvider(VIDEO_QUEUE, QUEUE_VIDEO),
 		queueProvider(AUDIO_QUEUE, QUEUE_AUDIO),
 		queueProvider(CAPTION_QUEUE, QUEUE_CAPTION),
+		queueProvider(REMINDERS_QUEUE, QUEUE_REMINDERS),
 	],
-	exports: [QUEUE_CONNECTION, VIDEO_QUEUE, AUDIO_QUEUE, CAPTION_QUEUE],
+	exports: [
+		QUEUE_CONNECTION,
+		VIDEO_QUEUE,
+		AUDIO_QUEUE,
+		CAPTION_QUEUE,
+		REMINDERS_QUEUE,
+	],
 })
 export class QueueModule {}

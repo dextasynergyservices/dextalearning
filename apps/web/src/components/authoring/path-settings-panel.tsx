@@ -266,7 +266,7 @@ export function PathSettingsPanel({ path }: { path: PathDetail }) {
 									})}
 								/>
 								{requested && !featured ? (
-									<p className="mt-2 text-amber-700 text-xs">
+									<p className="mt-2 text-amber-700 dark:text-amber-300 text-xs">
 										{t("settings.feature_requested_note", {
 											defaultValue:
 												"The instructor requested featuring — approve above.",
@@ -380,7 +380,7 @@ export function PathSettingsPanel({ path }: { path: PathDetail }) {
 											/>
 										</Field>
 									</div>
-									<p className="mt-3 text-amber-800 text-sm">
+									<p className="mt-3 text-amber-800 dark:text-amber-200 text-sm">
 										{t("settings.earnback_preview", {
 											defaultValue:
 												"Learners can earn back {{pct}}% — {{amount}} of {{price}}.",

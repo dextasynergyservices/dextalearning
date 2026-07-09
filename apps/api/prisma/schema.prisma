@@ -297,6 +297,8 @@ model User {
   skillLevel            String?       @map("skill_level") @db.VarChar(20)
   weeklyHours           String?       @map("weekly_hours") @db.VarChar(20)
   studySchedule         String?       @map("study_schedule") @db.VarChar(20)
+  // Habit-stacking anchor (§3.1) — the daily habit study time is tied to.
+  studyAnchor           String?       @map("study_anchor") @db.VarChar(40)
   whatsappOptIn         Boolean       @default(false) @map("whatsapp_opt_in")
   headline              String?       @db.VarChar(160)
   bio                   String?       @db.Text
@@ -340,6 +342,9 @@ model User {
   certificates                   Certificate[]
   progressEvents                 ProgressEvent[]
   leaderboardScores              LeaderboardScore[]
+  streak                         UserStreak?
+  badges                         UserBadge[]
+  notifications                  Notification[]
 
   @@map("users")
 }
@@ -1066,6 +1071,87 @@ model LeaderboardScore {
   user   User?   @relation(fields: [userId], references: [id])
 
   @@map("leaderboard_scores")
+}
+
+// ── PHASE 4: ENGAGEMENT (streaks, badges) ────────────────────────────────────
+// Owned by the Engagement bounded context (§6.4) — written only by its event
+// handlers, read only through its own service/endpoints.
+
+model UserStreak {
+  userId         String    @id @map("user_id") @db.Uuid
+  current        Int       @default(0)
+  longest        Int       @default(0)
+  freezes        Int       @default(0)
+  lastActiveDate DateTime? @map("last_active_date") @db.Date
+  updatedAt      DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("user_streaks")
+}
+
+model UserBadge {
+  id        String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId    String    @map("user_id") @db.Uuid
+  badgeKey  String    @map("badge_key") @db.VarChar(40)
+  awardedAt DateTime  @default(now()) @map("awarded_at") @db.Timestamptz(6)
+  seenAt    DateTime? @map("seen_at") @db.Timestamptz(6)
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@unique([userId, badgeKey])
+  @@index([userId, seenAt])
+  @@map("user_badges")
+}
+
+// ── PHASE 4: NOTIFICATIONS (in-app channel) ──────────────────────────────────
+// Owned by the Notifications context. `type` + `dataJson` are rendered
+// client-side via i18n — no display copy is stored.
+
+model Notification {
+  id        String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId    String    @map("user_id") @db.Uuid
+  type      String    @db.VarChar(40)
+  dataJson  Json?     @map("data_json")
+  readAt    DateTime? @map("read_at") @db.Timestamptz(6)
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId, readAt, createdAt])
+  @@map("notifications")
+}
+
+// ── PHASE 4: REMINDERS (spaced repetition) ───────────────────────────────────
+// Owned by the Reminders context. Deliberately relation-free snapshots
+// (§6.4 rule 5): titles are copied from the LessonCompleted event payload so
+// this context never joins back into Content/Completion tables.
+
+model ReviewItem {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId        String   @map("user_id") @db.Uuid
+  lessonId      String   @map("lesson_id") @db.Uuid
+  courseId      String   @map("course_id") @db.Uuid
+  lessonTitle   String   @map("lesson_title") @db.VarChar(200)
+  courseTitle   String   @map("course_title") @db.VarChar(200)
+  completedOn   DateTime @map("completed_on") @db.Date
+  intervalIndex Int      @default(0) @map("interval_index")
+  nextDueOn     DateTime @map("next_due_on") @db.Date
+  done          Boolean  @default(false)
+
+  @@unique([userId, lessonId])
+  @@index([done, nextDueOn])
+  @@map("review_items")
+}
+
+model ReminderLog {
+  id     String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId String   @map("user_id") @db.Uuid
+  kind   String   @db.VarChar(20)
+  sentOn DateTime @map("sent_on") @db.Date
+
+  @@unique([userId, kind, sentOn])
+  @@map("reminder_logs")
 }
 
 model BlogPost {

@@ -1,7 +1,9 @@
 import { NotFoundException } from "@nestjs/common";
+import { EventEmitter2 } from "@nestjs/event-emitter";
 import { beforeEach, describe, expect, it } from "vitest";
 import type { AuthenticatedUser } from "../../src/auth/types";
 import { EnrollmentService } from "../../src/modules/enrollment/enrollment.service";
+import { LearningEvents } from "../../src/shared/events/learning-events";
 import { getTestPrisma } from "./support/db";
 import {
 	createCohort,
@@ -16,11 +18,18 @@ function asAuthenticatedUser(id: string): AuthenticatedUser {
 
 describe("EnrollmentService (integration)", () => {
 	const prisma = getTestPrisma();
-	const service = new EnrollmentService(prisma);
+	const events = new EventEmitter2();
+	const service = new EnrollmentService(prisma, events);
 
 	let learnerId: string;
+	let emitted: { event: string; payload: unknown }[] = [];
+
+	events.onAny((event, payload) => {
+		emitted.push({ event: String(event), payload });
+	});
 
 	beforeEach(async () => {
+		emitted = [];
 		const learner = await createUser(prisma, { role: "learner" });
 		learnerId = learner.id;
 	});
@@ -64,6 +73,22 @@ describe("EnrollmentService (integration)", () => {
 				where: { courseId: course.id, userId: learnerId },
 			});
 			expect(count).toBe(1);
+		});
+
+		it("emits EnrollmentCreated once on creation; re-enrolling stays silent (Phase 4, §6.4)", async () => {
+			const course = await createCourse(prisma, { status: "published" });
+			await service.enroll(asAuthenticatedUser(learnerId), "course", course.id);
+			await service.enroll(asAuthenticatedUser(learnerId), "course", course.id);
+
+			const created = emitted.filter(
+				(e) => e.event === LearningEvents.EnrollmentCreated,
+			);
+			expect(created).toHaveLength(1);
+			expect(created[0].payload).toEqual({
+				userId: learnerId,
+				entityType: "course",
+				entityId: course.id,
+			});
 		});
 	});
 

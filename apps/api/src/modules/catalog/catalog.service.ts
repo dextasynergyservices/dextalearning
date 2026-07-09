@@ -31,6 +31,7 @@ const COURSE_CARD_SELECT = {
 	description: true,
 	level: true,
 	language: true,
+	enrolledCount: true,
 	...COMMERCIAL_SELECT,
 	_count: { select: { modules: true } },
 } as const;
@@ -462,6 +463,7 @@ export class CatalogService {
 				description: true,
 				level: true,
 				language: true,
+				enrolledCount: true,
 				...COMMERCIAL_SELECT,
 				_count: { select: { modules: true } },
 				modules: {
@@ -492,6 +494,7 @@ export class CatalogService {
 				language: true,
 				status: true,
 				estimatedDuration: true,
+				enrolledCount: true,
 				...COMMERCIAL_SELECT,
 				earnBackDeadlineDays: true,
 				creator: { select: INSTRUCTOR_SELECT },

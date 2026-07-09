@@ -2,20 +2,25 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import {
+	Activity,
 	ArrowRight,
 	BookOpen,
 	CalendarDays,
 	CheckCircle2,
+	GraduationCap,
 	ShieldCheck,
 	Sparkles,
+	Target,
 	Waypoints,
 } from "lucide-react";
 import type { ComponentType } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
+import { StatTileGrid } from "@/components/analytics/stat-tile";
 import { StudioShell } from "@/components/authoring/studio-shell";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { analyticsKeys, getAdminAnalytics } from "@/lib/analytics-api";
 import {
 	type CourseDetail,
 	type FeatureRequestItem,
@@ -43,6 +48,12 @@ function AdminDashboardPage() {
 		queryKey: ["admin-cohorts"],
 		queryFn: listCohorts,
 	});
+	// §2.4: admin sees ALL analytics, platform-wide.
+	const analytics = useQuery({
+		queryKey: analyticsKeys.admin,
+		queryFn: getAdminAnalytics,
+	});
+	const platform = analytics.data?.platform;
 
 	const loading = courses.isPending || paths.isPending || cohorts.isPending;
 	const publishedCourses =
@@ -108,6 +119,55 @@ function AdminDashboardPage() {
 				</div>
 
 				<FeatureRequests />
+
+				{/* Compact platform analytics — full breakdown on its own page. */}
+				<section data-testid="admin-analytics">
+					<div className="mb-3 flex items-end justify-between gap-3">
+						<div>
+							<p className="font-display text-xl text-foreground">
+								{t("analytics.platform_title")}
+							</p>
+							<p className="mt-1 text-muted-foreground text-sm">
+								{t("analytics.subtitle_admin")}
+							</p>
+						</div>
+						<Link
+							to="/admin/analytics"
+							className="inline-flex shrink-0 items-center gap-1 font-semibold text-brand-primary text-sm hover:gap-1.5"
+						>
+							{t("analytics.view_all")}
+							<ArrowRight className="size-4" />
+						</Link>
+					</div>
+					<StatTileGrid
+						tiles={[
+							{
+								key: "learners",
+								icon: GraduationCap,
+								value: platform ? platform.learners : null,
+								label: t("analytics.learners"),
+							},
+							{
+								key: "active",
+								icon: Activity,
+								value: platform ? platform.activeLearners7d : null,
+								label: t("analytics.active_7d"),
+							},
+							{
+								key: "enrol",
+								icon: BookOpen,
+								value: platform ? platform.enrollments : null,
+								label: t("analytics.enrollments"),
+							},
+							{
+								key: "rate",
+								icon: Target,
+								value: platform ? `${platform.completionRate}%` : null,
+								label: t("analytics.completion_rate"),
+							},
+						]}
+					/>
+				</section>
 
 				{/* Portfolio: courses, paths, cohorts at a glance */}
 				<section>
@@ -273,13 +333,13 @@ function FeatureRequests() {
 	if (pending.length === 0) return null;
 
 	return (
-		<section className="rounded-card border border-amber-300 bg-amber-50/60 p-4 shadow-card sm:p-5">
+		<section className="rounded-card border border-warning/40 bg-warning/10 p-4 shadow-card sm:p-5">
 			<div className="flex items-center gap-2">
-				<Sparkles className="size-5 text-amber-600" />
+				<Sparkles className="size-5 text-amber-600 dark:text-amber-400" />
 				<h2 className="font-display text-lg text-foreground">
 					{t("feature_requests.title", { defaultValue: "Feature requests" })}
 				</h2>
-				<span className="rounded-pill bg-amber-200 px-2 py-0.5 font-stats font-semibold text-amber-800 text-xs">
+				<span className="rounded-pill bg-warning/20 px-2 py-0.5 font-stats font-semibold text-amber-800 dark:text-amber-200 text-xs">
 					{pending.length}
 				</span>
 			</div>

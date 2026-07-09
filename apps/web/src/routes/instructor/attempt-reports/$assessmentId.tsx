@@ -24,7 +24,7 @@ function InstructorAttemptReportsRoute() {
 
 export function integrityTone(score: number) {
 	if (score >= 85) return "bg-success/10 text-success";
-	if (score >= 60) return "bg-amber-100 text-amber-700";
+	if (score >= 60) return "bg-warning/15 text-amber-700 dark:text-amber-300";
 	return "bg-error/10 text-error";
 }
 
@@ -129,7 +129,7 @@ function AttemptRow({
 								: t("report.failed", { defaultValue: "Failed" })}
 						</span>
 						{row.flagCount > 0 ? (
-							<span className="text-amber-600">
+							<span className="text-amber-600 dark:text-amber-400">
 								{t("report.flag_count", {
 									defaultValue: "{{n}} flags",
 									n: row.flagCount,
@@ -143,7 +143,7 @@ function AttemptRow({
 							</span>
 						) : null}
 						{row.escalated ? (
-							<span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-1.5 py-0.5 text-amber-700">
+							<span className="inline-flex items-center gap-1 rounded-full bg-warning/15 px-1.5 py-0.5 text-amber-700 dark:text-amber-300">
 								<ShieldAlert className="size-3" />
 								{t("report.escalated_chip", { defaultValue: "Escalated" })}
 							</span>

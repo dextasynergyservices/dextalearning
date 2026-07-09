@@ -1,10 +1,9 @@
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { type ReactNode, useRef } from "react";
-import { scheduleScrollTriggerRefresh } from "@/lib/scroll-trigger-refresh";
+import { observeOnEnter } from "@/lib/reveal-on-enter";
 
-gsap.registerPlugin(useGSAP, ScrollTrigger);
+gsap.registerPlugin(useGSAP);
 
 interface RevealProps {
 	children: ReactNode;
@@ -16,10 +15,12 @@ interface RevealProps {
 }
 
 /**
- * Wraps a block whose **direct children** fade and slide up as it scrolls into
- * view (staggered in DOM order). A drop-in for list/grid/section content on the
- * public pages. Honors `prefers-reduced-motion` (blueprint §13.1): when reduced
- * motion is requested nothing animates and content renders in place.
+ * Wraps a block whose **direct children** fade and slide up as they scroll
+ * into view (staggered in DOM order). A drop-in for list/grid/section content
+ * on the public pages. Honors `prefers-reduced-motion` (blueprint §13.1):
+ * when reduced motion is requested nothing animates and content renders in
+ * place. Uses IntersectionObserver, not ScrollTrigger — see
+ * `lib/reveal-on-enter.ts`.
  */
 export function Reveal({
 	children,
@@ -37,22 +38,23 @@ export function Reveal({
 			const targets = Array.from(el.children);
 			if (targets.length === 0) return;
 
-			gsap.from(targets, {
-				opacity: 0,
-				y,
-				duration: 0.7,
-				ease: "power2.out",
-				stagger,
-				// `once` so a later position refresh (needed to correct pre-settle
-				// measurements) can never flip an already-revealed block back to
-				// hidden — see the matching note in useReveal.
-				scrollTrigger: { trigger: el, start: "top 84%", once: true },
-			});
+			gsap.set(targets, { opacity: 0, y });
 
-			// See scheduleScrollTriggerRefresh: recompute once this route's
-			// layout has truly settled (client-side nav, view-transition
-			// cross-fade, late fonts) so the reveal doesn't get stuck hidden.
-			scheduleScrollTriggerRefresh();
+			// Mirrors the old ScrollTrigger `start: "top 84%"` line.
+			return observeOnEnter(
+				targets,
+				(target, batchIndex) => {
+					gsap.to(target, {
+						opacity: 1,
+						y: 0,
+						duration: 0.7,
+						ease: "power2.out",
+						delay: batchIndex * stagger,
+						overwrite: "auto",
+					});
+				},
+				"0px 0px -16% 0px",
+			);
 		},
 		{ scope },
 	);

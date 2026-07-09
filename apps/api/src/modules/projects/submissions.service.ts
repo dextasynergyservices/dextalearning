@@ -7,9 +7,14 @@ import {
 	NotFoundException,
 	UnprocessableEntityException,
 } from "@nestjs/common";
+import { EventEmitter2 } from "@nestjs/event-emitter";
 import type { ProjectSubmission } from "../../../generated/prisma/client";
 import type { AuthenticatedUser } from "../../auth/types";
 import { PrismaService } from "../../prisma/prisma.service";
+import {
+	LearningEvents,
+	type ProjectGradedEvent,
+} from "../../shared/events/learning-events";
 import {
 	STORAGE_PORT,
 	type StoragePort,
@@ -27,6 +32,7 @@ export class SubmissionsService {
 	constructor(
 		private readonly prisma: PrismaService,
 		@Inject(STORAGE_PORT) private readonly storage: StoragePort,
+		private readonly events: EventEmitter2,
 	) {}
 
 	private filesOf(sub: ProjectSubmission): SubmissionFile[] {
@@ -345,14 +351,22 @@ export class SubmissionsService {
 				totals.reduce((s, x) => s + x, 0) / (totals.length || 1);
 			const score =
 				totalMax > 0 ? Math.round((avgEarned / totalMax) * 10_000) / 100 : 0;
+			const passed = score >= Number(project.passMark);
 			await this.prisma.projectSubmission.update({
 				where: { id: sub.id },
-				data: {
-					score,
-					passed: score >= Number(project.passMark),
-					gradedAt: new Date(),
-				},
+				data: { score, passed, gradedAt: new Date() },
 			});
+			// First (and only) grading moment for a peer-reviewed submission —
+			// the `gradedAt == null` guard above already prevents re-fires (§6.4).
+			if (sub.userId && sub.projectId) {
+				this.events.emit(LearningEvents.ProjectGraded, {
+					userId: sub.userId,
+					projectId: sub.projectId,
+					submissionId: sub.id,
+					score,
+					passed,
+				} satisfies ProjectGradedEvent);
+			}
 		}
 		return { done: true };
 	}
