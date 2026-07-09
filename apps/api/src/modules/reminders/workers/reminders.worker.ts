@@ -29,7 +29,8 @@ export class RemindersWorker implements OnModuleInit, OnModuleDestroy {
 		private readonly reminders: RemindersService,
 	) {}
 
-	async onModuleInit(): Promise<void> {
+	onModuleInit(): void {
+		// `new Worker(...)` connects lazily — it never blocks boot.
 		this.worker = new Worker(
 			QUEUE_REMINDERS,
 			async () => {
@@ -41,11 +42,27 @@ export class RemindersWorker implements OnModuleInit, OnModuleDestroy {
 		this.worker.on("failed", (_job, err) =>
 			this.logger.error(`reminder sweep failed: ${err.message}`),
 		);
-		await this.queue.upsertJobScheduler(
-			"reminders-hourly",
-			{ pattern: "0 * * * *" },
-			{ name: "sweep" },
-		);
+		// Register the recurring sweep OFF the boot critical path. Awaiting this
+		// Redis round-trip here used to block `app.listen()` (Nest waits for all
+		// onModuleInit hooks): if Redis was briefly unreachable during a deploy,
+		// the connection retried forever, the server never opened its port, and
+		// the platform healthcheck failed with NO error in the logs (a hang, not
+		// a crash). Fire-and-forget with a logged catch instead — the command
+		// flushes automatically once Redis connects, so the schedule still lands.
+		this.queue
+			.upsertJobScheduler(
+				"reminders-hourly",
+				{ pattern: "0 * * * *" },
+				{ name: "sweep" },
+			)
+			.then(() => this.logger.log("reminders-hourly scheduler registered"))
+			.catch((err: unknown) =>
+				this.logger.error(
+					`failed to register reminders scheduler: ${
+						err instanceof Error ? err.message : String(err)
+					}`,
+				),
+			);
 	}
 
 	async onModuleDestroy(): Promise<void> {
