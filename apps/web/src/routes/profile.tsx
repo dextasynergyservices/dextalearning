@@ -15,6 +15,8 @@ import { toast } from "sonner";
 import { AvatarEditor } from "@/components/authoring/avatar-editor";
 import { LearnerShell } from "@/components/layout/learner-shell";
 import { FadeIn } from "@/components/marketing/fade-in";
+import { PhoneVerifyDialog } from "@/components/profile/phone-verify-dialog";
+import { PushOptIn } from "@/components/profile/push-opt-in";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { homeForRole, signOut, useSession } from "@/lib/auth-client";
 import { getMyProfile, updateMyProfile } from "@/lib/content-api";
@@ -130,6 +132,7 @@ function ProfilePage() {
 	const [studyAnchor, setStudyAnchor] = useState("");
 	const [weeklyHours, setWeeklyHours] = useState("");
 	const [ready, setReady] = useState(false);
+	const [verifyOpen, setVerifyOpen] = useState(false);
 
 	useEffect(() => {
 		if (data && !ready) {
@@ -273,12 +276,25 @@ function ProfilePage() {
 													{t("profile.verified", { defaultValue: "Verified" })}
 												</span>
 											) : (
-												<span className="inline-flex items-center gap-1 rounded-pill bg-warning/10 px-2 py-0.5 font-stats font-semibold text-[0.6rem] text-warning uppercase tracking-wide">
-													<ShieldAlert className="size-3" />
-													{t("profile.not_verified", {
-														defaultValue: "Not verified",
-													})}
-												</span>
+												<div className="flex items-center gap-2">
+													<span className="inline-flex items-center gap-1 rounded-pill bg-warning/10 px-2 py-0.5 font-stats font-semibold text-[0.6rem] text-warning uppercase tracking-wide">
+														<ShieldAlert className="size-3" />
+														{t("profile.not_verified", {
+															defaultValue: "Not verified",
+														})}
+													</span>
+													{phoneSaved ? (
+														<button
+															type="button"
+															onClick={() => setVerifyOpen(true)}
+															className="font-semibold text-brand-primary text-xs transition-colors hover:text-brand-primary/80"
+														>
+															{t("phoneVerify.verifyCta", {
+																defaultValue: "Verify",
+															})}
+														</button>
+													) : null}
+												</div>
 											)
 										) : null}
 									</div>
@@ -291,9 +307,15 @@ function ProfilePage() {
 										className="h-12 w-full rounded-input border border-border bg-card px-4 text-foreground outline-none transition-colors placeholder:text-muted-foreground focus:border-brand-primary"
 									/>
 									<span className="mt-1 block text-muted-foreground text-xs">
-										{t("profile.phone_hint", {
-											defaultValue: "Optional — for WhatsApp study reminders.",
-										})}
+										{phoneTrimmed && !phoneSaved && !data?.phoneVerified
+											? t("phoneVerify.saveFirst", {
+													defaultValue:
+														"Save your phone number first, then verify it.",
+												})
+											: t("profile.phone_hint", {
+													defaultValue:
+														"Optional — for WhatsApp study reminders.",
+												})}
 									</span>
 								</div>
 								<label className="block">
@@ -376,6 +398,10 @@ function ProfilePage() {
 											)}
 										/>
 									</button>
+								</div>
+
+								<div className="border-border border-t pt-4">
+									<PushOptIn />
 								</div>
 
 								<label className="block">
@@ -461,6 +487,17 @@ function ProfilePage() {
 											"Reminders arrive at your usual study time, in your language. Saving updates your plan.",
 									})}
 								</p>
+								<Button
+									size="lg"
+									onClick={() => save.mutate()}
+									disabled={!canSave || save.isPending}
+									className="w-full"
+								>
+									{save.isPending ? (
+										<Loader2 className="size-4 animate-spin" />
+									) : null}
+									{t("profile.save", { defaultValue: "Save changes" })}
+								</Button>
 							</div>
 						</Group>
 
@@ -495,6 +532,15 @@ function ProfilePage() {
 					</FadeIn>
 				</div>
 			</div>
+
+			<PhoneVerifyDialog
+				open={verifyOpen}
+				phone={phoneTrimmed}
+				onOpenChange={setVerifyOpen}
+				onVerified={() =>
+					queryClient.invalidateQueries({ queryKey: ["my-profile"] })
+				}
+			/>
 		</LearnerShell>
 	);
 }

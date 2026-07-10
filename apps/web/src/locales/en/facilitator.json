@@ -1,0 +1,11 @@
+{
+	"portal": "Facilitator portal",
+	"my_cohorts": "Your cohorts",
+	"empty_title": "No cohorts to facilitate yet",
+	"empty_body": "When an admin assigns you as a facilitator, your cohorts appear here.",
+	"learners_one": "{{count}} learner",
+	"learners_other": "{{count}} learners",
+	"groups_one": "{{count}} group",
+	"groups_other": "{{count}} groups",
+	"back": "All cohorts"
+}

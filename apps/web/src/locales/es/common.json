@@ -41,6 +41,7 @@
 		"dashboard": "Panel",
 		"profile": "Perfil",
 		"awards": "Logros",
+		"facilitator": "Portal de facilitador",
 		"sign_out": "Cerrar sesión",
 		"menu": "Menú de cuenta",
 		"greeting": "Sesión iniciada"
@@ -62,5 +63,35 @@
 		"light": "Claro",
 		"dark": "Oscuro",
 		"system": "Sistema"
+	},
+	"phoneVerify": {
+		"verifyCta": "Verificar",
+		"title": "Verifica tu número",
+		"chooseMethod": "¿Cómo te enviamos el código al {{phone}}?",
+		"sendWhatsapp": "Enviar código por WhatsApp",
+		"sendSms": "Enviar código por SMS",
+		"sending": "Enviando…",
+		"codeSentWhatsapp": "Enviamos un código por WhatsApp al {{phone}}.",
+		"codeSentSms": "Enviamos un código por SMS al {{phone}}.",
+		"enterCode": "Introduce el código de 6 dígitos",
+		"verify": "Verificar",
+		"verifying": "Verificando…",
+		"resend": "Reenviar código",
+		"resendIn": "Reenviar en {{seconds}} s",
+		"changeMethod": "Usar otro método",
+		"verifiedTitle": "Número verificado",
+		"verifiedBody": "¡Gracias! Tu número de teléfono ya está verificado.",
+		"done": "Listo",
+		"close": "Cerrar",
+		"saveFirst": "Guarda tu número primero y luego verifícalo.",
+		"genericError": "No pudimos enviar el código. Inténtalo de nuevo."
+	},
+	"push": {
+		"title": "Notificaciones push",
+		"hint": "Recibe recordatorios en este dispositivo, aunque la app esté cerrada.",
+		"unsupported": "Este navegador no admite notificaciones push.",
+		"denied": "Las notificaciones están bloqueadas. Actívalas en los ajustes de tu navegador.",
+		"enabled_toast": "Notificaciones push activadas.",
+		"error": "No se pudieron activar las notificaciones push."
 	}
 }

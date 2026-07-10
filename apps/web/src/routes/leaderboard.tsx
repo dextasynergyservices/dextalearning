@@ -1,32 +1,31 @@
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { AnimatePresence, motion } from "framer-motion";
-import {
-	ChevronDown,
-	ChevronUp,
-	Crown,
-	Flame,
-	Info,
-	Minus,
-	Star,
-	TrendingUp,
-	Trophy,
-	Users,
-} from "lucide-react";
-import { type ComponentType, useMemo, useState } from "react";
+import { Crown, Flame, Star, TrendingUp, Trophy, Users } from "lucide-react";
+import { type ComponentType, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { BadgeGrid } from "@/components/engagement/badge-grid";
 import { LearnerShell } from "@/components/layout/learner-shell";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useSession } from "@/lib/auth-client";
 import { engagementKeys, getEngagementMe } from "@/lib/engagement-api";
+import {
+	getLeaderboard,
+	type LeaderboardPeriod,
+	type LeaderboardType,
+	leaderboardKeys,
+} from "@/lib/leaderboard-api";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/leaderboard")({
 	component: AwardsPage,
 });
 
-// The five leaderboard types (blueprint §4.9). Default is growth-based.
-const TYPES: { key: string; icon: ComponentType<{ className?: string }> }[] = [
+// The five leaderboard types (blueprint §4.9).
+const TYPES: {
+	key: LeaderboardType;
+	icon: ComponentType<{ className?: string }>;
+}[] = [
 	{ key: "overall", icon: Trophy },
 	{ key: "consistency", icon: Flame },
 	{ key: "improved", icon: TrendingUp },
@@ -34,17 +33,7 @@ const TYPES: { key: string; icon: ComponentType<{ className?: string }> }[] = [
 	{ key: "peer", icon: Star },
 ];
 
-// Preview roster — replaced by live cohort scores once Phase 4/5 ships.
-const ROSTER = [
-	{ name: "Amara Okafor", points: 2840, change: 1 },
-	{ name: "Wei Chen", points: 2655, change: 2 },
-	{ name: "Sofia Reyes", points: 2480, change: -1 },
-	{ name: "David Mensah", points: 2210, change: 0 },
-	{ name: "Priya Nair", points: 1990, change: 3 },
-	{ name: "Tunde Bello", points: 1820, change: -2 },
-	{ name: "Mei Lin", points: 1655, change: 1 },
-	{ name: "Carlos Diaz", points: 1430, change: -1 },
-];
+const PERIODS: LeaderboardPeriod[] = ["all_time", "weekly"];
 
 const TINTS = [
 	"bg-brand-primary",
@@ -57,12 +46,12 @@ const TINTS = [
 	"bg-violet-600",
 ];
 
-interface Entry {
+interface Row {
+	subjectId: string;
 	name: string;
 	points: number;
-	change: number;
-	isYou?: boolean;
 	rank: number;
+	isYou: boolean;
 }
 
 function initialsOf(name: string): string {
@@ -113,24 +102,6 @@ function Avatar({
 	);
 }
 
-function ChangeBadge({ value }: { value: number }) {
-	if (value > 0)
-		return (
-			<span className="flex items-center font-stats font-semibold text-emerald-600 text-xs">
-				<ChevronUp className="size-3.5" />
-				{value}
-			</span>
-		);
-	if (value < 0)
-		return (
-			<span className="flex items-center font-stats font-semibold text-rose-500 text-xs">
-				<ChevronDown className="size-3.5" />
-				{Math.abs(value)}
-			</span>
-		);
-	return <Minus className="size-3.5 text-muted-foreground" />;
-}
-
 const PODIUM_META: Record<
 	number,
 	{ ring: string; bar: string; badge: string; height: string }
@@ -159,28 +130,46 @@ function AwardsPage() {
 	const { t } = useTranslation("dashboard");
 	const { data: session } = useSession();
 	const user = session?.user;
-	const [type, setType] = useState("overall");
+	const [type, setType] = useState<LeaderboardType>("overall");
+	const [period, setPeriod] = useState<LeaderboardPeriod>("all_time");
+
 	const { data: engagement } = useQuery({
 		queryKey: engagementKeys.me,
 		queryFn: getEngagementMe,
 	});
+	const { data: board, isPending } = useQuery({
+		queryKey: leaderboardKeys.board(type, period),
+		queryFn: () => getLeaderboard({ type, period, limit: 20 }),
+	});
 
-	const entries = useMemo<Entry[]>(() => {
-		const youName = user?.name?.trim() || t("leaderboard.you");
-		const raw = [
-			...ROSTER,
-			{ name: youName, points: 1900, change: 4, isYou: true },
-		];
-		return raw
-			.sort((a, b) => b.points - a.points)
-			.map((e, i) => ({ ...e, rank: i + 1 }));
-	}, [user?.name, t]);
+	const isGroup = board?.kind === "group";
+	const labelFor = (row: Row) =>
+		row.isYou && !isGroup ? t("leaderboard.you") : row.name;
 
-	const podium = entries.slice(0, 3);
-	const rest = entries.slice(3);
-	const you = entries.find((e) => e.isYou);
+	const rows: Row[] =
+		board?.entries.map((e) => ({
+			subjectId: e.subjectId,
+			name: e.name,
+			points: e.score,
+			rank: e.rank,
+			isYou: e.isSelf,
+		})) ?? [];
+	const you: Row | null = board?.me
+		? {
+				subjectId: board.me.subjectId,
+				name: board.me.name,
+				points: board.me.score,
+				rank: board.me.rank,
+				isYou: true,
+			}
+		: null;
+
+	const podium = rows.slice(0, 3);
+	const rest = rows.slice(3);
 	// Display order for the podium: 2nd · 1st · 3rd.
-	const podiumOrder = [podium[1], podium[0], podium[2]].filter(Boolean);
+	const podiumOrder = [podium[1], podium[0], podium[2]].filter(
+		Boolean,
+	) as Row[];
 
 	return (
 		<LearnerShell title={t("leaderboard.title")}>
@@ -194,7 +183,6 @@ function AwardsPage() {
 					</p>
 				</div>
 
-				{/* Live awards (Phase 4) — the roster below stays a Phase 5 preview */}
 				{engagement ? (
 					<BadgeGrid
 						badges={engagement.badges}
@@ -202,14 +190,9 @@ function AwardsPage() {
 					/>
 				) : null}
 
-				{/* Preview banner */}
-				<div className="flex items-start gap-2.5 rounded-card border border-warning/30 bg-warning/10 px-4 py-3 text-amber-800 text-sm dark:text-amber-200">
-					<Info className="mt-0.5 size-4 shrink-0" />
-					<p>{t("leaderboard.preview_note")}</p>
-				</div>
-
-				{/* Type selector with an animated active pill */}
-				<div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] lg:mx-0 lg:flex-wrap lg:px-0 [&::-webkit-scrollbar]:hidden">
+				{/* Type selector with an animated active pill — wraps so no tab
+				    ever runs off a narrow screen. */}
+				<div className="flex flex-wrap gap-2">
 					{TYPES.map(({ key, icon: Icon }) => {
 						const active = type === key;
 						return (
@@ -240,141 +223,189 @@ function AwardsPage() {
 					})}
 				</div>
 
-				<AnimatePresence mode="wait">
-					<motion.div
-						key={type}
-						initial={{ opacity: 0, y: 8 }}
-						animate={{ opacity: 1, y: 0 }}
-						exit={{ opacity: 0, y: -8 }}
-						transition={{ duration: 0.25 }}
-						className="space-y-6"
-					>
-						{/* Podium */}
-						<section className="rounded-card border border-border bg-card p-5 shadow-card sm:p-6">
-							<p className="mb-4 font-stats font-semibold text-muted-foreground text-xs uppercase tracking-wide">
-								{t("leaderboard.this_week")}
-							</p>
-							<div className="grid grid-cols-3 items-end gap-3 sm:gap-5">
-								{podiumOrder.map((entry, i) => {
-									const meta = PODIUM_META[entry.rank];
-									return (
-										<motion.div
-											key={entry.name}
-											initial={{ opacity: 0, y: 30 }}
-											animate={{ opacity: 1, y: 0 }}
-											transition={{
-												delay: 0.1 + i * 0.1,
-												type: "spring",
-												stiffness: 260,
-												damping: 22,
-											}}
-											className="flex flex-col items-center"
-										>
-											<div className="relative">
-												{entry.rank === 1 ? (
-													<Crown className="-top-5 -translate-x-1/2 absolute left-1/2 size-6 text-amber-400" />
-												) : null}
-												<Avatar
-													name={entry.name}
-													image={entry.isYou ? user?.image : undefined}
+				{/* Period segmented control */}
+				<div className="inline-flex rounded-pill border border-border bg-card p-0.5">
+					{PERIODS.map((p) => (
+						<button
+							key={p}
+							type="button"
+							onClick={() => setPeriod(p)}
+							className={cn(
+								"rounded-pill px-3.5 py-1.5 font-medium text-sm transition-colors",
+								period === p
+									? "bg-brand-primary text-white"
+									: "text-muted-foreground hover:text-foreground",
+							)}
+						>
+							{t(`leaderboard.period_${p}`, {
+								defaultValue: p === "weekly" ? "This week" : "All-time",
+							})}
+						</button>
+					))}
+				</div>
+
+				{isPending ? (
+					<div className="space-y-3">
+						<Skeleton className="h-40 rounded-card" />
+						<Skeleton className="h-16 rounded-card" />
+						<Skeleton className="h-16 rounded-card" />
+					</div>
+				) : rows.length === 0 ? (
+					<div className="rounded-card border border-border border-dashed bg-card p-10 text-center">
+						<Trophy className="mx-auto size-8 text-muted-foreground" />
+						<p className="mt-3 font-display text-foreground">
+							{t("leaderboard.empty_title", {
+								defaultValue: "No rankings yet",
+							})}
+						</p>
+						<p className="mt-1 text-muted-foreground text-sm">
+							{t("leaderboard.empty_body", {
+								type: t(`leaderboard.types.${type}`),
+								defaultValue:
+									"Complete lessons and quizzes to climb the board.",
+							})}
+						</p>
+					</div>
+				) : (
+					<AnimatePresence mode="wait">
+						<motion.div
+							key={`${type}-${period}`}
+							initial={{ opacity: 0, y: 8 }}
+							animate={{ opacity: 1, y: 0 }}
+							exit={{ opacity: 0, y: -8 }}
+							transition={{ duration: 0.25 }}
+							className="space-y-6"
+						>
+							{/* Podium */}
+							<section className="rounded-card border border-border bg-card p-5 shadow-card sm:p-6">
+								<p className="mb-4 font-stats font-semibold text-muted-foreground text-xs uppercase tracking-wide">
+									{t(`leaderboard.period_${period}`, {
+										defaultValue:
+											period === "weekly" ? "This week" : "All-time",
+									})}
+								</p>
+								<div className="grid grid-cols-3 items-end gap-3 sm:gap-5">
+									{podiumOrder.map((entry, i) => {
+										const meta = PODIUM_META[entry.rank] ?? PODIUM_META[3];
+										return (
+											<motion.div
+												key={entry.subjectId}
+												initial={{ opacity: 0, y: 30 }}
+												animate={{ opacity: 1, y: 0 }}
+												transition={{
+													delay: 0.1 + i * 0.1,
+													type: "spring",
+													stiffness: 260,
+													damping: 22,
+												}}
+												className="flex flex-col items-center"
+											>
+												<div className="relative">
+													{entry.rank === 1 ? (
+														<Crown className="-top-5 -translate-x-1/2 absolute left-1/2 size-6 text-amber-400" />
+													) : null}
+													<Avatar
+														name={entry.name}
+														image={
+															entry.isYou && !isGroup ? user?.image : undefined
+														}
+														className={cn(
+															"size-12 text-base ring-4 sm:size-16 sm:text-lg",
+															meta.ring,
+														)}
+													/>
+													<span
+														className={cn(
+															"-bottom-1.5 -translate-x-1/2 absolute left-1/2 flex size-5 items-center justify-center rounded-full font-stats font-bold text-[11px] text-white",
+															meta.badge,
+														)}
+													>
+														{entry.rank}
+													</span>
+												</div>
+												<p className="mt-3 max-w-full truncate text-center font-medium text-foreground text-xs sm:text-sm">
+													{labelFor(entry)}
+												</p>
+												<p className="font-stats font-bold text-brand-primary text-sm sm:text-base">
+													{entry.points.toLocaleString()}
+												</p>
+												<div
 													className={cn(
-														"size-12 text-base ring-4 sm:size-16 sm:text-lg",
-														meta.ring,
+														"mt-2 w-full rounded-t-card",
+														meta.bar,
+														meta.height,
 													)}
 												/>
-												<span
-													className={cn(
-														"-bottom-1.5 -translate-x-1/2 absolute left-1/2 flex size-5 items-center justify-center rounded-full font-stats font-bold text-[11px] text-white",
-														meta.badge,
-													)}
-												>
-													{entry.rank}
-												</span>
-											</div>
-											<p className="mt-3 max-w-full truncate text-center font-medium text-foreground text-xs sm:text-sm">
-												{entry.isYou ? t("leaderboard.you") : entry.name}
-											</p>
-											<p className="font-stats font-bold text-brand-primary text-sm sm:text-base">
-												{entry.points.toLocaleString()}
-											</p>
-											<div
-												className={cn(
-													"mt-2 w-full rounded-t-card",
-													meta.bar,
-													meta.height,
-												)}
-											/>
-										</motion.div>
-									);
-								})}
-							</div>
-						</section>
-
-						{/* Your position */}
-						{you ? (
-							<section>
-								<p className="mb-2 px-1 font-stats font-semibold text-muted-foreground text-xs uppercase tracking-wide">
-									{t("leaderboard.your_position")}
-								</p>
-								<div className="flex items-center gap-3 rounded-card border-2 border-brand-primary/30 bg-brand-primary-light/40 p-4 shadow-card sm:gap-4">
-									<span className="w-8 text-center font-stats font-bold text-brand-primary text-lg">
-										{you.rank}
-									</span>
-									<Avatar
-										name={you.name}
-										image={user?.image}
-										className="size-11 text-sm"
-									/>
-									<div className="min-w-0 flex-1">
-										<p className="truncate font-display text-foreground">
-											{t("leaderboard.you")}
-										</p>
-										<p className="text-muted-foreground text-xs">
-											{you.points.toLocaleString()} {t("leaderboard.pts")}
-										</p>
-									</div>
-									<ChangeBadge value={you.change} />
+											</motion.div>
+										);
+									})}
 								</div>
 							</section>
-						) : null}
 
-						{/* Ranked list (4th onward) */}
-						<section className="space-y-2">
-							{rest.map((entry, i) => (
-								<motion.div
-									key={entry.name}
-									initial={{ opacity: 0, x: -12 }}
-									animate={{ opacity: 1, x: 0 }}
-									transition={{ delay: 0.05 * i, duration: 0.3 }}
-									className={cn(
-										"flex items-center gap-3 rounded-card border p-3.5 sm:gap-4",
-										entry.isYou
-											? "border-brand-primary/30 bg-brand-primary-light/30"
-											: "border-border bg-card shadow-card",
-									)}
-								>
-									<span className="w-7 text-center font-stats font-bold text-muted-foreground text-sm">
-										{entry.rank}
-									</span>
-									<Avatar
-										name={entry.name}
-										image={entry.isYou ? user?.image : undefined}
-										className="size-10 text-sm"
-									/>
-									<div className="min-w-0 flex-1">
-										<p className="truncate font-medium text-foreground text-sm">
-											{entry.isYou ? t("leaderboard.you") : entry.name}
-										</p>
-										<p className="font-stats text-muted-foreground text-xs">
-											{entry.points.toLocaleString()} {t("leaderboard.pts")}
-										</p>
+							{/* Your position */}
+							{you ? (
+								<section>
+									<p className="mb-2 px-1 font-stats font-semibold text-muted-foreground text-xs uppercase tracking-wide">
+										{t("leaderboard.your_position")}
+									</p>
+									<div className="flex items-center gap-3 rounded-card border-2 border-brand-primary/30 bg-brand-primary-light/40 p-4 shadow-card sm:gap-4">
+										<span className="w-8 text-center font-stats font-bold text-brand-primary text-lg">
+											{you.rank}
+										</span>
+										<Avatar
+											name={you.name}
+											image={isGroup ? undefined : user?.image}
+											className="size-11 text-sm"
+										/>
+										<div className="min-w-0 flex-1">
+											<p className="truncate font-display text-foreground">
+												{labelFor(you)}
+											</p>
+											<p className="text-muted-foreground text-xs">
+												{you.points.toLocaleString()} {t("leaderboard.pts")}
+											</p>
+										</div>
 									</div>
-									<ChangeBadge value={entry.change} />
-								</motion.div>
-							))}
-						</section>
-					</motion.div>
-				</AnimatePresence>
+								</section>
+							) : null}
+
+							{/* Ranked list (4th onward) */}
+							<section className="space-y-2">
+								{rest.map((entry, i) => (
+									<motion.div
+										key={entry.subjectId}
+										initial={{ opacity: 0, x: -12 }}
+										animate={{ opacity: 1, x: 0 }}
+										transition={{ delay: 0.05 * i, duration: 0.3 }}
+										className={cn(
+											"flex items-center gap-3 rounded-card border p-3.5 sm:gap-4",
+											entry.isYou
+												? "border-brand-primary/30 bg-brand-primary-light/30"
+												: "border-border bg-card shadow-card",
+										)}
+									>
+										<span className="w-7 text-center font-stats font-bold text-muted-foreground text-sm">
+											{entry.rank}
+										</span>
+										<Avatar
+											name={entry.name}
+											image={entry.isYou && !isGroup ? user?.image : undefined}
+											className="size-10 text-sm"
+										/>
+										<div className="min-w-0 flex-1">
+											<p className="truncate font-medium text-foreground text-sm">
+												{labelFor(entry)}
+											</p>
+											<p className="font-stats text-muted-foreground text-xs">
+												{entry.points.toLocaleString()} {t("leaderboard.pts")}
+											</p>
+										</div>
+									</motion.div>
+								))}
+							</section>
+						</motion.div>
+					</AnimatePresence>
+				)}
 			</div>
 		</LearnerShell>
 	);

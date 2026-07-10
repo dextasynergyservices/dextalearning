@@ -16,6 +16,8 @@ export interface NotifyInput {
 	inApp: boolean;
 	email?: { to: string; subject: string; html: string };
 	whatsapp?: { phone: string; message: string };
+	/** Web-push to all the user's subscribed browsers (opt-in). */
+	push?: { title: string; body: string; url?: string; tag?: string };
 }
 
 /**
@@ -69,6 +71,62 @@ export class NotificationsService {
 				this.logger.error(`whatsapp channel failed: ${String(error)}`);
 			}
 		}
+		if (input.push) {
+			try {
+				const subs = await this.prisma.pushSubscription.findMany({
+					where: { userId },
+				});
+				const payload = JSON.stringify(input.push);
+				await Promise.allSettled(
+					subs.map(async (s) => {
+						const { expired } = await this.port.sendPush(
+							{
+								endpoint: s.endpoint,
+								keys: { p256dh: s.p256dh, auth: s.auth },
+							},
+							payload,
+						);
+						if (expired) {
+							await this.prisma.pushSubscription
+								.delete({ where: { id: s.id } })
+								.catch(() => {});
+						}
+					}),
+				);
+			} catch (error) {
+				this.logger.error(`push channel failed: ${String(error)}`);
+			}
+		}
+	}
+
+	/** Register (or refresh) a browser's web-push subscription for this user. */
+	async savePushSubscription(
+		userId: string,
+		sub: { endpoint: string; keys: { p256dh: string; auth: string } },
+	) {
+		await this.prisma.pushSubscription.upsert({
+			where: { endpoint: sub.endpoint },
+			create: {
+				userId,
+				endpoint: sub.endpoint,
+				p256dh: sub.keys.p256dh,
+				auth: sub.keys.auth,
+			},
+			update: {
+				userId,
+				p256dh: sub.keys.p256dh,
+				auth: sub.keys.auth,
+			},
+		});
+		return { ok: true as const };
+	}
+
+	/** Remove a browser's subscription (scoped to the owner). */
+	async removePushSubscription(userId: string, endpoint: string) {
+		await this.prisma.pushSubscription.deleteMany({
+			where: { userId, endpoint },
+		});
+		return { ok: true as const };
 	}
 
 	async list(user: AuthenticatedUser, limit: number, cursor?: string) {

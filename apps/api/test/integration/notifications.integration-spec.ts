@@ -99,4 +99,60 @@ describe("NotificationsService (integration)", () => {
 			await prisma.notification.count({ where: { userId, readAt: null } }),
 		).toBe(0);
 	});
+
+	it("fans a push notification out to every subscribed browser", async () => {
+		await service.savePushSubscription(userId, {
+			endpoint: "https://push.example/a",
+			keys: { p256dh: "k1", auth: "a1" },
+		});
+		await service.savePushSubscription(userId, {
+			endpoint: "https://push.example/b",
+			keys: { p256dh: "k2", auth: "a2" },
+		});
+
+		await service.notify(userId, {
+			type: "reminder_digest",
+			inApp: true,
+			push: { title: "Review time", body: "3 lessons due", url: "/dashboard" },
+		});
+
+		expect(port.pushes).toHaveLength(2);
+		expect(JSON.parse(port.pushes[0].payload)).toMatchObject({
+			title: "Review time",
+			url: "/dashboard",
+		});
+	});
+
+	it("prunes a subscription the push gateway reports as gone", async () => {
+		await service.savePushSubscription(userId, {
+			endpoint: "https://push.example/dead",
+			keys: { p256dh: "k", auth: "a" },
+		});
+		port.expiredEndpoints.add("https://push.example/dead");
+
+		await service.notify(userId, {
+			type: "badge_awarded",
+			inApp: false,
+			push: { title: "Gone", body: "bye" },
+		});
+
+		expect(await prisma.pushSubscription.count({ where: { userId } })).toBe(0);
+	});
+
+	it("upserts a subscription by endpoint and removes it on unsubscribe", async () => {
+		await service.savePushSubscription(userId, {
+			endpoint: "https://push.example/x",
+			keys: { p256dh: "old", auth: "a" },
+		});
+		await service.savePushSubscription(userId, {
+			endpoint: "https://push.example/x",
+			keys: { p256dh: "new", auth: "a" },
+		});
+		const rows = await prisma.pushSubscription.findMany({ where: { userId } });
+		expect(rows).toHaveLength(1);
+		expect(rows[0].p256dh).toBe("new");
+
+		await service.removePushSubscription(userId, "https://push.example/x");
+		expect(await prisma.pushSubscription.count({ where: { userId } })).toBe(0);
+	});
 });

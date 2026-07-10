@@ -1,0 +1,11 @@
+{
+	"portal": "Portal de facilitador",
+	"my_cohorts": "Tus cohortes",
+	"empty_title": "Aún no hay cohortes que facilitar",
+	"empty_body": "Cuando un administrador te asigne como facilitador, tus cohortes aparecerán aquí.",
+	"learners_one": "{{count}} estudiante",
+	"learners_other": "{{count}} estudiantes",
+	"groups_one": "{{count}} grupo",
+	"groups_other": "{{count}} grupos",
+	"back": "Todas las cohortes"
+}

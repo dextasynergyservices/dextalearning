@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { screen, waitFor } from "@testing-library/react";
+import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { CohortSummary } from "@/lib/content-api";
@@ -111,7 +111,11 @@ describe("CohortsListPage", () => {
 
 		await user.click(screen.getByRole("button", { name: "Delete" }));
 		expect(await screen.findByText("Delete cohort?")).toBeInTheDocument();
-		await user.click(screen.getByRole("button", { name: "Delete course" }));
+		await user.click(
+			within(screen.getByRole("dialog")).getByRole("button", {
+				name: "Delete",
+			}),
+		);
 
 		await waitFor(() => {
 			expect(deleteCohortMock).toHaveBeenCalledWith("co1");

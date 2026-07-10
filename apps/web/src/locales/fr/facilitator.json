@@ -1,0 +1,11 @@
+{
+	"portal": "Portail animateur",
+	"my_cohorts": "Vos cohortes",
+	"empty_title": "Aucune cohorte à animer pour l'instant",
+	"empty_body": "Quand un admin vous assigne comme animateur, vos cohortes apparaissent ici.",
+	"learners_one": "{{count}} apprenant",
+	"learners_other": "{{count}} apprenants",
+	"groups_one": "{{count}} groupe",
+	"groups_other": "{{count}} groupes",
+	"back": "Toutes les cohortes"
+}
