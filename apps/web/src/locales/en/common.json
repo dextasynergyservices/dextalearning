@@ -41,6 +41,7 @@
 		"dashboard": "Dashboard",
 		"profile": "Profile",
 		"awards": "Awards",
+		"facilitator": "Facilitator portal",
 		"sign_out": "Sign out",
 		"menu": "Account menu",
 		"greeting": "Signed in"
@@ -62,5 +63,35 @@
 		"light": "Light",
 		"dark": "Dark",
 		"system": "System"
+	},
+	"phoneVerify": {
+		"verifyCta": "Verify",
+		"title": "Verify your number",
+		"chooseMethod": "How should we send your code to {{phone}}?",
+		"sendWhatsapp": "Send code on WhatsApp",
+		"sendSms": "Send code by SMS",
+		"sending": "Sending…",
+		"codeSentWhatsapp": "We sent a code on WhatsApp to {{phone}}.",
+		"codeSentSms": "We sent a code by SMS to {{phone}}.",
+		"enterCode": "Enter the 6-digit code",
+		"verify": "Verify",
+		"verifying": "Verifying…",
+		"resend": "Resend code",
+		"resendIn": "Resend in {{seconds}}s",
+		"changeMethod": "Use a different method",
+		"verifiedTitle": "Number verified",
+		"verifiedBody": "Thanks! Your phone number is now verified.",
+		"done": "Done",
+		"close": "Close",
+		"saveFirst": "Save your phone number first, then verify it.",
+		"genericError": "We couldn't send the code. Please try again."
+	},
+	"push": {
+		"title": "Push notifications",
+		"hint": "Get reminders on this device, even when the app is closed.",
+		"unsupported": "Push isn't supported on this browser.",
+		"denied": "Notifications are blocked. Enable them in your browser settings to turn this on.",
+		"enabled_toast": "Push notifications enabled.",
+		"error": "Couldn't enable push notifications."
 	}
 }

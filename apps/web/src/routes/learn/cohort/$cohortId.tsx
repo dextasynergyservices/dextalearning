@@ -5,6 +5,7 @@ import {
 	ChevronRight,
 	ClipboardCheck,
 	FolderKanban,
+	MessagesSquare,
 	PlayCircle,
 	Trophy,
 	Users,
@@ -13,6 +14,7 @@ import { useTranslation } from "react-i18next";
 import { LearnerShell } from "@/components/layout/learner-shell";
 import { ProgressRing } from "@/components/learn/progress-ring";
 import { Skeleton } from "@/components/ui/skeleton";
+import { chatKeys, getMyGroupInCohort } from "@/lib/chat-api";
 import { type CohortProgress, getCohortProgress } from "@/lib/content-api";
 import { cn } from "@/lib/utils";
 
@@ -41,10 +43,47 @@ function CohortProgressRoute() {
 						<Skeleton className="h-40 rounded-card" />
 					</>
 				) : (
-					<CohortBody data={data} />
+					<>
+						<MyGroupCard cohortId={cohortId} />
+						<CohortBody data={data} />
+					</>
 				)}
 			</div>
 		</LearnerShell>
+	);
+}
+
+/** A tappable "Your group" card that deep-links to the group's live chat. */
+function MyGroupCard({ cohortId }: { cohortId: string }) {
+	const { t } = useTranslation("chat");
+	const { data } = useQuery({
+		queryKey: chatKeys.myGroupInCohort(cohortId),
+		queryFn: () => getMyGroupInCohort(cohortId),
+	});
+	if (!data) return null;
+	return (
+		<Link
+			to="/learn/groups/$groupId"
+			params={{ groupId: data.id }}
+			className="flex items-center gap-3 rounded-card border border-brand-primary/25 bg-brand-primary-light/30 p-4 shadow-card transition-colors hover:border-brand-primary"
+		>
+			<span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-brand-primary text-white">
+				<MessagesSquare className="size-5" />
+			</span>
+			<div className="min-w-0 flex-1">
+				<p className="truncate font-display text-foreground text-sm">
+					{t("your_group", { defaultValue: "Your group" })}
+					{data.name ? ` · ${data.name}` : ""}
+				</p>
+				<p className="text-muted-foreground text-xs">
+					{t("open_chat", {
+						count: data.memberCount,
+						defaultValue: "Open group chat · {{count}} members",
+					})}
+				</p>
+			</div>
+			<ChevronRight className="size-4 shrink-0 text-muted-foreground" />
+		</Link>
 	);
 }
 

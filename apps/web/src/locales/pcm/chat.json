@@ -1,0 +1,14 @@
+{
+	"title": "Group chat",
+	"group": "Group",
+	"back": "My learning",
+	"members_one": "{{count}} member",
+	"members_other": "{{count}} members",
+	"connecting": "E dey connect…",
+	"empty": "No message yet — greet your group 👋",
+	"placeholder": "Message your group…",
+	"send": "Send",
+	"your_group": "Your group",
+	"open_chat_one": "Open group chat · {{count}} member",
+	"open_chat_other": "Open group chat · {{count}} members"
+}

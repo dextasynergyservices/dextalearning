@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { screen, waitFor } from "@testing-library/react";
+import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { CohortDetail } from "@/lib/content-api";
@@ -16,6 +16,8 @@ const {
 	addCohortPathMock,
 	assignCohortInstructorMock,
 	removeCohortInstructorMock,
+	listProjectsMock,
+	createProjectMock,
 } = vi.hoisted(() => ({
 	useSessionMock: vi.fn(),
 	getCohortMock: vi.fn(),
@@ -27,6 +29,8 @@ const {
 	addCohortPathMock: vi.fn(),
 	assignCohortInstructorMock: vi.fn(),
 	removeCohortInstructorMock: vi.fn(),
+	listProjectsMock: vi.fn(),
+	createProjectMock: vi.fn(),
 }));
 
 vi.mock("@/lib/auth-client", async (importOriginal) => {
@@ -47,6 +51,8 @@ vi.mock("@/lib/content-api", async (importOriginal) => {
 		addCohortPath: addCohortPathMock,
 		assignCohortInstructor: assignCohortInstructorMock,
 		removeCohortInstructor: removeCohortInstructorMock,
+		listProjects: listProjectsMock,
+		createProject: createProjectMock,
 	};
 });
 
@@ -122,6 +128,8 @@ describe("CohortEditorPage", () => {
 		addCohortPathMock.mockReset();
 		assignCohortInstructorMock.mockReset();
 		removeCohortInstructorMock.mockReset();
+		listProjectsMock.mockReset().mockResolvedValue([]);
+		createProjectMock.mockReset();
 		useSessionMock.mockReturnValue({
 			data: { user: { id: "u1", name: "Ada Lovelace", role: "admin" } },
 			isPending: false,
@@ -135,6 +143,38 @@ describe("CohortEditorPage", () => {
 		expect(await screen.findByText("Cohort settings")).toBeInTheDocument();
 		expect(screen.getByText("React Basics")).toBeInTheDocument();
 		expect(screen.getByText("Chinwe Okafor")).toBeInTheDocument();
+	});
+
+	it("lists cohort-scoped projects and creates one bound to the cohort", async () => {
+		getCohortMock.mockResolvedValue(cohortDetail());
+		listProjectsMock.mockResolvedValue([
+			{
+				id: "p1",
+				title: "Capstone",
+				gradingType: "manual",
+				_count: { submissions: 0 },
+			},
+		]);
+		createProjectMock.mockResolvedValue({ id: "p2", title: "Final build" });
+		const user = userEvent.setup();
+		renderRoute("/admin/cohorts/co1");
+
+		await screen.findByText("Cohort settings");
+		expect(listProjectsMock).toHaveBeenCalledWith({ cohortId: "co1" });
+		expect(await screen.findByText("Capstone")).toBeInTheDocument();
+
+		await user.type(
+			screen.getByPlaceholderText("New project title…"),
+			"Final build",
+		);
+		await user.click(screen.getByRole("button", { name: "Add project" }));
+		await waitFor(() =>
+			expect(createProjectMock).toHaveBeenCalledWith({
+				scope: "cohort",
+				title: "Final build",
+				cohortId: "co1",
+			}),
+		);
 	});
 
 	it("saves the cohort settings", async () => {
@@ -242,8 +282,10 @@ describe("CohortEditorPage", () => {
 		await user.click(deleteButtons[0]);
 		expect(await screen.findByText("Delete cohort?")).toBeInTheDocument();
 
-		// The confirm button reuses the courses namespace's "Delete course" label.
-		await user.click(screen.getByRole("button", { name: "Delete course" }));
+		// The dialog title names the entity ("Delete cohort?"); the button is a
+		// generic "Delete" — scope to the dialog since the header also has one.
+		const dialog = screen.getByRole("dialog");
+		await user.click(within(dialog).getByRole("button", { name: "Delete" }));
 
 		await waitFor(() => {
 			expect(deleteCohortMock).toHaveBeenCalledWith("co1");

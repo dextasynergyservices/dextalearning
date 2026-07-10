@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { screen, waitFor } from "@testing-library/react";
+import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { PathSummary } from "@/lib/content-api";
@@ -109,8 +109,12 @@ describe("InstructorPathsRoute", () => {
 
 		await user.click(screen.getByRole("button", { name: "Delete" }));
 		expect(await screen.findByText("Delete path?")).toBeInTheDocument();
-		// The confirm button reuses the courses namespace's "Delete course" label.
-		await user.click(screen.getByRole("button", { name: "Delete course" }));
+		// Title names the entity ("Delete path?"); the button is a generic "Delete".
+		await user.click(
+			within(screen.getByRole("dialog")).getByRole("button", {
+				name: "Delete",
+			}),
+		);
 
 		await waitFor(() => {
 			expect(deletePathMock).toHaveBeenCalledWith("p1");

@@ -7,6 +7,7 @@ import {
 	Search,
 	Trophy,
 	UserRound,
+	UsersRound,
 } from "lucide-react";
 import type { ComponentType, ReactNode } from "react";
 import { useTranslation } from "react-i18next";
@@ -18,6 +19,10 @@ import { AccountMenu } from "@/components/layout/account-menu";
 import { LanguageSwitcher } from "@/components/layout/language-switcher";
 import { NotificationBell } from "@/components/layout/notification-bell";
 import { engagementKeys, getEngagementMe } from "@/lib/engagement-api";
+import {
+	facilitatorKeys,
+	getMyFacilitatedCohorts,
+} from "@/lib/facilitator-api";
 import { cn } from "@/lib/utils";
 
 interface LearnerTab {
@@ -57,6 +62,21 @@ export function LearnerShell({
 		queryKey: engagementKeys.me,
 		queryFn: getEngagementMe,
 	});
+	// A learner assigned to facilitate a cohort gets a Facilitator tab in the
+	// mobile bottom nav — the right place for it (not buried in the account menu).
+	const { data: facilitated } = useQuery({
+		queryKey: facilitatorKeys.cohorts,
+		queryFn: getMyFacilitatedCohorts,
+		staleTime: 5 * 60 * 1000,
+	});
+	const bottomTabs: LearnerTab[] =
+		facilitated && facilitated.length > 0
+			? [
+					...LEARNER_TABS.slice(0, 3),
+					{ to: "/facilitator", key: "facilitator", icon: UsersRound },
+					LEARNER_TABS[3],
+				]
+			: LEARNER_TABS;
 
 	return (
 		<RequireAuth>
@@ -125,7 +145,7 @@ export function LearnerShell({
 					style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
 				>
 					<ul className="mx-auto flex max-w-md items-stretch justify-around">
-						{LEARNER_TABS.map(({ to, key, icon: Icon, exact }) => (
+						{bottomTabs.map(({ to, key, icon: Icon, exact }) => (
 							<li key={to} className="flex-1">
 								<Link
 									to={to}

@@ -13,8 +13,10 @@ import {
 import { type ReactNode, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
+import { GroupBoard } from "@/components/authoring/group-board";
 import { InlineCreate } from "@/components/authoring/inline-create";
 import { IntroManager } from "@/components/authoring/intro-manager";
+import { ProjectsSection } from "@/components/authoring/projects-section";
 import { StudioShell } from "@/components/authoring/studio-shell";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
@@ -147,7 +149,13 @@ function CohortEditorPage() {
 					/>
 					<CourseManager cohort={cohort} onChanged={invalidate} />
 					<PathManager cohort={cohort} onChanged={invalidate} />
+					<ProjectsSection
+						scope="cohort"
+						parent={{ cohortId: cohort.id }}
+						area="admin"
+					/>
 					<StaffCard cohort={cohort} onChanged={invalidate} />
+					<GroupBoard cohortId={cohort.id} />
 				</div>
 			)}
 
@@ -158,8 +166,8 @@ function CohortEditorPage() {
 					defaultValue: "“{{title}}” will be removed.",
 					title: cohort?.title ?? "",
 				})}
-				confirmLabel={t("courses.delete_confirm", { defaultValue: "Delete" })}
-				cancelLabel={t("courses.delete_cancel", { defaultValue: "Cancel" })}
+				confirmLabel={t("editor.delete", { defaultValue: "Delete" })}
+				cancelLabel={t("editor.cancel", { defaultValue: "Cancel" })}
 				isPending={removeCohort.isPending}
 				tone="danger"
 				onOpenChange={setDeleteOpen}

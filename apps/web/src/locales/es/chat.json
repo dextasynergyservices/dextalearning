@@ -1,0 +1,14 @@
+{
+	"title": "Chat del grupo",
+	"group": "Grupo",
+	"back": "Mi aprendizaje",
+	"members_one": "{{count}} miembro",
+	"members_other": "{{count}} miembros",
+	"connecting": "Conectando…",
+	"empty": "Aún no hay mensajes — saluda a tu grupo 👋",
+	"placeholder": "Escribe a tu grupo…",
+	"send": "Enviar",
+	"your_group": "Tu grupo",
+	"open_chat_one": "Abrir el chat · {{count}} miembro",
+	"open_chat_other": "Abrir el chat · {{count}} miembros"
+}

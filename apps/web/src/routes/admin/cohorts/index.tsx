@@ -249,8 +249,8 @@ function CohortsListPage() {
 					defaultValue: "“{{title}}” will be removed.",
 					title: toDelete?.title ?? "",
 				})}
-				confirmLabel={t("courses.delete_confirm", { defaultValue: "Delete" })}
-				cancelLabel={t("courses.delete_cancel", { defaultValue: "Cancel" })}
+				confirmLabel={t("editor.delete", { defaultValue: "Delete" })}
+				cancelLabel={t("editor.cancel", { defaultValue: "Cancel" })}
 				isPending={remove.isPending}
 				tone="danger"
 				onOpenChange={(o) => !o && setToDelete(null)}

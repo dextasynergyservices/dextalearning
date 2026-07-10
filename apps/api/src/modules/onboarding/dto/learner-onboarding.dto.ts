@@ -7,6 +7,7 @@ import {
 	IsString,
 	Matches,
 	MaxLength,
+	ValidateIf,
 } from "class-validator";
 
 const LANGUAGES = ["en", "fr", "es", "pcm"] as const;
@@ -66,7 +67,11 @@ export class LearnerOnboardingDto {
 	@ApiPropertyOptional({
 		description: "Phone for WhatsApp reminders (§8.1 step 6)",
 	})
-	@IsOptional()
+	// Skip validation for an empty/absent phone (see UpdateProfileDto) — the
+	// wizard's phone step is optional.
+	@ValidateIf(
+		(o) => o.phone !== undefined && o.phone !== null && o.phone !== "",
+	)
 	@IsString()
 	@Matches(/^[+]?[0-9\s-]{7,20}$/, { message: "Invalid phone number" })
 	phone?: string;

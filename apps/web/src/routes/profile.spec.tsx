@@ -88,7 +88,11 @@ describe("ProfilePage", () => {
 		renderRoute("/profile");
 		await screen.findByDisplayValue("Ada");
 
-		await user.click(screen.getByRole("button", { name: "Save changes" }));
+		// Two "Save changes" buttons (account + reminders card); both save the
+		// whole profile — the account one here.
+		await user.click(
+			screen.getAllByRole("button", { name: "Save changes" })[0],
+		);
 
 		await waitFor(() => {
 			expect(updateMyProfileMock).toHaveBeenCalledWith(
@@ -100,6 +104,26 @@ describe("ProfilePage", () => {
 			);
 		});
 		expect(toast.success).toHaveBeenCalledWith("Profile saved.");
+	});
+
+	it("saves from the Learning reminders card too, and never requires a phone (issue fix)", async () => {
+		updateMyProfileMock.mockResolvedValue({ ok: true });
+		const user = userEvent.setup();
+		renderRoute("/profile");
+		await screen.findByDisplayValue("Ada");
+
+		// The reminders card has its own Save button (was previously missing).
+		const saveButtons = screen.getAllByRole("button", { name: "Save changes" });
+		expect(saveButtons.length).toBeGreaterThan(1);
+
+		// No phone entered — saving must still fire (phone is optional; the
+		// empty phone used to make the backend reject the whole save).
+		await user.click(saveButtons.at(-1) as HTMLElement);
+		await waitFor(() => {
+			expect(updateMyProfileMock).toHaveBeenCalledWith(
+				expect.objectContaining({ whatsappOptIn: false }),
+			);
+		});
 	});
 
 	it("disables the WhatsApp toggle until a phone number exists (Phase 4, §3.2)", async () => {
@@ -136,7 +160,11 @@ describe("ProfilePage", () => {
 			screen.getByLabelText("Tie it to a daily habit (optional)"),
 			"after_work",
 		);
-		await user.click(screen.getByRole("button", { name: "Save changes" }));
+		await user.click(
+			screen
+				.getAllByRole("button", { name: "Save changes" })
+				.at(-1) as HTMLElement,
+		);
 
 		await waitFor(() => {
 			expect(updateMyProfileMock).toHaveBeenCalledWith(
@@ -159,6 +187,25 @@ describe("ProfilePage", () => {
 		await user.type(phoneInput, "+2348001234567");
 
 		expect(screen.getByText("Not verified")).toBeInTheDocument();
+		// A freshly-typed (unsaved) number can't be verified yet — the Verify
+		// action only appears once it's saved, with a save-first hint instead.
+		expect(
+			screen.queryByRole("button", { name: "Verify" }),
+		).not.toBeInTheDocument();
+		expect(
+			screen.getByText("Save your phone number first, then verify it."),
+		).toBeInTheDocument();
+	});
+
+	it("offers a Verify action for a saved, unverified phone number", async () => {
+		getMyProfileMock.mockResolvedValue(
+			profile({ phone: "+2348001234567", phoneVerified: false }),
+		);
+		renderRoute("/profile");
+		await screen.findByDisplayValue("Ada");
+
+		expect(screen.getByText("Not verified")).toBeInTheDocument();
+		expect(screen.getByRole("button", { name: "Verify" })).toBeInTheDocument();
 	});
 
 	it("signs out and navigates home", async () => {

@@ -1,25 +1,35 @@
 // @vitest-environment jsdom
-import { screen } from "@testing-library/react";
+import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import type { Leaderboard } from "@/lib/leaderboard-api";
 import { renderRoute } from "@/test/render-route";
 
-const { useSessionMock, getMyProfileMock, getEngagementMeMock } = vi.hoisted(
-	() => ({
-		useSessionMock: vi.fn(),
-		getMyProfileMock: vi.fn(),
-		getEngagementMeMock: vi.fn(),
-	}),
-);
+const {
+	useSessionMock,
+	getLeaderboardMock,
+	getEngagementMeMock,
+	getMyFacilitatedCohortsMock,
+} = vi.hoisted(() => ({
+	useSessionMock: vi.fn(),
+	getLeaderboardMock: vi.fn(),
+	getEngagementMeMock: vi.fn(),
+	getMyFacilitatedCohortsMock: vi.fn(),
+}));
 
 vi.mock("@/lib/auth-client", async (importOriginal) => {
 	const actual = await importOriginal<typeof import("@/lib/auth-client")>();
 	return { ...actual, useSession: useSessionMock };
 });
 
-vi.mock("@/lib/content-api", async (importOriginal) => {
-	const actual = await importOriginal<typeof import("@/lib/content-api")>();
-	return { ...actual, getMyProfile: getMyProfileMock };
+vi.mock("@/lib/facilitator-api", async (importOriginal) => {
+	const actual = await importOriginal<typeof import("@/lib/facilitator-api")>();
+	return { ...actual, getMyFacilitatedCohorts: getMyFacilitatedCohortsMock };
+});
+
+vi.mock("@/lib/leaderboard-api", async (importOriginal) => {
+	const actual = await importOriginal<typeof import("@/lib/leaderboard-api")>();
+	return { ...actual, getLeaderboard: getLeaderboardMock };
 });
 
 vi.mock("@/lib/engagement-api", async (importOriginal) => {
@@ -27,16 +37,59 @@ vi.mock("@/lib/engagement-api", async (importOriginal) => {
 	return { ...actual, getEngagementMe: getEngagementMeMock };
 });
 
-describe("AwardsPage", () => {
+function board(overrides: Partial<Leaderboard> = {}): Leaderboard {
+	return {
+		type: "overall",
+		period: "all_time",
+		cohortId: null,
+		kind: "user",
+		total: 4,
+		entries: [
+			{
+				rank: 1,
+				score: 300,
+				subjectId: "a",
+				name: "Amara Okafor",
+				isSelf: false,
+			},
+			{ rank: 2, score: 200, subjectId: "b", name: "Wei Chen", isSelf: false },
+			{
+				rank: 3,
+				score: 150,
+				subjectId: "c",
+				name: "Sofia Reyes",
+				isSelf: false,
+			},
+			{
+				rank: 4,
+				score: 90,
+				subjectId: "u1",
+				name: "Ada Lovelace",
+				isSelf: true,
+			},
+		],
+		me: {
+			rank: 4,
+			score: 90,
+			subjectId: "u1",
+			name: "Ada Lovelace",
+			isSelf: true,
+		},
+		...overrides,
+	};
+}
+
+describe("Leaderboard page", () => {
 	beforeEach(() => {
 		useSessionMock.mockReset();
-		getMyProfileMock.mockReset();
+		getLeaderboardMock.mockReset();
+		getEngagementMeMock.mockReset();
+		getMyFacilitatedCohortsMock.mockReset().mockResolvedValue([]);
 		useSessionMock.mockReturnValue({
-			data: { user: { id: "u1", name: "Chinwe Okafor", role: "learner" } },
+			data: { user: { id: "u1", name: "Ada Lovelace", role: "learner" } },
 			isPending: false,
 		});
-		getMyProfileMock.mockResolvedValue({ image: null });
-		getEngagementMeMock.mockReset();
+		getLeaderboardMock.mockResolvedValue(board());
 		getEngagementMeMock.mockResolvedValue({
 			streak: {
 				current: 2,
@@ -55,46 +108,74 @@ describe("AwardsPage", () => {
 		});
 	});
 
-	it("renders the leaderboard with the signed-in learner's own entry", async () => {
+	it("renders the live podium, the ranked list, and the caller's own position", async () => {
 		renderRoute("/leaderboard");
 
-		// LearnerShell also renders a sr-only mobile h1 with the same title text.
-		expect(
-			(await screen.findAllByText("Awards & leaderboard")).length,
-		).toBeGreaterThan(0);
-		expect(
-			screen.getByText(
-				"Example standings — live rankings activate when you join a cohort.",
-			),
-		).toBeInTheDocument();
-		// The learner's own row always renders as "You", not their real name.
+		expect(await screen.findByText("Amara Okafor")).toBeInTheDocument();
+		expect(screen.getByText("300")).toBeInTheDocument();
 		expect(screen.getByText("Your position")).toBeInTheDocument();
+		// The signed-in learner is labelled "You", not their real name.
+		expect(screen.getAllByText("You").length).toBeGreaterThan(0);
 	});
 
-	it("renders the live 'Your awards' grid above the preview roster (Phase 4)", async () => {
+	it("shows the Facilitator tab in the bottom nav only when the user facilitates a cohort", async () => {
+		getMyFacilitatedCohortsMock.mockResolvedValue([]);
+		const { unmount } = renderRoute("/leaderboard");
+		await screen.findByText("Amara Okafor");
+		expect(screen.queryByText("Facilitate")).not.toBeInTheDocument();
+		unmount();
+
+		getMyFacilitatedCohortsMock.mockResolvedValue([
+			{
+				id: "c1",
+				title: "Cohort One",
+				slug: "c1",
+				status: "open",
+				startsAt: null,
+				groupingMode: "manual",
+				learnerCount: 5,
+				groupCount: 2,
+			},
+		]);
+		renderRoute("/leaderboard");
+		expect(await screen.findByText("Facilitate")).toBeInTheDocument();
+	});
+
+	it("keeps the Phase 4 'Your awards' badge grid above the board", async () => {
 		renderRoute("/leaderboard");
 
 		expect(await screen.findByTestId("badge-grid")).toBeInTheDocument();
 		expect(screen.getByText("1 of 2 earned")).toBeInTheDocument();
-		// Earned in colour with a date; locked with its criteria hint.
-		expect(screen.getByText("First Steps")).toBeInTheDocument();
-		expect(screen.getByText("Complete 10 lessons")).toBeInTheDocument();
 	});
 
-	it("renders the top-3 podium from the preview roster", async () => {
-		renderRoute("/leaderboard");
-
-		await screen.findAllByText("Awards & leaderboard");
-		expect(screen.getByText("Amara Okafor")).toBeInTheDocument();
-	});
-
-	it("switches the leaderboard type tab without crashing", async () => {
+	it("refetches when switching type and period", async () => {
 		const user = userEvent.setup();
 		renderRoute("/leaderboard");
-		await screen.findAllByText("Awards & leaderboard");
+		await screen.findByText("Amara Okafor");
 
-		await user.click(screen.getByRole("button", { name: "Consistency" }));
+		await user.click(screen.getByRole("button", { name: /Peer helper/i }));
+		await waitFor(() =>
+			expect(getLeaderboardMock).toHaveBeenCalledWith(
+				expect.objectContaining({ type: "peer", period: "all_time" }),
+			),
+		);
 
-		expect(screen.getByText("Amara Okafor")).toBeInTheDocument();
+		await user.click(screen.getByRole("button", { name: "This week" }));
+		await waitFor(() =>
+			expect(getLeaderboardMock).toHaveBeenCalledWith(
+				expect.objectContaining({ period: "weekly" }),
+			),
+		);
+	});
+
+	it("shows an empty state when there are no rankings", async () => {
+		getLeaderboardMock.mockResolvedValue(
+			board({ entries: [], me: null, total: 0 }),
+		);
+		renderRoute("/leaderboard");
+
+		expect(
+			await screen.findByText("The leaderboard is warming up"),
+		).toBeInTheDocument();
 	});
 });

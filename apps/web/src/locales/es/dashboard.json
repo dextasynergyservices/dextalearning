@@ -5,7 +5,8 @@
 		"search": "Buscar",
 		"leaderboard": "Logros",
 		"profile": "Perfil",
-		"my_learning": "Mi aprendizaje"
+		"my_learning": "Mi aprendizaje",
+		"facilitator": "Facilitar"
 	},
 	"home": {
 		"greeting": "Bienvenido de nuevo",
@@ -79,7 +80,9 @@
 		"you": "Tú",
 		"pts": "pts",
 		"your_position": "Tu posición",
-		"this_week": "Esta semana"
+		"this_week": "Esta semana",
+		"period_all_time": "Histórico",
+		"period_weekly": "Esta semana"
 	},
 	"profile": {
 		"title": "Perfil",

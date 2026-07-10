@@ -345,6 +345,7 @@ model User {
   streak                         UserStreak?
   badges                         UserBadge[]
   notifications                  Notification[]
+  pushSubscriptions              PushSubscription[]
 
   @@map("users")
 }
@@ -395,6 +396,21 @@ model Verification {
   updatedAt  DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   @@map("verifications")
+}
+
+// Phone-number ownership challenges (WhatsApp/SMS OTP). One active challenge per
+// user, upserted on each send; deleted on success. Owned by the
+// PhoneVerification module — it only reads/writes `users.phone`/`phone_verified`.
+model PhoneVerification {
+  userId     String   @id @map("user_id") @db.Uuid
+  phone      String   @db.VarChar(20)
+  codeHash   String   @map("code_hash")
+  attempts   Int      @default(0)
+  expiresAt  DateTime @map("expires_at") @db.Timestamptz(6)
+  lastSentAt DateTime @default(now()) @map("last_sent_at") @db.Timestamptz(6)
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@map("phone_verifications")
 }
 
 model Course {
@@ -1120,6 +1136,24 @@ model Notification {
 
   @@index([userId, readAt, createdAt])
   @@map("notifications")
+}
+
+// Web-push (VAPID) subscriptions — one row per browser/device (§8.6 push
+// channel, Phase 5 opt-in). Owned by the Notifications context; pruned when a
+// gateway reports the endpoint is gone (404/410).
+model PushSubscription {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  userAgent String?  @map("user_agent")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("push_subscriptions")
 }
 
 // ── PHASE 4: REMINDERS (spaced repetition) ───────────────────────────────────

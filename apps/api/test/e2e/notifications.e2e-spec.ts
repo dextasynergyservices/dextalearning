@@ -52,4 +52,42 @@ describe("NotificationsController (e2e)", () => {
 		const afterAllRead = await agent.get("/api/v1/notifications").expect(200);
 		expect(afterAllRead.body.data.unreadCount).toBe(0);
 	});
+
+	it("subscribes and unsubscribes a browser for web-push", async () => {
+		const { agent, userId } = await registerAndLogin(app, prisma, {
+			role: "learner",
+		});
+		await agent
+			.post("/api/v1/notifications/push/subscribe")
+			.send({
+				endpoint: "https://push.example/e2e",
+				keys: { p256dh: "k", auth: "a" },
+			})
+			.expect(201);
+		expect(await prisma.pushSubscription.count({ where: { userId } })).toBe(1);
+
+		await agent
+			.post("/api/v1/notifications/push/unsubscribe")
+			.send({ endpoint: "https://push.example/e2e" })
+			.expect(201);
+		expect(await prisma.pushSubscription.count({ where: { userId } })).toBe(0);
+	});
+
+	it("rejects a subscription missing its keys at the validation pipe", async () => {
+		const { agent } = await registerAndLogin(app, prisma, { role: "learner" });
+		await agent
+			.post("/api/v1/notifications/push/subscribe")
+			.send({ endpoint: "https://push.example/x" })
+			.expect(400);
+	});
+
+	it("401s subscribing without a session", async () => {
+		await request(app.getHttpServer())
+			.post("/api/v1/notifications/push/subscribe")
+			.send({
+				endpoint: "https://push.example/x",
+				keys: { p256dh: "k", auth: "a" },
+			})
+			.expect(401);
+	});
 });

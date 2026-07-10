@@ -1,8 +1,20 @@
-import { Controller, Get, Param, Post, Query, UseGuards } from "@nestjs/common";
+import {
+	Body,
+	Controller,
+	Get,
+	Param,
+	Post,
+	Query,
+	UseGuards,
+} from "@nestjs/common";
 import { ApiCookieAuth, ApiOperation, ApiTags } from "@nestjs/swagger";
 import { CurrentUser } from "../../auth/decorators/current-user.decorator";
 import { SessionGuard } from "../../auth/guards/session.guard";
 import type { AuthenticatedUser } from "../../auth/types";
+import {
+	SubscribePushDto,
+	UnsubscribePushDto,
+} from "./dto/push-subscription.dto";
 import { NotificationsService } from "./notifications.service";
 
 /** In-app notification feed (§8.6 "In-App" channel) — the header bell. */
@@ -33,5 +45,23 @@ export class NotificationsController {
 	@ApiOperation({ summary: "Mark all notifications read" })
 	markAllRead(@CurrentUser() user: AuthenticatedUser) {
 		return this.notifications.markAllRead(user);
+	}
+
+	@Post("push/subscribe")
+	@ApiOperation({ summary: "Register a browser for web-push (opt-in)" })
+	subscribePush(
+		@CurrentUser() user: AuthenticatedUser,
+		@Body() dto: SubscribePushDto,
+	) {
+		return this.notifications.savePushSubscription(user.id, dto);
+	}
+
+	@Post("push/unsubscribe")
+	@ApiOperation({ summary: "Remove a browser's web-push subscription" })
+	unsubscribePush(
+		@CurrentUser() user: AuthenticatedUser,
+		@Body() dto: UnsubscribePushDto,
+	) {
+		return this.notifications.removePushSubscription(user.id, dto.endpoint);
 	}
 }
