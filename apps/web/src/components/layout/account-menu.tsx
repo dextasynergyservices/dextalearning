@@ -1,3 +1,4 @@
+import { useQuery } from "@tanstack/react-query";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { AnimatePresence, motion } from "framer-motion";
 import {
@@ -6,11 +7,16 @@ import {
 	LogOut,
 	Trophy,
 	UserRound,
+	UsersRound,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { homeForRole, signOut, useSession } from "@/lib/auth-client";
+import {
+	facilitatorKeys,
+	getMyFacilitatedCohorts,
+} from "@/lib/facilitator-api";
 import { useAvatar } from "@/lib/use-avatar";
 import { cn } from "@/lib/utils";
 
@@ -39,6 +45,15 @@ export function AccountMenu({ onDark = false }: { onDark?: boolean }) {
 	const navigate = useNavigate();
 	const [open, setOpen] = useState(false);
 	const containerRef = useRef<HTMLDivElement>(null);
+
+	// Surface the facilitator portal only to users an admin has assigned to a
+	// cohort — everyone else gets [] and never sees the entry.
+	const { data: facilitated } = useQuery({
+		queryKey: facilitatorKeys.cohorts,
+		queryFn: getMyFacilitatedCohorts,
+		enabled: !!session,
+		staleTime: 5 * 60 * 1000,
+	});
 
 	useEffect(() => {
 		if (!open) return;
@@ -75,6 +90,17 @@ export function AccountMenu({ onDark = false }: { onDark?: boolean }) {
 		},
 		{ to: "/leaderboard" as const, label: t("account.awards"), icon: Trophy },
 		{ to: "/profile" as const, label: t("account.profile"), icon: UserRound },
+		...(facilitated && facilitated.length > 0
+			? [
+					{
+						to: "/facilitator" as const,
+						label: t("account.facilitator", {
+							defaultValue: "Facilitator portal",
+						}),
+						icon: UsersRound,
+					},
+				]
+			: []),
 	];
 
 	return (

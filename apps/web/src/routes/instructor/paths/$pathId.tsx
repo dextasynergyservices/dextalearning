@@ -336,8 +336,8 @@ export function PathEditorPage({
 						"“{{title}}” will be removed. Its courses are not deleted.",
 					title: path?.title ?? "",
 				})}
-				confirmLabel={t("courses.delete_confirm", { defaultValue: "Delete" })}
-				cancelLabel={t("courses.delete_cancel", { defaultValue: "Cancel" })}
+				confirmLabel={t("editor.delete", { defaultValue: "Delete" })}
+				cancelLabel={t("editor.cancel", { defaultValue: "Cancel" })}
 				isPending={removePath.isPending}
 				tone="danger"
 				onOpenChange={setDeleteOpen}

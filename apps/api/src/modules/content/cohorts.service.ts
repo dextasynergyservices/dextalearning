@@ -140,20 +140,24 @@ export class CohortsService {
 		});
 		const availablePaths = allPaths.filter((p) => !inCohortPaths.has(p.id));
 
-		const assignedIds = new Set([
-			...cohort.instructors.map((ci) => ci.userId),
-			...cohort.facilitators.map((cf) => cf.userId),
-		]);
-		const staff = await this.prisma.user.findMany({
-			where: { role: { in: ["instructor", "facilitator"] } },
+		const assignedInstructorIds = new Set(
+			cohort.instructors.map((ci) => ci.userId),
+		);
+		const assignedFacilitatorIds = new Set(
+			cohort.facilitators.map((cf) => cf.userId),
+		);
+		// Instructors come from the instructor role; a facilitator, however, can be
+		// ANY user the admin chooses (learner, instructor, even another admin) —
+		// facilitation is a per-cohort assignment, not a global role (§4.7).
+		const allUsers = await this.prisma.user.findMany({
 			select: USER_SELECT,
 			orderBy: { name: "asc" },
 		});
-		const assignableInstructors = staff.filter(
-			(u) => u.role === "instructor" && !assignedIds.has(u.id),
+		const assignableInstructors = allUsers.filter(
+			(u) => u.role === "instructor" && !assignedInstructorIds.has(u.id),
 		);
-		const assignableFacilitators = staff.filter(
-			(u) => u.role === "facilitator" && !assignedIds.has(u.id),
+		const assignableFacilitators = allUsers.filter(
+			(u) => !assignedFacilitatorIds.has(u.id),
 		);
 
 		return this.withPrice({

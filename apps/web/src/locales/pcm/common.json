@@ -41,6 +41,7 @@
 		"dashboard": "Dashboard",
 		"profile": "Profile",
 		"awards": "Awards",
+		"facilitator": "Facilitator portal",
 		"sign_out": "Comot",
 		"menu": "Account menu",
 		"greeting": "You don sign in"
@@ -62,5 +63,35 @@
 		"light": "Light",
 		"dark": "Dark",
 		"system": "System"
+	},
+	"phoneVerify": {
+		"verifyCta": "Verify am",
+		"title": "Make we verify your number",
+		"chooseMethod": "How you wan make we send the code give {{phone}}?",
+		"sendWhatsapp": "Send code for WhatsApp",
+		"sendSms": "Send code for SMS",
+		"sending": "E dey go…",
+		"codeSentWhatsapp": "We don send code for WhatsApp give {{phone}}.",
+		"codeSentSms": "We don send code for SMS give {{phone}}.",
+		"enterCode": "Put the 6-digit code",
+		"verify": "Verify am",
+		"verifying": "We dey check am…",
+		"resend": "Send code again",
+		"resendIn": "Send again for {{seconds}}s",
+		"changeMethod": "Use anoda way",
+		"verifiedTitle": "Number don verify",
+		"verifiedBody": "Correct! Your phone number don verify now.",
+		"done": "Done",
+		"close": "Close",
+		"saveFirst": "Save your number first, then verify am.",
+		"genericError": "We no fit send the code. Abeg try again."
+	},
+	"push": {
+		"title": "Push notifications",
+		"hint": "Get reminders for dis device, even wen the app close.",
+		"unsupported": "Dis browser no support push.",
+		"denied": "Dem block notifications. Enable am for your browser settings.",
+		"enabled_toast": "Push notifications don on.",
+		"error": "We no fit turn on push notifications."
 	}
 }

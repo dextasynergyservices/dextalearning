@@ -56,11 +56,14 @@ export function LessonPlayer({
 	const [currentSec, setCurrentSec] = useState(0);
 	const seekRef = useRef<((seconds: number) => void) | null>(null);
 
-	// Text/PDF: "scrolled to end" when a sentinel at the bottom is reached.
+	// TEXT: renders full-height in page flow, so a page-level "scrolled to end"
+	// sentinel is correct. PDF is different — it scrolls inside its OWN capped
+	// container, so PdfViewer tracks its own read-progress (a page-level
+	// sentinel fired the instant the not-yet-laid-out viewer mounted).
 	const endRef = useRef<HTMLDivElement>(null);
-	const isReadable = data?.type === "text" || data?.type === "pdf";
+	const isText = data?.type === "text";
 	useEffect(() => {
-		if (!onProgress || !isReadable) return;
+		if (!onProgress || !isText) return;
 		const el = endRef.current;
 		if (!el) return;
 		const observer = new IntersectionObserver(
@@ -71,7 +74,7 @@ export function LessonPlayer({
 		);
 		observer.observe(el);
 		return () => observer.disconnect();
-	}, [isReadable, onProgress]);
+	}, [isText, onProgress]);
 
 	if (isPending) {
 		return <Skeleton className="aspect-video w-full rounded-card" />;
@@ -113,7 +116,7 @@ export function LessonPlayer({
 			) : null}
 
 			{data.type === "pdf" && data.pages ? (
-				<PdfViewer pages={data.pages} title={title} />
+				<PdfViewer pages={data.pages} title={title} onProgress={onProgress} />
 			) : null}
 
 			{data.type === "text" && data.contentText ? (
@@ -128,10 +131,9 @@ export function LessonPlayer({
 				/>
 			) : null}
 
-			{/* Scroll-to-end sentinel for text/PDF completion tracking. */}
-			{isReadable ? (
-				<div ref={endRef} aria-hidden className="h-px w-full" />
-			) : null}
+			{/* Scroll-to-end sentinel for TEXT completion tracking (PDF tracks
+			    its own scroll internally). */}
+			{isText ? <div ref={endRef} aria-hidden className="h-px w-full" /> : null}
 
 			{data.transcriptText ? (
 				<TranscriptPanel

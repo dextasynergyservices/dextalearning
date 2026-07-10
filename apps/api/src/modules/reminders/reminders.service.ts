@@ -196,6 +196,12 @@ export class RemindersService {
 			...(user.phone && user.whatsappOptIn
 				? { whatsapp: { phone: user.phone, message: copy.whatsapp(ctx) } }
 				: {}),
+			push: {
+				title: copy.subject(ctx),
+				body: copy.heading(ctx),
+				url: "/dashboard",
+				tag: "reminder_digest",
+			},
 		});
 
 		// Advance only the reviews we actually named — the rest stay due and

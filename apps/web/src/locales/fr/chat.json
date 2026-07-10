@@ -1,0 +1,14 @@
+{
+	"title": "Discussion de groupe",
+	"group": "Groupe",
+	"back": "Mes cours",
+	"members_one": "{{count}} membre",
+	"members_other": "{{count}} membres",
+	"connecting": "Connexion…",
+	"empty": "Aucun message — dites bonjour à votre groupe 👋",
+	"placeholder": "Écrivez à votre groupe…",
+	"send": "Envoyer",
+	"your_group": "Votre groupe",
+	"open_chat_one": "Ouvrir la discussion · {{count}} membre",
+	"open_chat_other": "Ouvrir la discussion · {{count}} membres"
+}

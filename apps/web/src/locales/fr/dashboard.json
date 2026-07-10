@@ -5,7 +5,8 @@
 		"search": "Recherche",
 		"leaderboard": "Récompenses",
 		"profile": "Profil",
-		"my_learning": "Mon apprentissage"
+		"my_learning": "Mon apprentissage",
+		"facilitator": "Animer"
 	},
 	"home": {
 		"greeting": "Bon retour",
@@ -79,7 +80,9 @@
 		"you": "Vous",
 		"pts": "pts",
 		"your_position": "Votre position",
-		"this_week": "Cette semaine"
+		"this_week": "Cette semaine",
+		"period_all_time": "Depuis le début",
+		"period_weekly": "Cette semaine"
 	},
 	"profile": {
 		"title": "Profil",

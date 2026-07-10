@@ -205,8 +205,10 @@ function CohortDetailPage() {
 						{dateLabel(cohort.startsAt) ? (
 							<p className="mt-4 flex items-center gap-2 text-muted-foreground text-sm">
 								<CalendarDays className="size-4 text-brand-primary" />
-								{t("cohorts.starts", { defaultValue: "Starts" })}{" "}
-								{dateLabel(cohort.startsAt)}
+								{t("cohorts.starts", {
+									date: dateLabel(cohort.startsAt),
+									defaultValue: "Starts {{date}}",
+								})}
 							</p>
 						) : null}
 						{seatsLeft != null ? (
@@ -231,8 +233,10 @@ function CohortDetailPage() {
 						<p className="truncate font-display text-foreground">{price}</p>
 						{dateLabel(cohort.startsAt) ? (
 							<span className="text-muted-foreground text-xs">
-								{t("cohorts.starts", { defaultValue: "Starts" })}{" "}
-								{dateLabel(cohort.startsAt)}
+								{t("cohorts.starts", {
+									date: dateLabel(cohort.startsAt),
+									defaultValue: "Starts {{date}}",
+								})}
 							</span>
 						) : null}
 					</div>

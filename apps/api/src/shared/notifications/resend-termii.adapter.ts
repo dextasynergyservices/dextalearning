@@ -1,7 +1,11 @@
 import { Injectable } from "@nestjs/common";
 import { sendEmail } from "../../common/email";
-import { sendWhatsappNotification } from "../../common/termii";
-import type { NotificationPort } from "./notification.port";
+import { sendSms, sendWhatsappNotification } from "../../common/termii";
+import { sendWebPush } from "../../common/webpush";
+import type {
+	NotificationPort,
+	WebPushSubscription,
+} from "./notification.port";
 
 /**
  * Resend (email) + Termii (WhatsApp with SMS fallback) implementation of the
@@ -16,5 +20,16 @@ export class ResendTermiiAdapter implements NotificationPort {
 
 	async sendWhatsapp(phone: string, message: string): Promise<void> {
 		await sendWhatsappNotification(phone, message);
+	}
+
+	async sendSms(phone: string, message: string): Promise<void> {
+		await sendSms(phone, message);
+	}
+
+	async sendPush(
+		subscription: WebPushSubscription,
+		payload: string,
+	): Promise<{ expired: boolean }> {
+		return sendWebPush(subscription, payload);
 	}
 }

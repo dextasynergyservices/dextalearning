@@ -82,4 +82,26 @@ describe("OnboardingController (e2e)", () => {
 		expect(profile.body.data.weeklyHours).toBe("medium");
 		expect(profile.body.data.timezone).toBe("Africa/Lagos");
 	});
+
+	it("treats phone as truly optional — an empty phone saves, a malformed one 400s", async () => {
+		const { agent } = await registerAndLogin(app, prisma, { role: "learner" });
+		// Set a phone, then clear it by sending "" — this used to 400 ("Invalid
+		// phone number") because @IsOptional doesn't skip empty strings.
+		await agent
+			.patch("/api/v1/onboarding/profile")
+			.send({ phone: "+2348001234567" })
+			.expect(200);
+		await agent
+			.patch("/api/v1/onboarding/profile")
+			.send({ phone: "" })
+			.expect(200);
+		const cleared = await agent.get("/api/v1/onboarding/profile").expect(200);
+		expect(cleared.body.data.phone).toBeNull();
+
+		// A genuinely malformed phone is still rejected.
+		await agent
+			.patch("/api/v1/onboarding/profile")
+			.send({ phone: "abc" })
+			.expect(400);
+	});
 });

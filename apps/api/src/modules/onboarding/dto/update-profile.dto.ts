@@ -7,6 +7,7 @@ import {
 	IsString,
 	Matches,
 	MaxLength,
+	ValidateIf,
 } from "class-validator";
 
 const LANGUAGES = ["en", "fr", "es", "pcm"] as const;
@@ -53,8 +54,13 @@ export class UpdateProfileDto {
 	@MaxLength(100)
 	otherNames?: string;
 
+	// `@IsOptional` only skips null/undefined — an empty string "" would still
+	// hit @Matches and 400. The profile form always sends a (possibly empty)
+	// phone, and "" means "no/cleared phone", so skip validation when empty.
 	@ApiPropertyOptional()
-	@IsOptional()
+	@ValidateIf(
+		(o) => o.phone !== undefined && o.phone !== null && o.phone !== "",
+	)
 	@IsString()
 	@Matches(/^[+]?[0-9\s-]{7,20}$/, { message: "Invalid phone number" })
 	phone?: string;

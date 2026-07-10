@@ -4,6 +4,7 @@ import type { NestExpressApplication } from "@nestjs/platform-express";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 import { toNodeHandler } from "better-auth/node";
 import type { NextFunction, Request, Response } from "express";
+import { RedisIoAdapter } from "./adapters/redis-io.adapter";
 import { AppModule } from "./app.module";
 import { auth } from "./auth/auth.config";
 import { AllExceptionsFilter } from "./common/filters/all-exceptions.filter";
@@ -56,6 +57,17 @@ async function bootstrap() {
 	app.useGlobalFilters(new AllExceptionsFilter());
 	// biome-ignore lint/correctness/useHookAtTopLevel: Nest application setup method, not a React hook.
 	app.useGlobalInterceptors(new ResponseInterceptor());
+
+	// Real-time chat (§5): share the HTTP server, fan out across instances via
+	// Redis when configured (falls back to the in-memory adapter otherwise).
+	// Pass the underlying http.Server (not `app`) — before `listen()`,
+	// `getUnderlyingHttpServer()` (used when constructing from the app) hands
+	// back the Express handler, which Socket.io can't attach to; `getHttpServer()`
+	// returns the real server the app will listen on.
+	const redisIoAdapter = new RedisIoAdapter(app.getHttpServer());
+	await redisIoAdapter.connectToRedis();
+	// biome-ignore lint/correctness/useHookAtTopLevel: Nest application setup method, not a React hook.
+	app.useWebSocketAdapter(redisIoAdapter);
 
 	const swaggerConfig = new DocumentBuilder()
 		.setTitle("DextaLearning API")

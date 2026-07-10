@@ -41,6 +41,7 @@
 		"dashboard": "Tableau de bord",
 		"profile": "Profil",
 		"awards": "Récompenses",
+		"facilitator": "Portail animateur",
 		"sign_out": "Déconnexion",
 		"menu": "Menu du compte",
 		"greeting": "Connecté"
@@ -62,5 +63,35 @@
 		"light": "Clair",
 		"dark": "Sombre",
 		"system": "Système"
+	},
+	"phoneVerify": {
+		"verifyCta": "Vérifier",
+		"title": "Vérifiez votre numéro",
+		"chooseMethod": "Comment vous envoyer le code au {{phone}} ?",
+		"sendWhatsapp": "Envoyer le code sur WhatsApp",
+		"sendSms": "Envoyer le code par SMS",
+		"sending": "Envoi…",
+		"codeSentWhatsapp": "Nous avons envoyé un code sur WhatsApp au {{phone}}.",
+		"codeSentSms": "Nous avons envoyé un code par SMS au {{phone}}.",
+		"enterCode": "Saisissez le code à 6 chiffres",
+		"verify": "Vérifier",
+		"verifying": "Vérification…",
+		"resend": "Renvoyer le code",
+		"resendIn": "Renvoyer dans {{seconds}} s",
+		"changeMethod": "Utiliser une autre méthode",
+		"verifiedTitle": "Numéro vérifié",
+		"verifiedBody": "Merci ! Votre numéro de téléphone est maintenant vérifié.",
+		"done": "Terminé",
+		"close": "Fermer",
+		"saveFirst": "Enregistrez d'abord votre numéro, puis vérifiez-le.",
+		"genericError": "Impossible d'envoyer le code. Veuillez réessayer."
+	},
+	"push": {
+		"title": "Notifications push",
+		"hint": "Recevez des rappels sur cet appareil, même quand l'app est fermée.",
+		"unsupported": "Le push n'est pas pris en charge sur ce navigateur.",
+		"denied": "Les notifications sont bloquées. Activez-les dans les réglages de votre navigateur.",
+		"enabled_toast": "Notifications push activées.",
+		"error": "Impossible d'activer les notifications push."
 	}
 }

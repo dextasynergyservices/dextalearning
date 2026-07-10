@@ -57,6 +57,11 @@ const INSTRUCTOR_NAV: NavItem[] = [
 	},
 	{ to: "/instructor/paths", labelKey: "studio.nav.paths", icon: Waypoints },
 	{
+		to: "/instructor/cohorts",
+		labelKey: "studio.nav.cohorts",
+		icon: CalendarDays,
+	},
+	{
 		to: "/instructor/analytics",
 		labelKey: "studio.nav.analytics",
 		icon: BarChart3,
