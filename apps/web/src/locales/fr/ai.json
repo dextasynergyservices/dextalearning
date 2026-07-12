@@ -1,1 +1,33 @@
-{}
+{
+	"tutor": {
+		"title": "Demander au tuteur IA",
+		"subtitle": "Des réponses fondées sur cette leçon",
+		"empty": "Bloqué sur « {{title}} » ? Pose-moi n'importe quelle question dessus.",
+		"suggest_summary": "Résume cette leçon",
+		"suggest_explain": "Explique l'idée clé simplement",
+		"suggest_example": "Donne-moi un exemple",
+		"placeholder": "Pose une question sur cette leçon…",
+		"input_label": "Ta question",
+		"send": "Envoyer",
+		"not_covered": "Non abordé dans cette leçon",
+		"error": "Le tuteur n'a pas pu répondre. Réessaie.",
+		"disclaimer": "L'IA peut se tromper — vérifie ce qui compte.",
+		"limit": "Tu as atteint ta limite d'IA du jour. Réessaie demain."
+	},
+	"simplify": {
+		"action": "Simplifier cette leçon",
+		"subtitle": "Une version en langage simple, même sens",
+		"loading": "Simplification…",
+		"error": "Impossible de simplifier. Réessaie.",
+		"retry": "Réessayer",
+		"disclaimer": "L'IA peut se tromper — vérifie ce qui compte.",
+		"limit": "Tu as atteint ta limite d'IA du jour. Réessaie demain."
+	},
+	"search": {
+		"placeholder": "Rechercher dans ce cours par sens…",
+		"label": "Rechercher dans le contenu du cours",
+		"clear": "Effacer",
+		"searching": "Recherche…",
+		"no_results": "Aucune leçon ne correspond pour l'instant."
+	}
+}

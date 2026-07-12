@@ -1,4 +1,5 @@
 import { apiFetch } from "./api";
+import type { LearnerRisk } from "./risk";
 
 // An instructor's read-only view of the cohorts they're assigned to teach
 // (§Role Definitions). Assignment = subject-matter teacher for the cohort;
@@ -13,6 +14,7 @@ export interface TeachingCohort {
 	startsAt: string | null;
 	learnerCount: number;
 	courseCount: number;
+	atRiskCount: number;
 }
 
 export interface TeachingLearner {
@@ -22,6 +24,7 @@ export interface TeachingLearner {
 	enrolledAt: string;
 	progressPercent: number;
 	completed: boolean;
+	risk: LearnerRisk | null;
 }
 
 export interface TeachingCohortDetail {

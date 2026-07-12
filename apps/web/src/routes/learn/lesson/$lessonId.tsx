@@ -17,6 +17,9 @@ import { RequireAuth } from "@/components/auth/require-auth";
 import { NextSessionPrompt } from "@/components/engagement/next-session-prompt";
 import { InlineQuiz } from "@/components/learn/inline-quiz";
 import { LessonListPanel } from "@/components/learn/lesson-list-panel";
+import { PacingNudge } from "@/components/learn/pacing-nudge";
+import { SimplifyBlock } from "@/components/learn/simplify-block";
+import { TutorPanel } from "@/components/learn/tutor-panel";
 import { LessonPlayer } from "@/components/player/lesson-player";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -313,32 +316,36 @@ function LessonBody({
 				)}
 			>
 				{done ? (
-					<div className="flex items-center gap-3">
-						<motion.span
-							initial={{ scale: 0.4, opacity: 0 }}
-							animate={{ scale: 1, opacity: 1 }}
-							transition={{ type: "spring", stiffness: 260, damping: 22 }}
-							className="flex size-10 shrink-0 items-center justify-center rounded-full bg-success text-white"
-						>
-							<CheckCircle2 className="size-5" />
-						</motion.span>
-						<div>
-							<p className="font-display text-foreground">
-								{t("play.auto_complete_done", {
-									defaultValue: "Completed — well done!",
-								})}
-							</p>
-							<p className="text-muted-foreground text-sm">
-								{ctx.nextLessonId
-									? t("play.on_to_next", {
-											defaultValue: "On to the next lesson.",
-										})
-									: t("play.course_done_hint", {
-											defaultValue: "You've reached the end of the course.",
-										})}
-							</p>
+					<>
+						<div className="flex items-center gap-3">
+							<motion.span
+								initial={{ scale: 0.4, opacity: 0 }}
+								animate={{ scale: 1, opacity: 1 }}
+								transition={{ type: "spring", stiffness: 260, damping: 22 }}
+								className="flex size-10 shrink-0 items-center justify-center rounded-full bg-success text-white"
+							>
+								<CheckCircle2 className="size-5" />
+							</motion.span>
+							<div>
+								<p className="font-display text-foreground">
+									{t("play.auto_complete_done", {
+										defaultValue: "Completed — well done!",
+									})}
+								</p>
+								<p className="text-muted-foreground text-sm">
+									{ctx.nextLessonId
+										? t("play.on_to_next", {
+												defaultValue: "On to the next lesson.",
+											})
+										: t("play.course_done_hint", {
+												defaultValue: "You've reached the end of the course.",
+											})}
+								</p>
+							</div>
 						</div>
-					</div>
+						{/* Adaptive pacing signal (§4.10) — rhythm nudge on completion. */}
+						<PacingNudge enabled={done} />
+					</>
 				) : (
 					<div className="space-y-3">
 						{/* Step 1 — consume the content */}
@@ -404,6 +411,18 @@ function LessonBody({
 					</div>
 				)}
 			</div>
+
+			{/* Content Simplifier (§4.10) — plain-language rewrite of the lesson
+			    text, on demand, whenever there's readable text or a transcript. */}
+			{ctx.lesson.hasSimplifiableText ? (
+				<SimplifyBlock lessonId={lessonId} />
+			) : null}
+
+			{/* AI Lesson Tutor (§4.10) — transcript-grounded Q&A, only when the
+			    instructor uploaded a transcript to ground answers in. */}
+			{ctx.lesson.hasTranscript ? (
+				<TutorPanel lessonId={lessonId} lessonTitle={ctx.lesson.title} />
+			) : null}
 
 			{/* §3.2 implementation intention — asked at the moment of completion,
 			    one tap, feeds the reminder engine. Fresh completions only. */}

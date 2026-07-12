@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import type { AuthenticatedUser } from "../../src/auth/types";
+import { DropoffQueryService } from "../../src/modules/dropoff/dropoff-query.service";
 import { TeachingService } from "../../src/modules/teaching/teaching.service";
 import { getTestPrisma } from "./support/db";
 import {
@@ -17,7 +18,7 @@ const asInstructor = (id: string): AuthenticatedUser => ({
 
 describe("TeachingService (integration)", () => {
 	const prisma = getTestPrisma();
-	const service = new TeachingService(prisma);
+	const service = new TeachingService(prisma, new DropoffQueryService(prisma));
 
 	let cohortId: string;
 	let instructorId: string;

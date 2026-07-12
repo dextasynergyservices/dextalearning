@@ -472,12 +472,25 @@ export class MediaService {
 				transcriptCuesJson: timed ? cues : Prisma.DbNull,
 				transcriptUploadedAt: new Date(),
 			},
-			select: { id: true, transcriptUploadedAt: true },
+			select: {
+				id: true,
+				title: true,
+				transcriptUploadedAt: true,
+				module: { select: { courseId: true } },
+			},
 		});
+		// Snapshot the transcript + title + course into the event so the knowledge
+		// (RAG) context can (re)index without reading back into media (§6.4).
 		this.events.emit(ContentEvents.TranscriptUpdated, {
 			lessonId,
+			lessonTitle: updated.title,
+			transcriptText: flatText,
+			courseId: updated.module?.courseId ?? null,
 		} satisfies TranscriptUpdatedEvent);
-		return updated;
+		return {
+			id: updated.id,
+			transcriptUploadedAt: updated.transcriptUploadedAt,
+		};
 	}
 
 	/**

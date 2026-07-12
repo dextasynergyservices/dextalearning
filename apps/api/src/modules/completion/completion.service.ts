@@ -805,6 +805,8 @@ export class CompletionService {
 				minVideoWatchPct: true,
 				hasPreQuiz: true,
 				hasPostQuiz: true,
+				transcriptText: true,
+				contentText: true,
 				module: { select: { courseId: true } },
 			},
 		});
@@ -917,6 +919,12 @@ export class CompletionService {
 				minVideoWatchPct: Number(lesson.minVideoWatchPct),
 				hasPreQuiz: lesson.hasPreQuiz,
 				hasPostQuiz: lesson.hasPostQuiz,
+				// Powers the AI tutor's visibility — no transcript, no grounding (§4.10).
+				hasTranscript: (lesson.transcriptText ?? "").trim().length > 0,
+				// Powers the Content Simplifier — reading content OR transcript (§4.10).
+				hasSimplifiableText:
+					(lesson.contentText ?? "").trim().length > 0 ||
+					(lesson.transcriptText ?? "").trim().length > 0,
 			},
 			course: { id: courseId, title: course?.title ?? "" },
 			lessons,

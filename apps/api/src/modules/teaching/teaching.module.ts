@@ -1,4 +1,5 @@
 import { Module } from "@nestjs/common";
+import { DropoffModule } from "../dropoff/dropoff.module";
 import { TeachingController } from "./teaching.controller";
 import { TeachingService } from "./teaching.service";
 
@@ -8,6 +9,7 @@ import { TeachingService } from "./teaching.service";
  * and writes nothing.
  */
 @Module({
+	imports: [DropoffModule],
 	controllers: [TeachingController],
 	providers: [TeachingService],
 })

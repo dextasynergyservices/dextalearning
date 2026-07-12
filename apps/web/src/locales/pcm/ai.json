@@ -1,1 +1,33 @@
-{}
+{
+	"tutor": {
+		"title": "Ask di AI tutor",
+		"subtitle": "Answers wey base for dis lesson",
+		"empty": "«{{title}}» dey hard you? Ask me anytin about am.",
+		"suggest_summary": "Summarize dis lesson",
+		"suggest_explain": "Explain di main point make e easy",
+		"suggest_example": "Give me one example",
+		"placeholder": "Ask about dis lesson…",
+		"input_label": "Your question",
+		"send": "Send",
+		"not_covered": "Dis lesson no talk about am",
+		"error": "Di tutor no fit answer. Abeg try again.",
+		"disclaimer": "AI fit make mistake — check wetin important well well.",
+		"limit": "You don reach your AI limit for today. Try again tomorrow."
+	},
+	"simplify": {
+		"action": "Make dis lesson easy",
+		"subtitle": "Plain-language version, di same meaning",
+		"loading": "I dey make am easy…",
+		"error": "I no fit make am easy. Abeg try again.",
+		"retry": "Try again",
+		"disclaimer": "AI fit make mistake — check wetin important well well.",
+		"limit": "You don reach your AI limit for today. Try again tomorrow."
+	},
+	"search": {
+		"placeholder": "Find anytin for dis course by meaning…",
+		"label": "Search course content",
+		"clear": "Clear",
+		"searching": "I dey find…",
+		"no_results": "No lesson match am yet."
+	}
+}

@@ -6,6 +6,7 @@ import {
 } from "@nestjs/common";
 import type { AuthenticatedUser } from "../../auth/types";
 import { PrismaService } from "../../prisma/prisma.service";
+import { DropoffQueryService } from "../dropoff/dropoff-query.service";
 import { NotificationsService } from "../notifications/notifications.service";
 import {
 	type GroupingMode,
@@ -54,6 +55,7 @@ export class GroupingService {
 	constructor(
 		private readonly prisma: PrismaService,
 		private readonly notifications: NotificationsService,
+		private readonly dropoff: DropoffQueryService,
 	) {}
 
 	private async loadCohort(cohortId: string) {
@@ -107,6 +109,9 @@ export class GroupingService {
 				},
 			},
 		});
+		const atRisk = await this.dropoff.atRiskCountsFor(
+			links.map((l) => l.cohort.id),
+		);
 		return links.map((l) => ({
 			id: l.cohort.id,
 			title: l.cohort.title,
@@ -116,6 +121,7 @@ export class GroupingService {
 			groupingMode: l.cohort.groupingMode,
 			learnerCount: l.cohort._count.enrollments,
 			groupCount: l.cohort._count.groups,
+			atRiskCount: atRisk.get(l.cohort.id)?.total ?? 0,
 		}));
 	}
 

@@ -22,8 +22,14 @@
 			"name": "Primeros pasos",
 			"desc": "Completa tu primera lección"
 		},
-		"lessons_10": { "name": "Explorador", "desc": "Completa 10 lecciones" },
-		"lessons_25": { "name": "Con impulso", "desc": "Completa 25 lecciones" },
+		"lessons_10": {
+			"name": "Explorador",
+			"desc": "Completa 10 lecciones"
+		},
+		"lessons_25": {
+			"name": "Con impulso",
+			"desc": "Completa 25 lecciones"
+		},
 		"lessons_50": {
 			"name": "Constructor de saber",
 			"desc": "Completa 50 lecciones"
@@ -52,13 +58,22 @@
 			"name": "Salto de crecimiento",
 			"desc": "Supera tu puntuación previa por 25+ puntos"
 		},
-		"streak_3": { "name": "Calentando", "desc": "Aprende 3 días seguidos" },
-		"streak_7": { "name": "En llamas", "desc": "Aprende 7 días seguidos" },
+		"streak_3": {
+			"name": "Calentando",
+			"desc": "Aprende 3 días seguidos"
+		},
+		"streak_7": {
+			"name": "En llamas",
+			"desc": "Aprende 7 días seguidos"
+		},
 		"streak_14": {
 			"name": "Dos semanas seguidas",
 			"desc": "Aprende 14 días seguidos"
 		},
-		"streak_30": { "name": "Imparable", "desc": "Aprende 30 días seguidos" },
+		"streak_30": {
+			"name": "Imparable",
+			"desc": "Aprende 30 días seguidos"
+		},
 		"comeback": {
 			"name": "Regreso triunfal",
 			"desc": "Falta un día, usa un protector y sigue adelante"
@@ -126,7 +141,28 @@
 				"title": "Ganaste un nuevo premio",
 				"body": "{{name}} ya está en tu colección."
 			},
-			"default": { "title": "Novedad", "body": "" }
+			"coach_digest": {
+				"title": "Tu resumen de aprendizaje semanal",
+				"body": "Una mirada fresca a tu semana — y un enfoque para la próxima."
+			},
+			"default": {
+				"title": "Novedad",
+				"body": ""
+			},
+			"dropoff_alert": {
+				"title": "Algunos aprendices se están quedando atrás",
+				"body": "Algunos aprendices de tu cohorte parecen en riesgo — contáctalos."
+			}
 		}
+	},
+	"coach": {
+		"eyebrow": "Tu coach",
+		"focus": "Tu enfoque de esta semana"
+	},
+	"pacing": {
+		"ahead": "Vas por delante de tu meta — {{done}}/{{target}} lecciones esta semana. ¡Buen ritmo!",
+		"on_track": "Buen ritmo constante — sigue así.",
+		"behind": "Un poco por detrás de tu meta — una lección más te mantiene al día.",
+		"rushing": "¡Vas muy rápido! Un repaso rápido de lo aprendido lo fija mejor."
 	}
 }

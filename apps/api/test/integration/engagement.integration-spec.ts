@@ -282,6 +282,89 @@ describe("Engagement context (integration)", () => {
 		);
 	});
 
+	it("listWeeklyActivity aggregates the week's actions per user (coach input)", async () => {
+		const since = new Date(Date.now() - 7 * 86_400_000);
+		await prisma.progressEvent.createMany({
+			data: [
+				{ userId: learnerId, entityType: "lesson", eventType: "completed" },
+				{ userId: learnerId, entityType: "lesson", eventType: "completed" },
+				{ userId: learnerId, entityType: "course", eventType: "completed" },
+				{
+					userId: learnerId,
+					entityType: "assessment",
+					eventType: "attempt_submitted",
+					metadataJson: { passed: true, score: 80 },
+				},
+				{
+					userId: learnerId,
+					entityType: "assessment",
+					eventType: "attempt_submitted",
+					metadataJson: { passed: false, score: 40 },
+				},
+			],
+		});
+
+		const activity = await query.listWeeklyActivity(since);
+		const mine = activity.find((a) => a.userId === learnerId);
+		expect(mine).toMatchObject({
+			lessonsCompleted: 2,
+			coursesCompleted: 1,
+			quizzesPassed: 1,
+			quizzesFailed: 1,
+			avgQuizScore: 60, // (80 + 40) / 2
+		});
+	});
+
+	it("listWeeklyActivity ignores events older than the window", async () => {
+		await prisma.progressEvent.create({
+			data: {
+				userId: learnerId,
+				entityType: "lesson",
+				eventType: "completed",
+				createdAt: new Date(Date.now() - 10 * 86_400_000),
+			},
+		});
+		const activity = await query.listWeeklyActivity(
+			new Date(Date.now() - 7 * 86_400_000),
+		);
+		expect(activity.find((a) => a.userId === learnerId)).toBeUndefined();
+	});
+
+	it("activitySignalsFor returns last-active + recent count (dropoff input)", async () => {
+		const recentSince = new Date(Date.now() - 14 * 86_400_000);
+		await prisma.progressEvent.createMany({
+			data: [
+				{
+					userId: learnerId,
+					entityType: "lesson",
+					eventType: "completed",
+					createdAt: new Date(Date.now() - 2 * 86_400_000),
+				},
+				{
+					userId: learnerId,
+					entityType: "lesson",
+					eventType: "completed",
+					createdAt: new Date(Date.now() - 20 * 86_400_000),
+				},
+			],
+		});
+		const signals = await query.activitySignalsFor([learnerId], recentSince);
+		const mine = signals.get(learnerId);
+		expect(mine?.recentActions).toBe(1); // only the 2-day-old event is recent
+		// Last-active reflects the most recent event (~2 days ago).
+		expect(Date.now() - (mine?.lastActive.getTime() ?? 0)).toBeLessThan(
+			3 * 86_400_000,
+		);
+	});
+
+	it("activitySignalsFor omits users with no activity", async () => {
+		const signals = await query.activitySignalsFor(
+			[learnerId],
+			new Date(Date.now() - 14 * 86_400_000),
+		);
+		expect(signals.has(learnerId)).toBe(false);
+	});
+
 	it("subscriber failures are swallowed, never rethrown into the emitter", async () => {
 		// Bogus user id violates the FK — the handler must log, not throw.
 		await expect(

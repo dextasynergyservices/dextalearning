@@ -3,7 +3,8 @@
 // handled separately by `auth-client.ts`. Cookies are always included so the
 // Better Auth session rides along on same-site requests.
 
-const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3000/api/v1";
+export const API_URL =
+	import.meta.env.VITE_API_URL ?? "http://localhost:3000/api/v1";
 
 /** Error carrying the server's machine `code` + structured `details`
  *  (e.g. COURSE_NOT_PUBLISHABLE → the offending lessons). */

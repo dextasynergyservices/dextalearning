@@ -22,8 +22,14 @@
 			"name": "Premiers pas",
 			"desc": "Terminez votre première leçon"
 		},
-		"lessons_10": { "name": "Explorateur", "desc": "Terminez 10 leçons" },
-		"lessons_25": { "name": "Sur la lancée", "desc": "Terminez 25 leçons" },
+		"lessons_10": {
+			"name": "Explorateur",
+			"desc": "Terminez 10 leçons"
+		},
+		"lessons_25": {
+			"name": "Sur la lancée",
+			"desc": "Terminez 25 leçons"
+		},
 		"lessons_50": {
 			"name": "Bâtisseur de savoir",
 			"desc": "Terminez 50 leçons"
@@ -56,7 +62,10 @@
 			"name": "Échauffement",
 			"desc": "Apprenez 3 jours d'affilée"
 		},
-		"streak_7": { "name": "En feu", "desc": "Apprenez 7 jours d'affilée" },
+		"streak_7": {
+			"name": "En feu",
+			"desc": "Apprenez 7 jours d'affilée"
+		},
 		"streak_14": {
 			"name": "Deux semaines de suite",
 			"desc": "Apprenez 14 jours d'affilée"
@@ -132,7 +141,28 @@
 				"title": "Nouvelle récompense obtenue",
 				"body": "{{name}} rejoint votre collection."
 			},
-			"default": { "title": "Mise à jour", "body": "" }
+			"coach_digest": {
+				"title": "Ton bilan d'apprentissage de la semaine",
+				"body": "Un regard neuf sur ta semaine — et un objectif pour la suite."
+			},
+			"default": {
+				"title": "Mise à jour",
+				"body": ""
+			},
+			"dropoff_alert": {
+				"title": "Des apprenants décrochent peut-être",
+				"body": "Certains apprenants de ta cohorte semblent à risque — prends de leurs nouvelles."
+			}
 		}
+	},
+	"coach": {
+		"eyebrow": "Ton coach",
+		"focus": "Ton objectif de la semaine"
+	},
+	"pacing": {
+		"ahead": "Tu es en avance sur ton objectif — {{done}}/{{target}} leçons cette semaine. Beau rythme !",
+		"on_track": "Beau rythme régulier — continue comme ça.",
+		"behind": "Un peu en retard sur ton objectif — une leçon de plus te remet sur les rails.",
+		"rushing": "Tu vas vite ! Un petit récap de ce que tu as appris l'ancre mieux."
 	}
 }
