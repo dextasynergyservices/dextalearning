@@ -1,4 +1,5 @@
 import { Module } from "@nestjs/common";
+import { DropoffModule } from "../dropoff/dropoff.module";
 import { NotificationsModule } from "../notifications/notifications.module";
 import { FacilitatorController } from "./facilitator.controller";
 import { GroupingController } from "./grouping.controller";
@@ -10,7 +11,7 @@ import { GroupingService } from "./grouping.service";
  * context on re-group.
  */
 @Module({
-	imports: [NotificationsModule],
+	imports: [NotificationsModule, DropoffModule],
 	controllers: [GroupingController, FacilitatorController],
 	providers: [GroupingService],
 })

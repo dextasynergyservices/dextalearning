@@ -1188,6 +1188,41 @@ model ReminderLog {
   @@map("reminder_logs")
 }
 
+// Owned by the Drop-off context (§4.10). One row per at-risk cohort learner,
+// recomputed by the daily sweep (delete-then-insert per cohort). Only medium/
+// high flags are stored — absence of a row means "on track". No FKs: cohort/
+// user ids are read-only references the analytical sweep aggregates over.
+model DropoffFlag {
+  cohortId     String   @map("cohort_id") @db.Uuid
+  userId       String   @map("user_id") @db.Uuid
+  level        String   @db.VarChar(10)
+  score        Int
+  reasonsJson  Json     @map("reasons_json")
+  daysInactive Int      @map("days_inactive")
+  computedAt   DateTime @default(now()) @map("computed_at") @db.Timestamptz(6)
+
+  @@id([cohortId, userId])
+  @@index([cohortId, level])
+  @@map("dropoff_flags")
+}
+
+// Owned by the Coach context (§4.10 Learning Coach). One AI-composed weekly
+// digest per user per ISO week (weekOf = that week's Monday). Stored so the
+// learner can revisit the latest message; unique key doubles as the send lock.
+model CoachDigest {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  weekOf    DateTime @map("week_of") @db.Date
+  headline  String   @db.VarChar(200)
+  body      String
+  action    String?
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@unique([userId, weekOf])
+  @@index([userId, createdAt])
+  @@map("coach_digests")
+}
+
 model BlogPost {
   id          String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   tenantId    String?        @map("tenant_id") @db.Uuid

@@ -33,6 +33,12 @@ export interface CaptionReadyEvent {
 
 export interface TranscriptUpdatedEvent {
 	lessonId: string;
+	/** Snapshot of the lesson title (shown in search results, §6.4 rule 5). */
+	lessonTitle: string;
+	/** Snapshot of the flat transcript text (RAG indexing source, §4.10). */
+	transcriptText: string;
+	/** The lesson's course, for scoping semantic search. */
+	courseId: string | null;
 }
 
 export interface LessonPublishedEvent {

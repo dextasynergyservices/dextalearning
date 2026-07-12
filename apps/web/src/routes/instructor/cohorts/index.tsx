@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { CalendarDays, ChevronRight, Info, Users } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { AtRiskPill } from "@/components/authoring/risk-badge";
 import { StudioShell } from "@/components/authoring/studio-shell";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getMyTeachingCohorts, teachingKeys } from "@/lib/teaching-api";
@@ -88,6 +89,7 @@ function InstructorCohortsPage() {
 												defaultValue: "{{count}} courses",
 											})}
 										</span>
+										<AtRiskPill count={cohort.atRiskCount} />
 									</div>
 								</div>
 								<ChevronRight className="size-5 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5" />

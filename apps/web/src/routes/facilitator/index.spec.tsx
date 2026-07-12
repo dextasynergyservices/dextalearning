@@ -29,6 +29,7 @@ function cohort(overrides: Partial<FacilitatedCohort> = {}): FacilitatedCohort {
 		groupingMode: "manual",
 		learnerCount: 12,
 		groupCount: 3,
+		atRiskCount: 0,
 		...overrides,
 	};
 }

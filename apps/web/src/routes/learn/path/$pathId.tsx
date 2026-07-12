@@ -9,9 +9,11 @@ import {
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { LearnerShell } from "@/components/layout/learner-shell";
+import { ContentSearch } from "@/components/learn/content-search";
 import { ProgressRing } from "@/components/learn/progress-ring";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getPathProgress, type PathProgress } from "@/lib/content-api";
+import { searchPathContent } from "@/lib/search-api";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/learn/path/$pathId")({
@@ -96,6 +98,12 @@ function PathBody({ data }: { data: PathProgress }) {
 					</Link>
 				) : null}
 			</section>
+
+			{/* Semantic search across every course in this path (§4.10 RAG). */}
+			<ContentSearch
+				scopeId={data.path.id}
+				fetcher={(q) => searchPathContent(data.path.id, q)}
+			/>
 
 			<section className="overflow-hidden rounded-card border border-border bg-card shadow-card">
 				<h2 className="bg-muted px-4 py-3 font-display text-foreground">

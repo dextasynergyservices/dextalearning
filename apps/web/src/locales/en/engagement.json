@@ -22,8 +22,14 @@
 			"name": "First Steps",
 			"desc": "Complete your first lesson"
 		},
-		"lessons_10": { "name": "Deep Diver", "desc": "Complete 10 lessons" },
-		"lessons_25": { "name": "Momentum Maker", "desc": "Complete 25 lessons" },
+		"lessons_10": {
+			"name": "Deep Diver",
+			"desc": "Complete 10 lessons"
+		},
+		"lessons_25": {
+			"name": "Momentum Maker",
+			"desc": "Complete 25 lessons"
+		},
 		"lessons_50": {
 			"name": "Knowledge Builder",
 			"desc": "Complete 50 lessons"
@@ -44,18 +50,30 @@
 			"name": "Recall Master",
 			"desc": "Pass 10 different quizzes"
 		},
-		"perfect_quiz": { "name": "Perfect Score", "desc": "Score 100% on a quiz" },
+		"perfect_quiz": {
+			"name": "Perfect Score",
+			"desc": "Score 100% on a quiz"
+		},
 		"growth_leap": {
 			"name": "Growth Leap",
 			"desc": "Beat your pre-quiz score by 25+ points"
 		},
-		"streak_3": { "name": "Warming Up", "desc": "Learn 3 days in a row" },
-		"streak_7": { "name": "On Fire", "desc": "Learn 7 days in a row" },
+		"streak_3": {
+			"name": "Warming Up",
+			"desc": "Learn 3 days in a row"
+		},
+		"streak_7": {
+			"name": "On Fire",
+			"desc": "Learn 7 days in a row"
+		},
 		"streak_14": {
 			"name": "Two-Week Wonder",
 			"desc": "Learn 14 days in a row"
 		},
-		"streak_30": { "name": "Unstoppable", "desc": "Learn 30 days in a row" },
+		"streak_30": {
+			"name": "Unstoppable",
+			"desc": "Learn 30 days in a row"
+		},
 		"comeback": {
 			"name": "Comeback",
 			"desc": "Miss a day, use a freeze, and keep going"
@@ -123,7 +141,28 @@
 				"title": "You earned a new award",
 				"body": "{{name}} is now in your collection."
 			},
-			"default": { "title": "Update", "body": "" }
+			"coach_digest": {
+				"title": "Your weekly coaching check-in",
+				"body": "A fresh look at your week — and one focus for the next."
+			},
+			"default": {
+				"title": "Update",
+				"body": ""
+			},
+			"dropoff_alert": {
+				"title": "Learners may be falling behind",
+				"body": "Some learners in your cohort look at risk — check in with them."
+			}
 		}
+	},
+	"coach": {
+		"eyebrow": "Your coach",
+		"focus": "This week's focus"
+	},
+	"pacing": {
+		"ahead": "You're ahead of your weekly goal — {{done}}/{{target}} lessons this week. Great momentum!",
+		"on_track": "Nice steady pace — keep the rhythm going.",
+		"behind": "A little behind your weekly goal — one more lesson keeps you on track.",
+		"rushing": "You're moving fast! A quick recap of what you learned makes it stick."
 	}
 }

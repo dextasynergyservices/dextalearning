@@ -884,5 +884,15 @@
 		"assessments_other": "{{count}} evaluaciones",
 		"projects_one": "{{count}} proyecto",
 		"projects_other": "{{count}} proyectos"
+	},
+	"dropoff": {
+		"inactive_days_one": "Inactivo {{count}}d",
+		"inactive_days_other": "Inactivo {{count}}d",
+		"at_risk_count_one": "{{count}} en riesgo",
+		"at_risk_count_other": "{{count}} en riesgo",
+		"reason_never_started": "No ha empezado",
+		"reason_inactive_one": "Inactivo {{count}} día",
+		"reason_inactive_other": "Inactivo {{count}} días",
+		"reason_no_recent_progress": "Sin progreso reciente"
 	}
 }

@@ -58,6 +58,8 @@ function context(overrides: Partial<LessonContext> = {}): LessonContext {
 			minVideoWatchPct: 80,
 			hasPreQuiz: false,
 			hasPostQuiz: false,
+			hasTranscript: false,
+			hasSimplifiableText: false,
 		},
 		course: { id: "c1", title: "React Basics" },
 		lessons: [
@@ -188,6 +190,8 @@ describe("LessonRoute", () => {
 					minVideoWatchPct: 80,
 					hasPreQuiz: true,
 					hasPostQuiz: true,
+					hasTranscript: false,
+					hasSimplifiableText: false,
 				},
 				preQuiz: { id: "a-pre", passed: true, bestScore: 40 },
 				postQuiz: { id: "a-post", passed: false, bestScore: null },

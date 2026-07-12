@@ -1,1 +1,33 @@
-{}
+{
+	"tutor": {
+		"title": "Pregúntale al tutor IA",
+		"subtitle": "Respuestas basadas en esta lección",
+		"empty": "¿Atascado con «{{title}}»? Pregúntame lo que quieras sobre ella.",
+		"suggest_summary": "Resume esta lección",
+		"suggest_explain": "Explica la idea clave de forma sencilla",
+		"suggest_example": "Dame un ejemplo",
+		"placeholder": "Pregunta sobre esta lección…",
+		"input_label": "Tu pregunta",
+		"send": "Enviar",
+		"not_covered": "No se trata en esta lección",
+		"error": "El tutor no pudo responder. Inténtalo de nuevo.",
+		"disclaimer": "La IA puede equivocarse: verifica lo importante.",
+		"limit": "Has alcanzado tu límite de IA de hoy. Inténtalo mañana."
+	},
+	"simplify": {
+		"action": "Simplificar esta lección",
+		"subtitle": "Una versión en lenguaje sencillo, mismo significado",
+		"loading": "Simplificando…",
+		"error": "No se pudo simplificar. Inténtalo de nuevo.",
+		"retry": "Reintentar",
+		"disclaimer": "La IA puede equivocarse: verifica lo importante.",
+		"limit": "Has alcanzado tu límite de IA de hoy. Inténtalo mañana."
+	},
+	"search": {
+		"placeholder": "Busca en este curso por significado…",
+		"label": "Buscar contenido del curso",
+		"clear": "Limpiar",
+		"searching": "Buscando…",
+		"no_results": "Aún no hay lecciones que coincidan."
+	}
+}

@@ -1611,6 +1611,8 @@ export interface LessonContext {
 		minVideoWatchPct: number;
 		hasPreQuiz: boolean;
 		hasPostQuiz: boolean;
+		hasTranscript: boolean;
+		hasSimplifiableText: boolean;
 	};
 	course: { id: string; title: string };
 	lessons: LessonContextItem[];

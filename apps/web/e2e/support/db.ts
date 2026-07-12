@@ -114,6 +114,38 @@ export async function seedLearnerCourse(): Promise<{
 	});
 }
 
+/**
+ * A published, free course → module → text lesson that carries a **transcript**
+ * — the AI Lesson Tutor (§4.10) only appears when a lesson has one. Used by the
+ * tutor golden path to prove the real streaming Q&A end-to-end.
+ */
+export async function seedTutorLesson(): Promise<{
+	courseSlug: string;
+	lessonId: string;
+}> {
+	return withClient(async (client) => {
+		const slug = `e2e-tutor-${randomUUID().slice(0, 8)}`;
+		const courseRes = await client.query<{ id: string }>(
+			`INSERT INTO "courses" (title, slug, status, is_free)
+			 VALUES ('Photosynthesis 101', $1, 'published', true) RETURNING id`,
+			[slug],
+		);
+		const moduleRes = await client.query<{ id: string }>(
+			`INSERT INTO "modules" (course_id, title, order_index)
+			 VALUES ($1, 'Basics', 1) RETURNING id`,
+			[courseRes.rows[0].id],
+		);
+		const body =
+			"Photosynthesis is how plants convert sunlight, water and carbon dioxide into glucose and oxygen. It happens in the chloroplasts, using the green pigment chlorophyll.";
+		const lessonRes = await client.query<{ id: string }>(
+			`INSERT INTO "lessons" (module_id, title, content_type, content_text, transcript_text, order_index)
+			 VALUES ($1, 'How photosynthesis works', 'text', $2, $2, 1) RETURNING id`,
+			[moduleRes.rows[0].id, body],
+		);
+		return { courseSlug: slug, lessonId: lessonRes.rows[0].id };
+	});
+}
+
 /** Looks up a lesson created through the UI, which has no visible id. Titles
  * in these specs are randomized per run, so most-recent-by-title is unambiguous. */
 export async function findLessonIdByTitle(title: string): Promise<string> {

@@ -13,4 +13,10 @@ export interface CachePort {
 	set(key: string, value: unknown, ttlSeconds: number): Promise<void>;
 	/** Deletes a key (no-op if absent). */
 	del(key: string): Promise<void>;
+	/**
+	 * Atomically increments a counter, setting the TTL on first creation, and
+	 * returns the new value. Used for rate/quota counters. Fail-open: returns 0
+	 * on any backend error so a cache outage never blocks the caller.
+	 */
+	incr(key: string, ttlSeconds: number): Promise<number>;
 }

@@ -1,1 +1,33 @@
-{}
+{
+	"tutor": {
+		"title": "Ask the AI tutor",
+		"subtitle": "Answers grounded in this lesson",
+		"empty": "Stuck on “{{title}}”? Ask me anything about it.",
+		"suggest_summary": "Summarize this lesson",
+		"suggest_explain": "Explain the key idea simply",
+		"suggest_example": "Give me an example",
+		"placeholder": "Ask about this lesson…",
+		"input_label": "Your question",
+		"send": "Send",
+		"not_covered": "Not covered in this lesson",
+		"error": "The tutor couldn't answer. Please try again.",
+		"disclaimer": "AI can make mistakes — verify what matters.",
+		"limit": "You've reached today's AI limit. Try again tomorrow."
+	},
+	"simplify": {
+		"action": "Simplify this lesson",
+		"subtitle": "A plain-language version, same meaning",
+		"loading": "Simplifying…",
+		"error": "Couldn't simplify this. Please try again.",
+		"retry": "Try again",
+		"disclaimer": "AI can make mistakes — verify what matters.",
+		"limit": "You've reached today's AI limit. Try again tomorrow."
+	},
+	"search": {
+		"placeholder": "Search this course by meaning…",
+		"label": "Search course content",
+		"clear": "Clear",
+		"searching": "Searching…",
+		"no_results": "No lessons match that yet."
+	}
+}

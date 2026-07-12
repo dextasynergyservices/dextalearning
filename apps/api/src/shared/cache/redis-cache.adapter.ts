@@ -67,6 +67,30 @@ export class RedisCacheAdapter implements CachePort, OnModuleDestroy {
 		}
 	}
 
+	async incr(key: string, ttlSeconds: number): Promise<number> {
+		try {
+			if (this.redis) {
+				const n = await this.redis.incr(key);
+				if (n === 1) await this.redis.expire(key, ttlSeconds);
+				return n;
+			}
+			const current = Number(this.memoryGet(key) ?? "0") + 1;
+			this.memory.set(key, {
+				value: String(current),
+				// Keep the original window: only (re)set expiry when the key is new.
+				expiresAt:
+					current === 1
+						? Date.now() + ttlSeconds * 1000
+						: (this.memory.get(key)?.expiresAt ??
+							Date.now() + ttlSeconds * 1000),
+			});
+			return current;
+		} catch {
+			// Fail-open: a broken counter must never lock a user out.
+			return 0;
+		}
+	}
+
 	private memoryGet(key: string): string | null {
 		const hit = this.memory.get(key);
 		if (!hit) return null;

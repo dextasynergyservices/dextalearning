@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { CalendarDays, ChevronRight, Layers, UsersRound } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { AtRiskPill } from "@/components/authoring/risk-badge";
 import { FacilitatorShell } from "@/components/layout/facilitator-shell";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -71,6 +72,7 @@ function FacilitatorHome() {
 											defaultValue: "{{count}} groups",
 										})}
 									</span>
+									<AtRiskPill count={cohort.atRiskCount} />
 								</div>
 							</div>
 							<ChevronRight className="size-5 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5" />

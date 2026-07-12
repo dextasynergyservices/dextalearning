@@ -305,7 +305,13 @@ describe("MediaService (integration)", () => {
 				where: { id: lesson.id },
 			});
 			expect(updated?.transcriptText).toBe("Hello\nworld");
-			expect(handler).toHaveBeenCalledWith({ lessonId: lesson.id });
+			// The event snapshots the transcript + title + course for the RAG indexer.
+			expect(handler).toHaveBeenCalledWith({
+				lessonId: lesson.id,
+				lessonTitle: lesson.title,
+				transcriptText: "Hello\nworld",
+				courseId: course.id,
+			});
 		});
 
 		it("stores plain text and clears cues when no timed cues are given", async () => {

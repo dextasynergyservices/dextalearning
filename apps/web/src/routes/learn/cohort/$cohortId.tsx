@@ -12,10 +12,12 @@ import {
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { LearnerShell } from "@/components/layout/learner-shell";
+import { ContentSearch } from "@/components/learn/content-search";
 import { ProgressRing } from "@/components/learn/progress-ring";
 import { Skeleton } from "@/components/ui/skeleton";
 import { chatKeys, getMyGroupInCohort } from "@/lib/chat-api";
 import { type CohortProgress, getCohortProgress } from "@/lib/content-api";
+import { searchCohortContent } from "@/lib/search-api";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/learn/cohort/$cohortId")({
@@ -45,6 +47,11 @@ function CohortProgressRoute() {
 				) : (
 					<>
 						<MyGroupCard cohortId={cohortId} />
+						{/* Semantic search across the cohort's courses (§4.10 RAG). */}
+						<ContentSearch
+							scopeId={cohortId}
+							fetcher={(q) => searchCohortContent(cohortId, q)}
+						/>
 						<CohortBody data={data} />
 					</>
 				)}
