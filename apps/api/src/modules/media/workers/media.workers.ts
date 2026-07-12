@@ -54,21 +54,26 @@ export class MediaWorkers implements OnModuleInit, OnModuleDestroy {
 	) {}
 
 	onModuleInit(): void {
+		// `drainDelay: 60` — when idle, block Redis for 60s per poll instead of the
+		// 5s default. Cuts idle Redis commands ~12× (matters on per-command billed
+		// serverless Redis); job pickup latency of ≤60s is irrelevant for encoding
+		// that takes minutes. Encoding stays on BullMQ for durable retry.
+		const opts = { connection: this.connection, drainDelay: 60 };
 		this.workers = [
 			new Worker<VideoJobData>(
 				QUEUE_VIDEO,
 				(job: Job<VideoJobData>) => this.processVideo(job),
-				{ connection: this.connection, concurrency: 1 },
+				{ ...opts, concurrency: 1 },
 			),
 			new Worker<AudioJobData>(
 				QUEUE_AUDIO,
 				(job: Job<AudioJobData>) => this.processAudio(job),
-				{ connection: this.connection, concurrency: 1 },
+				{ ...opts, concurrency: 1 },
 			),
 			new Worker<CaptionJobData>(
 				QUEUE_CAPTION,
 				(job: Job<CaptionJobData>) => this.processCaption(job),
-				{ connection: this.connection },
+				opts,
 			),
 		];
 		for (const worker of this.workers) {

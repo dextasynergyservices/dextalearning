@@ -17,6 +17,7 @@ import type { ComponentType } from "react";
 import { useTranslation } from "react-i18next";
 import { Carousel } from "@/components/catalog/carousel";
 import { PublicCourseCard } from "@/components/catalog/public-cards";
+import { CoachCard } from "@/components/engagement/coach-card";
 import { NextBadgeNudge } from "@/components/engagement/next-badge-nudge";
 import { StreakPanel } from "@/components/engagement/streak-panel";
 import { LearnerShell } from "@/components/layout/learner-shell";
@@ -188,6 +189,11 @@ function DashboardPage() {
 						<NextBadgeNudge nextBadge={engagement.nextBadge} />
 					</motion.div>
 				) : null}
+
+				{/* Weekly AI Learning Coach digest (§4.10) — self-hides until one exists. */}
+				<motion.div variants={itemMotion}>
+					<CoachCard />
+				</motion.div>
 
 				<motion.section
 					variants={itemMotion}

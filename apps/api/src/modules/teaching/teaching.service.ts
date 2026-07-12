@@ -5,6 +5,7 @@ import {
 } from "@nestjs/common";
 import type { AuthenticatedUser } from "../../auth/types";
 import { PrismaService } from "../../prisma/prisma.service";
+import { DropoffQueryService } from "../dropoff/dropoff-query.service";
 
 const LEARNER_SELECT = {
 	id: true,
@@ -35,7 +36,10 @@ function displayName(u: {
  */
 @Injectable()
 export class TeachingService {
-	constructor(private readonly prisma: PrismaService) {}
+	constructor(
+		private readonly prisma: PrismaService,
+		private readonly dropoff: DropoffQueryService,
+	) {}
 
 	/** Cohorts the current instructor is assigned to teach. */
 	async myCohorts(user: AuthenticatedUser) {
@@ -55,6 +59,9 @@ export class TeachingService {
 				},
 			},
 		});
+		const atRisk = await this.dropoff.atRiskCountsFor(
+			links.map((l) => l.cohort.id),
+		);
 		return links.map((l) => ({
 			id: l.cohort.id,
 			title: l.cohort.title,
@@ -63,6 +70,7 @@ export class TeachingService {
 			startsAt: l.cohort.startsAt,
 			learnerCount: l.cohort._count.enrollments,
 			courseCount: l.cohort._count.courses,
+			atRiskCount: atRisk.get(l.cohort.id)?.total ?? 0,
 		}));
 	}
 
@@ -105,10 +113,13 @@ export class TeachingService {
 			orderBy: { enrolledAt: "asc" },
 			select: { enrolledAt: true, user: { select: LEARNER_SELECT } },
 		});
-		const completion = await this.prisma.completionStatus.findMany({
-			where: { entityType: "cohort", entityId: cohortId },
-			select: { userId: true, progressPercent: true, isComplete: true },
-		});
+		const [completion, riskByUser] = await Promise.all([
+			this.prisma.completionStatus.findMany({
+				where: { entityType: "cohort", entityId: cohortId },
+				select: { userId: true, progressPercent: true, isComplete: true },
+			}),
+			this.dropoff.flagsForCohort(cohortId),
+		]);
 		const byUser = new Map(completion.map((c) => [c.userId, c]));
 
 		return {
@@ -134,6 +145,7 @@ export class TeachingService {
 				enrolledAt: e.enrolledAt,
 				progressPercent: byUser.get(e.user.id)?.progressPercent ?? 0,
 				completed: byUser.get(e.user.id)?.isComplete ?? false,
+				risk: riskByUser.get(e.user.id) ?? null,
 			})),
 		};
 	}

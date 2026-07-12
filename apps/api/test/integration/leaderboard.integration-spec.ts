@@ -17,6 +17,11 @@ class MemoryCache implements CachePort {
 	async del(key: string): Promise<void> {
 		this.store.delete(key);
 	}
+	async incr(key: string): Promise<number> {
+		const next = Number(this.store.get(key) ?? "0") + 1;
+		this.store.set(key, String(next));
+		return next;
+	}
 }
 
 const asUser = (id: string): AuthenticatedUser => ({

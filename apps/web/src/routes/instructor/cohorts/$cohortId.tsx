@@ -10,6 +10,7 @@ import {
 	Waypoints,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { RiskBadge } from "@/components/authoring/risk-badge";
 import { StudioShell } from "@/components/authoring/studio-shell";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getTeachingCohortDetail, teachingKeys } from "@/lib/teaching-api";
@@ -131,6 +132,7 @@ function InstructorCohortDetailPage() {
 													{learner.email}
 												</p>
 											</div>
+											{learner.risk ? <RiskBadge risk={learner.risk} /> : null}
 											<div className="flex w-28 shrink-0 items-center gap-2">
 												<span className="h-1.5 flex-1 overflow-hidden rounded-full bg-muted">
 													<span

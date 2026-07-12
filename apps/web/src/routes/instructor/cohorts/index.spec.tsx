@@ -28,6 +28,7 @@ function cohort(overrides: Partial<TeachingCohort> = {}): TeachingCohort {
 		startsAt: null,
 		learnerCount: 8,
 		courseCount: 2,
+		atRiskCount: 0,
 		...overrides,
 	};
 }

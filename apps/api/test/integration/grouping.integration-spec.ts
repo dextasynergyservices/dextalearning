@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import type { AuthenticatedUser } from "../../src/auth/types";
+import { DropoffQueryService } from "../../src/modules/dropoff/dropoff-query.service";
 import { GroupingService } from "../../src/modules/grouping/grouping.service";
 import { NotificationsService } from "../../src/modules/notifications/notifications.service";
 import type { PrismaService } from "../../src/prisma/prisma.service";
@@ -54,6 +55,7 @@ describe("GroupingService (integration)", () => {
 	const service = new GroupingService(
 		prisma,
 		new NotificationsService(prisma, port),
+		new DropoffQueryService(prisma),
 	);
 
 	let cohortId: string;

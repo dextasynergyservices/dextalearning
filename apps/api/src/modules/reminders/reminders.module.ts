@@ -2,8 +2,8 @@ import { Module } from "@nestjs/common";
 import { EngagementModule } from "../engagement/engagement.module";
 import { NotificationsModule } from "../notifications/notifications.module";
 import { RemindersEventsHandler } from "./reminders.events-handler";
+import { RemindersScheduler } from "./reminders.scheduler";
 import { RemindersService } from "./reminders.service";
-import { RemindersWorker } from "./workers/reminders.worker";
 
 /**
  * Reminders bounded context (§6.4): owns review_items + reminder_logs.
@@ -13,6 +13,6 @@ import { RemindersWorker } from "./workers/reminders.worker";
  */
 @Module({
 	imports: [EngagementModule, NotificationsModule],
-	providers: [RemindersService, RemindersEventsHandler, RemindersWorker],
+	providers: [RemindersService, RemindersEventsHandler, RemindersScheduler],
 })
 export class RemindersModule {}

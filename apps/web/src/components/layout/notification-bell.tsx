@@ -1,7 +1,14 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { AnimatePresence, motion } from "framer-motion";
-import { Award, Bell, BellRing, BookOpenCheck } from "lucide-react";
+import {
+	AlertTriangle,
+	Award,
+	Bell,
+	BellRing,
+	BookOpenCheck,
+	Sprout,
+} from "lucide-react";
 import { type ComponentType, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
@@ -25,6 +32,16 @@ const TYPE_META: Record<
 	badge_awarded: {
 		icon: Award,
 		to: "/leaderboard",
+		tint: "bg-warning/15 text-amber-600 dark:text-amber-400",
+	},
+	coach_digest: {
+		icon: Sprout,
+		to: "/dashboard",
+		tint: "bg-success/10 text-success",
+	},
+	dropoff_alert: {
+		icon: AlertTriangle,
+		to: "/dashboard",
 		tint: "bg-warning/15 text-amber-600 dark:text-amber-400",
 	},
 };

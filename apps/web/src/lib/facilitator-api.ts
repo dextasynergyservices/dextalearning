@@ -10,6 +10,7 @@ export interface FacilitatedCohort {
 	groupingMode: GroupingMode;
 	learnerCount: number;
 	groupCount: number;
+	atRiskCount: number;
 }
 
 /** Cohorts the signed-in user is assigned to facilitate (portal home). */

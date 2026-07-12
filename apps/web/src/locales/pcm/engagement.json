@@ -22,14 +22,26 @@
 			"name": "First Steps",
 			"desc": "Finish your first lesson"
 		},
-		"lessons_10": { "name": "Deep Diver", "desc": "Finish 10 lessons" },
-		"lessons_25": { "name": "Momentum Maker", "desc": "Finish 25 lessons" },
-		"lessons_50": { "name": "Knowledge Builder", "desc": "Finish 50 lessons" },
+		"lessons_10": {
+			"name": "Deep Diver",
+			"desc": "Finish 10 lessons"
+		},
+		"lessons_25": {
+			"name": "Momentum Maker",
+			"desc": "Finish 25 lessons"
+		},
+		"lessons_50": {
+			"name": "Knowledge Builder",
+			"desc": "Finish 50 lessons"
+		},
 		"first_course": {
 			"name": "Course Finisher",
 			"desc": "Finish your first course"
 		},
-		"courses_3": { "name": "Curriculum Champion", "desc": "Finish 3 courses" },
+		"courses_3": {
+			"name": "Curriculum Champion",
+			"desc": "Finish 3 courses"
+		},
 		"first_quiz_pass": {
 			"name": "Quiz Rookie",
 			"desc": "Pass your first quiz"
@@ -46,13 +58,22 @@
 			"name": "Growth Leap",
 			"desc": "Beat your pre-quiz score by 25+ points"
 		},
-		"streak_3": { "name": "Warming Up", "desc": "Learn 3 days straight" },
-		"streak_7": { "name": "On Fire", "desc": "Learn 7 days straight" },
+		"streak_3": {
+			"name": "Warming Up",
+			"desc": "Learn 3 days straight"
+		},
+		"streak_7": {
+			"name": "On Fire",
+			"desc": "Learn 7 days straight"
+		},
 		"streak_14": {
 			"name": "Two-Week Wonder",
 			"desc": "Learn 14 days straight"
 		},
-		"streak_30": { "name": "Unstoppable", "desc": "Learn 30 days straight" },
+		"streak_30": {
+			"name": "Unstoppable",
+			"desc": "Learn 30 days straight"
+		},
 		"comeback": {
 			"name": "Comeback",
 			"desc": "You miss one day, use freeze, still dey go"
@@ -120,7 +141,28 @@
 				"title": "You don earn new award",
 				"body": "{{name}} don enter your collection."
 			},
-			"default": { "title": "Update", "body": "" }
+			"coach_digest": {
+				"title": "Your weekly coaching check-in",
+				"body": "Fresh look at your week — and one focus for next week."
+			},
+			"default": {
+				"title": "Update",
+				"body": ""
+			},
+			"dropoff_alert": {
+				"title": "Some learners fit dey fall behind",
+				"body": "Some learners for your cohort dey at risk — check on dem."
+			}
 		}
+	},
+	"coach": {
+		"eyebrow": "Your coach",
+		"focus": "Wetin to focus on dis week"
+	},
+	"pacing": {
+		"ahead": "You dey ahead of your weekly goal — {{done}}/{{target}} lessons dis week. Correct pace!",
+		"on_track": "Steady pace — keep di rhythm dey go.",
+		"behind": "You dey small behind your weekly goal — one more lesson go put you back on track.",
+		"rushing": "You dey move fast! Small recap of wetin you learn go make am stick."
 	}
 }

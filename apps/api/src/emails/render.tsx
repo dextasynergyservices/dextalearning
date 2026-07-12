@@ -1,4 +1,5 @@
 import { render } from "@react-email/render";
+import { CoachDigestEmail } from "./coach-digest";
 import { MagicLinkEmail } from "./magic-link";
 import { OtpEmail } from "./otp";
 import { PasswordResetEmail } from "./password-reset";
@@ -35,3 +36,12 @@ export const renderReminderDigestEmail = (props: {
 	cta: string;
 	ctaUrl?: string;
 }) => render(<ReminderDigestEmail {...props} />);
+
+export const renderCoachDigestEmail = (props: {
+	headline: string;
+	message: string;
+	action?: string;
+	actionLabel: string;
+	cta: string;
+	ctaUrl?: string;
+}) => render(<CoachDigestEmail {...props} />);

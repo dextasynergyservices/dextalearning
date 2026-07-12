@@ -6,17 +6,24 @@ import {
 	QUEUE_AUDIO,
 	QUEUE_CAPTION,
 	QUEUE_CONNECTION,
-	QUEUE_REMINDERS,
 	QUEUE_VIDEO,
-	REMINDERS_QUEUE,
 	VIDEO_QUEUE,
 } from "./queue.constants";
 
 // Hand BullMQ a connection *options* object (it owns the client) rather than a
 // shared ioredis instance — avoids version-skew between app ioredis and the one
 // BullMQ bundles. `maxRetriesPerRequest: null` is required by blocking workers.
+//
+// BullMQ's blocking workers are a poor fit for per-command-billed serverless
+// Redis (e.g. Upstash free). `QUEUE_REDIS_URL` lets the queue point at a small
+// PERSISTENT Redis while sessions/cache stay on serverless — a deploy-time env
+// flip, no code change. Falls back to the shared `REDIS_URL` when unset.
 function buildConnection(): ConnectionOptions {
-	const url = new URL(process.env.REDIS_URL ?? "redis://localhost:6379");
+	const url = new URL(
+		process.env.QUEUE_REDIS_URL ??
+			process.env.REDIS_URL ??
+			"redis://localhost:6379",
+	);
 	return {
 		host: url.hostname,
 		port: Number(url.port || 6379),
@@ -48,14 +55,7 @@ function queueProvider(token: symbol, name: string): Provider {
 		queueProvider(VIDEO_QUEUE, QUEUE_VIDEO),
 		queueProvider(AUDIO_QUEUE, QUEUE_AUDIO),
 		queueProvider(CAPTION_QUEUE, QUEUE_CAPTION),
-		queueProvider(REMINDERS_QUEUE, QUEUE_REMINDERS),
 	],
-	exports: [
-		QUEUE_CONNECTION,
-		VIDEO_QUEUE,
-		AUDIO_QUEUE,
-		CAPTION_QUEUE,
-		REMINDERS_QUEUE,
-	],
+	exports: [QUEUE_CONNECTION, VIDEO_QUEUE, AUDIO_QUEUE, CAPTION_QUEUE],
 })
 export class QueueModule {}

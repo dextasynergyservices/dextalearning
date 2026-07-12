@@ -15,10 +15,12 @@ import {
 import type { ComponentType } from "react";
 import { useTranslation } from "react-i18next";
 import { LearnerShell } from "@/components/layout/learner-shell";
+import { ContentSearch } from "@/components/learn/content-search";
 import { ProgressRing } from "@/components/learn/progress-ring";
 import { Skeleton } from "@/components/ui/skeleton";
 import { type CourseProgress, getCourseProgress } from "@/lib/content-api";
 import { htmlToText } from "@/lib/rich-text";
+import { searchCourseContent } from "@/lib/search-api";
 
 export const Route = createFileRoute("/learn/course/$courseId")({
 	component: CourseHubRoute,
@@ -128,6 +130,12 @@ function CourseHub({ progress }: { progress: CourseProgress }) {
 					</div>
 				</div>
 			</section>
+
+			{/* Semantic search over the course's transcripts (§4.10 RAG). */}
+			<ContentSearch
+				scopeId={progress.course.id}
+				fetcher={(q) => searchCourseContent(progress.course.id, q)}
+			/>
 
 			{/* ── Curriculum + progress sidebar ────────────────────────────────── */}
 			<div className="grid gap-6 lg:grid-cols-[1fr_300px]">
