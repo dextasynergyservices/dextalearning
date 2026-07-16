@@ -1,4 +1,4 @@
-import { Injectable, Logger } from "@nestjs/common";
+import { HttpException, Injectable, Logger } from "@nestjs/common";
 import { OnEvent } from "@nestjs/event-emitter";
 import {
 	ContentEvents,
@@ -28,8 +28,16 @@ export class KnowledgeEventsHandler {
 			});
 		} catch (error) {
 			// Indexing is best-effort — never block the transcript save on the AI.
-			this.logger.error(
-				`Failed to index lesson ${event.lessonId}: ${(error as Error).message}`,
+			// The transcript is saved regardless; only AI semantic search for this
+			// lesson is delayed until a later successful re-index. Surface the real
+			// provider reason (buried in the HttpException body) so it's diagnosable.
+			const reason =
+				error instanceof HttpException
+					? ((error.getResponse() as { details?: { reason?: string } })?.details
+							?.reason ?? error.message)
+					: (error as Error).message;
+			this.logger.warn(
+				`AI search indexing skipped for lesson ${event.lessonId} (transcript saved fine): ${reason}`,
 			);
 		}
 	}

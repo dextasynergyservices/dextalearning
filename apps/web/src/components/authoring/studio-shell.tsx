@@ -22,22 +22,30 @@ import {
 	Settings,
 	ShieldCheck,
 	Sparkles,
+	TrendingUp,
 	UsersRound,
+	Wallet,
 	Waypoints,
 } from "lucide-react";
 import { type ComponentType, type ReactNode, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { RequireAuth } from "@/components/auth/require-auth";
+import { NotificationBell } from "@/components/layout/notification-bell";
 import { signOut, useSession } from "@/lib/auth-client";
 import { getFeatureRequests } from "@/lib/content-api";
 import { useAvatar } from "@/lib/use-avatar";
 import { cn } from "@/lib/utils";
 
+/**
+ * Every nav item goes somewhere. There is deliberately no "coming soon" state:
+ * a tab that only says "soon" is a broken promise, and we shipped two of them
+ * (instructor Settings, admin Users) before noticing. Ship the destination or
+ * leave the item out.
+ */
 interface NavItem {
-	to?: string;
+	to: string;
 	labelKey: string;
 	icon: ComponentType<{ className?: string }>;
-	soon?: boolean;
 	exact?: boolean;
 }
 
@@ -67,11 +75,19 @@ const INSTRUCTOR_NAV: NavItem[] = [
 		icon: BarChart3,
 	},
 	{
+		to: "/instructor/earnings",
+		labelKey: "studio.nav.earnings",
+		icon: Wallet,
+	},
+	{
 		to: "/learn/mine",
 		labelKey: "studio.nav.my_learning",
 		icon: Library,
 	},
-	{ labelKey: "studio.nav.settings", icon: Settings, soon: true },
+	// No instructor "Settings": there is nothing that belongs there. Payout
+	// accounts live on Earnings (where you're already thinking about money),
+	// and identity + notification preferences live on the profile, reached from
+	// the header avatar. A nav item that only says "soon" is a broken promise.
 ];
 
 const ADMIN_NAV: NavItem[] = [
@@ -99,8 +115,10 @@ const ADMIN_NAV: NavItem[] = [
 		labelKey: "studio.nav.analytics",
 		icon: BarChart3,
 	},
-	{ labelKey: "studio.nav.users", icon: UsersRound, soon: true },
-	{ labelKey: "studio.nav.settings", icon: Settings, soon: true },
+	{ to: "/admin/payouts", labelKey: "studio.nav.payouts", icon: Wallet },
+	{ to: "/admin/earnings", labelKey: "studio.nav.earnings", icon: TrendingUp },
+	{ to: "/admin/users", labelKey: "studio.nav.users", icon: UsersRound },
+	{ to: "/admin/settings", labelKey: "studio.nav.settings", icon: Settings },
 ];
 
 const MOBILE_INSTRUCTOR_TABS: NavItem[] = [
@@ -237,11 +255,9 @@ function StudioGate({
 			return next;
 		});
 	const primaryTos = new Set(mobileTabs.map((tab) => tab.to));
-	const moreItems = sidebarNav.filter(
-		(item) => !(item.to && primaryTos.has(item.to)),
-	);
-	const moreActive = moreItems.some(
-		(item) => item.to && location.pathname.startsWith(item.to),
+	const moreItems = sidebarNav.filter((item) => !primaryTos.has(item.to));
+	const moreActive = moreItems.some((item) =>
+		location.pathname.startsWith(item.to),
 	);
 
 	const handleSignOut = async () => {
@@ -331,13 +347,11 @@ function StudioGate({
 				</div>
 
 				<nav className="scrollbar-thin min-h-0 flex-1 space-y-1 overflow-y-auto px-3 py-4">
-					{sidebarNav.map(({ to, labelKey, icon: Icon, soon, exact }) => {
+					{sidebarNav.map(({ to, labelKey, icon: Icon, exact }) => {
 						const cls = cn(
 							"flex items-center rounded-btn py-2.5 font-medium text-sm transition-colors",
 							collapsed ? "justify-center px-0" : "gap-3 px-3",
-							soon
-								? "text-muted-foreground"
-								: "text-muted-foreground hover:bg-brand-primary-light hover:text-brand-primary",
+							"text-muted-foreground hover:bg-brand-primary-light hover:text-brand-primary",
 						);
 						const showBadge = to === "/admin/courses" && pendingFeature > 0;
 						const inner = collapsed ? (
@@ -356,14 +370,9 @@ function StudioGate({
 										{pendingFeature}
 									</span>
 								) : null}
-								{soon ? (
-									<span className="rounded-pill bg-muted px-2 py-0.5 font-stats text-[0.6rem] text-muted-foreground uppercase">
-										{t("studio.soon")}
-									</span>
-								) : null}
 							</>
 						);
-						return to ? (
+						return (
 							<Link
 								key={labelKey}
 								to={to}
@@ -376,15 +385,6 @@ function StudioGate({
 							>
 								{inner}
 							</Link>
-						) : (
-							<span
-								key={labelKey}
-								className={cls}
-								title={collapsed ? t(labelKey) : undefined}
-								aria-disabled
-							>
-								{inner}
-							</span>
 						);
 					})}
 				</nav>
@@ -475,6 +475,12 @@ function StudioGate({
 							<h1 className="truncate font-display text-foreground text-lg lg:text-xl">
 								{title}
 							</h1>
+						</div>
+						{/* Creators live in here, not on the learner side — without a
+						    bell, "you have a submission to grade" would arrive
+						    somewhere they never look (§4.5). No new nav item. */}
+						<div className="shrink-0">
+							<NotificationBell />
 						</div>
 						{action ? <div className="shrink-0">{action}</div> : null}
 					</div>
@@ -598,33 +604,20 @@ function StudioGate({
 								<p className="px-3 py-1 font-stats font-semibold text-muted-foreground text-xs uppercase">
 									{t("studio.nav.more", { defaultValue: "More" })}
 								</p>
-								{moreItems.map(({ to, labelKey, icon: Icon }) =>
-									to ? (
-										<Link
-											key={labelKey}
-											to={to}
-											onClick={() => setMoreOpen(false)}
-											className="flex items-center gap-3 rounded-btn px-3 py-3 font-medium text-foreground transition-colors hover:bg-accent"
-											activeProps={{
-												className: "bg-brand-primary-light text-brand-primary",
-											}}
-										>
-											<Icon className="size-5 text-muted-foreground" />
-											{t(labelKey)}
-										</Link>
-									) : (
-										<span
-											key={labelKey}
-											className="flex items-center gap-3 rounded-btn px-3 py-3 text-muted-foreground"
-										>
-											<Icon className="size-5" />
-											<span className="flex-1">{t(labelKey)}</span>
-											<span className="rounded-pill bg-muted px-2 py-0.5 font-stats text-[0.6rem] uppercase">
-												{t("studio.soon")}
-											</span>
-										</span>
-									),
-								)}
+								{moreItems.map(({ to, labelKey, icon: Icon }) => (
+									<Link
+										key={labelKey}
+										to={to}
+										onClick={() => setMoreOpen(false)}
+										className="flex items-center gap-3 rounded-btn px-3 py-3 font-medium text-foreground transition-colors hover:bg-accent"
+										activeProps={{
+											className: "bg-brand-primary-light text-brand-primary",
+										}}
+									>
+										<Icon className="size-5 text-muted-foreground" />
+										{t(labelKey)}
+									</Link>
+								))}
 								<Link
 									to={
 										area === "admin" ? "/admin/profile" : "/instructor/profile"

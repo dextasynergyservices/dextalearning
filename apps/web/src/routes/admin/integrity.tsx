@@ -97,7 +97,13 @@ function IntegrityRow({
 				<div className="min-w-0 flex-1">
 					<p className="truncate font-medium text-foreground text-sm">
 						{row.assessmentTitle ||
-							t("report.untitled", { defaultValue: "Untitled assessment" })}
+							(row.assessmentId
+								? t("report.untitled", {
+										defaultValue: "Untitled assessment",
+									})
+								: t("report.deleted_assessment", {
+										defaultValue: "Deleted assessment",
+									}))}
 					</p>
 					<p className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-muted-foreground text-xs">
 						<span className="truncate">

@@ -22,7 +22,13 @@ export interface CommercialInput {
 	currency?: string;
 	isEarnBackEligible?: boolean;
 	earnBackPercentage?: number;
-	/** Courses/paths only — cohorts don't carry their own deadline. */
+	/**
+	 * The creator's Earn-Back window. Courses/paths may leave it blank, which
+	 * hands the choice to the learner (§4.11.1); a **cohort** blank instead falls
+	 * back to the platform max, because a cohort is a scheduled programme and its
+	 * window is always the Admin's call. That distinction lives in the pricing
+	 * snapshot — this normalizer just stores what was set.
+	 */
 	earnBackDeadlineDays?: number;
 }
 

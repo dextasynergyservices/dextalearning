@@ -75,6 +75,7 @@ function cohortDetail(overrides: Partial<CohortDetail> = {}): CohortDetail {
 		currency: "NGN",
 		isEarnBackEligible: false,
 		earnBackPercentage: null,
+		earnBackDeadlineDays: null,
 		createdAt: new Date().toISOString(),
 		_count: { courses: 1 },
 		description: null,

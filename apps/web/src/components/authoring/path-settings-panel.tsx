@@ -1,8 +1,9 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { CheckCircle2, Clock3, ImagePlus, Loader2, Save } from "lucide-react";
 import { type ReactNode, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
+import { PlatformFeeNote } from "@/components/authoring/platform-fee-note";
 import { RichTextEditor } from "@/components/authoring/rich-text-editor";
 import { Button } from "@/components/ui/button";
 import { useSession } from "@/lib/auth-client";
@@ -13,6 +14,7 @@ import {
 	uploadPathThumbnail,
 } from "@/lib/content-api";
 import { contentLengthLabel } from "@/lib/duration";
+import { getPlatformFeePct } from "@/lib/payments-api";
 import { isBlankHtml } from "@/lib/rich-text";
 import { cn } from "@/lib/utils";
 
@@ -99,9 +101,23 @@ export function PathSettingsPanel({ path }: { path: PathDetail }) {
 		onError: (e) => toast.error(e.message),
 	});
 
+	const { data: feeData } = useQuery({
+		queryKey: ["platform-fee"],
+		queryFn: getPlatformFeePct,
+		staleTime: 5 * 60_000,
+	});
+
 	const priceNum = Number(price) || 0;
 	const pctNum = Math.min(100, Math.max(1, Number(pct) || 0));
-	const earnBase = Math.round((priceNum * pctNum) / 100);
+	// Earn-back applies to the post-fee remainder R = price − platform fee (§2).
+	const feePct = feeData?.pct ?? 0;
+	const remainderNum = priceNum - Math.round((priceNum * feePct) / 100);
+	const earnBase = Math.round((remainderNum * pctNum) / 100);
+	// What the creator banks at settlement (§2) — ₦0 at 100%, where the base
+	// swallows the guaranteed pool and they're paid only from missed deadlines.
+	const guaranteedNum = remainderNum - earnBase;
+	const instructorSharePct = feeData?.instructorSharePct ?? 90;
+	const instructorNow = Math.floor((guaranteedNum * instructorSharePct) / 100);
 	const contentLabel = contentLengthLabel(
 		t,
 		path.pathCourses.reduce(
@@ -335,6 +351,7 @@ export function PathSettingsPanel({ path }: { path: PathDetail }) {
 								</Field>
 							</div>
 						) : null}
+						{!isFree ? <PlatformFeeNote /> : null}
 					</div>
 
 					{!isFree ? (
@@ -373,21 +390,46 @@ export function PathSettingsPanel({ path }: { path: PathDetail }) {
 											<input
 												type="number"
 												min={1}
-												max={365}
+												max={85}
 												value={deadline}
 												onChange={(e) => setDeadline(e.target.value)}
 												className="h-11 w-full rounded-input border border-border px-3.5 text-foreground outline-none focus:border-brand-primary"
 											/>
 										</Field>
 									</div>
+									{Number(deadline) > 75 ? (
+										<p className="mt-2 text-amber-800 text-xs dark:text-amber-200">
+											{t("settings.deadline_warning", {
+												defaultValue:
+													"Long windows weaken the completion incentive — the platform caps deadlines at 85 days.",
+											})}
+										</p>
+									) : null}
 									<p className="mt-3 text-amber-800 dark:text-amber-200 text-sm">
 										{t("settings.earnback_preview", {
 											defaultValue:
-												"Learners can earn back {{pct}}% — {{amount}} of {{price}}.",
+												"Learners can earn back up to {{amount}} — {{pct}}% of {{remainder}} (the price minus the {{fee}}% platform fee).",
 											pct: pctNum,
 											amount: formatMoney(currency, earnBase),
-											price: formatMoney(currency, priceNum),
+											remainder: formatMoney(currency, remainderNum),
+											fee: feePct,
 										})}
+									</p>
+									{/* The other half of the deal — what YOU keep (§2). */}
+									<p className="mt-1.5 font-medium text-amber-900 text-sm dark:text-amber-100">
+										{pctNum >= 100
+											? t("settings.earnback_creator_all", {
+													defaultValue:
+														"You earn {{zero}} when a learner finishes on time — at 100%, you're paid only from learners who miss their deadline. Lower the percentage to bank a guaranteed share of every sale.",
+													zero: formatMoney(currency, 0),
+												})
+											: t("settings.earnback_creator", {
+													defaultValue:
+														"You keep {{amount}} of every sale at settlement — {{share}}% of the {{guaranteed}} that isn't refundable.",
+													amount: formatMoney(currency, instructorNow),
+													share: instructorSharePct,
+													guaranteed: formatMoney(currency, guaranteedNum),
+												})}
 									</p>
 								</>
 							) : null}

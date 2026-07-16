@@ -31,6 +31,12 @@ vi.mock("sonner", () => ({
 	toast: { success: vi.fn(), error: vi.fn() },
 }));
 
+vi.mock("@/lib/payments-api", () => ({
+	getPlatformFeePct: vi
+		.fn()
+		.mockResolvedValue({ pct: 5, instructorSharePct: 90 }),
+}));
+
 function course(overrides: Partial<CourseDetail> = {}): CourseDetail {
 	return {
 		id: "c1",
@@ -86,14 +92,46 @@ describe("CourseSettingsPanel", () => {
 		expect(screen.queryByText("Earn-Back")).not.toBeInTheDocument();
 	});
 
-	it("shows the Earn-Back preview with the computed refundable amount", () => {
+	it("shows the Earn-Back preview computed on the post-fee remainder", async () => {
 		renderWithProviders(
 			<CourseSettingsPanel
 				course={course({ isEarnBackEligible: true, earnBackPercentage: 50 })}
 			/>,
 		);
+		// 5% platform fee off ₦5,000 → remainder ₦4,750; 50% earn-back → ₦2,375.
 		expect(
-			screen.getByText("Learners can earn back 50% — ₦2,500 of ₦5,000."),
+			await screen.findByText(
+				"Learners can earn back up to ₦2,375 — 50% of ₦4,750 (the price minus the 5% platform fee).",
+			),
+		).toBeInTheDocument();
+	});
+
+	// The creator must see their own side of the deal, not just the learner's.
+	it("tells the creator what they keep at a partial Earn-Back %", async () => {
+		renderWithProviders(
+			<CourseSettingsPanel
+				course={course({ isEarnBackEligible: true, earnBackPercentage: 50 })}
+			/>,
+		);
+		// Guaranteed N = ₦4,750 − ₦2,375 = ₦2,375; the creator's 90% = ₦2,137.
+		expect(
+			await screen.findByText(
+				"You keep ₦2,137 of every sale at settlement — 90% of the ₦2,375 that isn't refundable.",
+			),
+		).toBeInTheDocument();
+	});
+
+	it("warns the creator that 100% Earn-Back pays them nothing on success", async () => {
+		renderWithProviders(
+			<CourseSettingsPanel
+				course={course({ isEarnBackEligible: true, earnBackPercentage: 100 })}
+			/>,
+		);
+		expect(
+			await screen.findByText(/You earn ₦0 when a learner finishes on time/),
+		).toBeInTheDocument();
+		expect(
+			screen.getByText(/paid only from learners who miss their deadline/),
 		).toBeInTheDocument();
 	});
 

@@ -1,6 +1,6 @@
 import { BadRequestException, ForbiddenException } from "@nestjs/common";
 import { EventEmitter2 } from "@nestjs/event-emitter";
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { AuthenticatedUser } from "../../src/auth/types";
 import { ProjectsService } from "../../src/modules/projects/projects.service";
 import { LearningEvents } from "../../src/shared/events/learning-events";
@@ -23,11 +23,15 @@ function asAuthenticatedUser(
 describe("ProjectsService (integration)", () => {
 	const prisma = getTestPrisma();
 	const events = new EventEmitter2();
+	const notify = vi.fn().mockResolvedValue(undefined);
 	const service = new ProjectsService(
 		prisma,
 		new FakeStorageAdapter(),
 		new FakeAiAdapter(),
 		events,
+		{
+			notify,
+		} as unknown as import("../../src/modules/notifications/notifications.service").NotificationsService,
 	);
 
 	let ownerId: string;
@@ -130,6 +134,115 @@ describe("ProjectsService (integration)", () => {
 			expect(rubric).toHaveLength(1);
 			expect(rubric[0].label).toBe("Clarity");
 			expect(rubric[0].id).toBeTruthy();
+		});
+	});
+
+	// ── Only the creator grades; admin may override, on the record (§4.5) ────
+	describe("who may grade", () => {
+		/**
+		 * A course owned by `ownerId` carrying a project created by someone else —
+		 * the case that separates "owns the course" from "created the project".
+		 */
+		async function projectCreatedBy(creatorId: string, slug: string) {
+			const course = await prisma.course.create({
+				data: { title: "C", slug, createdBy: ownerId },
+			});
+			const project = await prisma.project.create({
+				data: {
+					scope: "course",
+					title: "Capstone",
+					orderIndex: 1,
+					courseId: course.id,
+					createdBy: creatorId,
+					passMark: 70,
+				},
+			});
+			const learner = await createUser(prisma, { role: "learner" });
+			const submission = await createProjectSubmission(prisma, {
+				projectId: project.id,
+				userId: learner.id,
+				passed: false,
+			});
+			return { project, submission };
+		}
+
+		it("lets the project's creator grade it", async () => {
+			const { submission } = await projectCreatedBy(ownerId, "grade-creator");
+			const graded = await service.gradeSubmission(
+				asAuthenticatedUser(ownerId),
+				submission.id,
+				{ score: 80, passed: true },
+			);
+			expect(graded.passed).toBe(true);
+		});
+
+		it("refuses another instructor who merely owns the course", async () => {
+			// `otherId` created the project; `ownerId` owns the course. Owning the
+			// course is not a licence to mark someone else's project.
+			const { submission } = await projectCreatedBy(otherId, "grade-not-mine");
+			await expect(
+				service.gradeSubmission(asAuthenticatedUser(ownerId), submission.id, {
+					score: 90,
+					passed: true,
+				}),
+			).rejects.toThrow(ForbiddenException);
+			const row = await prisma.projectSubmission.findUnique({
+				where: { id: submission.id },
+			});
+			expect(row?.gradedAt).toBeNull();
+		});
+
+		it("lets an admin override — a stuck project would strand the learner's Earn-Back", async () => {
+			const { submission } = await projectCreatedBy(ownerId, "grade-override");
+			const graded = await service.gradeSubmission(
+				asAuthenticatedUser(adminId, "admin"),
+				submission.id,
+				{ score: 75, passed: true },
+			);
+			expect(graded.passed).toBe(true);
+		});
+
+		it("records an admin override as an override, by name", async () => {
+			const { project, submission } = await projectCreatedBy(
+				ownerId,
+				"grade-audit",
+			);
+			await service.gradeSubmission(
+				asAuthenticatedUser(adminId, "admin"),
+				submission.id,
+				{ score: 75, passed: true },
+			);
+
+			const rows = await service.listSubmissions(
+				asAuthenticatedUser(ownerId),
+				project.id,
+			);
+			const row = rows.find((r) => r.id === submission.id);
+			expect(row?.isOverrideGrade).toBe(true);
+			expect(row?.gradedByName).toBeTruthy();
+		});
+
+		it("a creator's own grade is not flagged as an override", async () => {
+			const { project, submission } = await projectCreatedBy(
+				ownerId,
+				"grade-no-override",
+			);
+			await service.gradeSubmission(
+				asAuthenticatedUser(ownerId),
+				submission.id,
+				{
+					score: 80,
+					passed: true,
+				},
+			);
+
+			const rows = await service.listSubmissions(
+				asAuthenticatedUser(ownerId),
+				project.id,
+			);
+			expect(rows.find((r) => r.id === submission.id)?.isOverrideGrade).toBe(
+				false,
+			);
 		});
 	});
 

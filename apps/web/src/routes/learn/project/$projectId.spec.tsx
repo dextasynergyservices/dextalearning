@@ -47,6 +47,18 @@ function project(overrides: Partial<ProjectInfo> = {}): ProjectInfo {
 		rubric: null,
 		mySubmission: null,
 		peerReview: null,
+		prerequisitesMet: true,
+		maxAttempts: null,
+		retryCooldownHours: null,
+		retryLockoutDays: null,
+		retry: {
+			attemptsUsed: 0,
+			attemptsRemaining: null,
+			canRetry: true,
+			reason: null,
+			nextAttemptAt: null,
+			lockedUntil: null,
+		},
 		...overrides,
 	};
 }

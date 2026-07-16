@@ -1,5 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import {
+	ArrayMaxSize,
 	ArrayNotEmpty,
 	IsArray,
 	IsBoolean,
@@ -96,19 +97,40 @@ export class UpdateAssessmentDto {
 	@Max(600)
 	timeLimitMinutes?: number;
 
-	@ApiPropertyOptional({ description: "Max retakes (omit for unlimited)." })
+	// Retry policy (§4.4.1) — final assessments only; rejected on lesson/module
+	// quizzes, which are formative practice. `null` clears a rule; `@IsOptional`
+	// skips both null and undefined, so the types say what the API accepts.
+	@ApiPropertyOptional({
+		description:
+			"Max retakes (omit or null for unlimited). Final assessments only.",
+		nullable: true,
+	})
 	@IsOptional()
 	@IsInt()
 	@Min(0)
 	@Max(100)
-	maxRetakes?: number;
+	maxRetakes?: number | null;
 
-	@ApiPropertyOptional({ description: "Cooldown hours between retakes." })
+	@ApiPropertyOptional({
+		description: "Minimum hours between retakes. Final assessments only.",
+		nullable: true,
+	})
 	@IsOptional()
 	@IsInt()
 	@Min(0)
 	@Max(720)
-	retakeCooldownHours?: number;
+	retakeCooldownHours?: number | null;
+
+	@ApiPropertyOptional({
+		description:
+			"Days locked out after using every retake without passing; once elapsed the retake allowance resets. Omit for no reset. Final assessments only.",
+		nullable: true,
+	})
+	@IsOptional()
+	@IsInt()
+	@Min(0)
+	@Max(365)
+	retakeLockoutDays?: number | null;
 
 	@ApiPropertyOptional({
 		description:
@@ -259,11 +281,22 @@ export class ReorderQuestionsDto {
 export class GenerateQuestionsDto {
 	@ApiPropertyOptional({
 		description:
-			"Source lesson whose transcript seeds the questions. Defaults to the assessment's own lesson when it is lesson-scoped.",
+			"Source lesson whose transcript seeds the questions. Defaults to the assessment's own lesson when it is lesson-scoped. Prefer `lessonIds` for multi-source generation.",
 	})
 	@IsOptional()
 	@IsUUID()
 	lessonId?: string;
+
+	@ApiPropertyOptional({
+		type: [String],
+		description:
+			"Source lessons whose transcripts seed the questions — any lessons within the assessment's own scope (its course, or every course in the path/cohort).",
+	})
+	@IsOptional()
+	@IsArray()
+	@ArrayMaxSize(200)
+	@IsUUID("4", { each: true })
+	lessonIds?: string[];
 
 	@ApiPropertyOptional({
 		default: 5,

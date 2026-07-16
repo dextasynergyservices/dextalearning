@@ -34,6 +34,45 @@ export class CompletionService {
 		private readonly events: EventEmitter2,
 	) {}
 
+	/**
+	 * Is the **summative** work (final assessment + projects) open to this learner
+	 * yet (§4.3)? A final is the last thing you do, not something you can jump
+	 * straight to — it only unlocks once the work it examines is finished:
+	 *
+	 * - **course** — every lesson done and every module quiz passed
+	 * - **path**   — every course in the path complete
+	 * - **cohort** — every course *and* path in the cohort complete
+	 *
+	 * Deliberately excludes finals and projects from its own inputs, so the gate
+	 * can never depend on the thing it is gating. This is the completion
+	 * context's own read model — Assessments/Projects ask it rather than
+	 * re-deriving progress for themselves (§6.4).
+	 */
+	async getFinalsGate(
+		user: AuthenticatedUser,
+		entityType: "course" | "path" | "cohort",
+		entityId: string,
+	): Promise<{ unlocked: boolean }> {
+		if (entityType === "course") {
+			const { summary } = await this.getCourseProgress(user, entityId);
+			return {
+				unlocked: summary.allLessonsDone && summary.allModuleAssessmentsPassed,
+			};
+		}
+		if (entityType === "path") {
+			const { summary } = await this.getPathProgress(user, entityId);
+			// `allCoursesComplete` honours the required-vs-optional distinction —
+			// an optional course must not hold the final shut.
+			return { unlocked: summary.allCoursesComplete };
+		}
+		const { summary } = await this.getCohortProgress(user, entityId);
+		return {
+			unlocked:
+				summary.coursesComplete === summary.coursesTotal &&
+				summary.pathsComplete === summary.pathsTotal,
+		};
+	}
+
 	/** The learner's started/completed courses, paths and cohorts (My Learning). */
 	async getMine(user: AuthenticatedUser) {
 		const [statuses, courseEnr, pathEnr, cohortEnr] = await Promise.all([
@@ -637,13 +676,67 @@ export class CompletionService {
 				percent: cp.summary.percent,
 			});
 		}
-		const { isComplete, percent } = calculatePathCompletion(courses);
+		// The path's own summative work (§4.3.1) — same shape as a course's.
+		const [assessments, projects, passedAttempts, passedProjects] =
+			await Promise.all([
+				this.prisma.assessment.findMany({
+					where: { pathId, scope: "path_final" },
+					select: {
+						id: true,
+						title: true,
+						_count: { select: { questions: true } },
+					},
+				}),
+				this.prisma.project.findMany({
+					where: { pathId },
+					orderBy: { orderIndex: "asc" },
+					select: { id: true, title: true, gradingType: true },
+				}),
+				this.prisma.assessmentAttempt.findMany({
+					where: { userId: user.id, passed: true, invalidated: false },
+					select: { assessmentId: true },
+				}),
+				this.prisma.projectSubmission.findMany({
+					where: { userId: user.id, passed: true },
+					select: { projectId: true },
+				}),
+			]);
+		const passedAssessmentIds = new Set(
+			passedAttempts.map((a) => a.assessmentId),
+		);
+		const passedProjectIds = new Set(passedProjects.map((p) => p.projectId));
+
+		// Only an assessment that actually has questions can gate — an empty one
+		// could never be passed, and would lock the path shut forever.
+		const finalAssessment = assessments.find((a) => a._count.questions > 0);
+		const finalRequired = !!finalAssessment;
+		const finalAssessmentPassed =
+			!finalAssessment || passedAssessmentIds.has(finalAssessment.id);
+
+		const projectRows = projects.map((p) => ({
+			id: p.id,
+			title: p.title,
+			gradingType: p.gradingType,
+			passed: passedProjectIds.has(p.id),
+		}));
+		const allProjectsPassed = projectRows.every((p) => p.passed);
+
+		const { allCoursesComplete, isComplete, percent } = calculatePathCompletion(
+			{
+				courses,
+				finalRequired,
+				finalAssessmentPassed,
+				projectsCount: projectRows.length,
+				allProjectsPassed,
+			},
+		);
 
 		await this.persistCompletion(user.id, "path", pathId, {
-			allLessonsDone: isComplete,
-			allModuleAssessmentsPassed: isComplete,
-			finalAssessmentPassed: isComplete,
-			allProjectsPassed: isComplete,
+			// A path's "lessons" are its courses.
+			allLessonsDone: allCoursesComplete,
+			allModuleAssessmentsPassed: allCoursesComplete,
+			finalAssessmentPassed,
+			allProjectsPassed,
 			isComplete,
 			percent,
 		});
@@ -651,9 +744,20 @@ export class CompletionService {
 		return {
 			path: { id: path.id, title: path.title },
 			courses,
+			projects: projectRows,
+			finalAssessment: finalAssessment
+				? {
+						id: finalAssessment.id,
+						passed: passedAssessmentIds.has(finalAssessment.id),
+						required: finalRequired,
+					}
+				: null,
 			summary: {
 				coursesTotal: courses.length,
 				coursesComplete: courses.filter((c) => c.isComplete).length,
+				allCoursesComplete,
+				finalAssessmentPassed,
+				allProjectsPassed,
 				isComplete,
 				percent,
 			},

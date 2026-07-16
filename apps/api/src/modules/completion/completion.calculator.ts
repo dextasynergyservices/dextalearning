@@ -60,26 +60,60 @@ export interface PathCourseProgress {
 	percent: number;
 }
 
+export interface PathCompletionInput {
+	courses: PathCourseProgress[];
+	/** A path final only gates when one exists and has questions (§4.3.1). */
+	finalRequired: boolean;
+	finalAssessmentPassed: boolean;
+	projectsCount: number;
+	allProjectsPassed: boolean;
+}
+
 export interface PathCompletionResult {
+	allCoursesComplete: boolean;
 	isComplete: boolean;
 	percent: number;
 }
 
-/** A path is complete when its required courses (or, if none are marked
- *  required, ALL courses) are complete. Percent is the plain average across
- *  every course, required or not. */
+/**
+ * A path is complete when its required courses (or, if none are marked
+ * required, ALL courses) are complete **and** its own final assessment +
+ * projects are passed — the same shape as a course (§4.3) and a cohort. A path
+ * final that exists but is never taken must block completion, otherwise the
+ * certificate and Earn-Back would fire on unexamined work.
+ *
+ * Percent averages only the gates that apply, so a path with no final/projects
+ * still reads as the plain average of its courses.
+ */
 export function calculatePathCompletion(
-	courses: PathCourseProgress[],
+	input: PathCompletionInput,
 ): PathCompletionResult {
+	const { courses } = input;
 	const required = courses.filter((c) => c.isRequired);
 	const gating = required.length > 0 ? required : courses;
-	const isComplete = gating.length > 0 && gating.every((c) => c.isComplete);
-	const percent = courses.length
-		? Math.round(courses.reduce((s, c) => s + c.percent, 0) / courses.length)
+	const allCoursesComplete =
+		gating.length > 0 && gating.every((c) => c.isComplete);
+	const isComplete =
+		allCoursesComplete &&
+		input.finalAssessmentPassed &&
+		input.allProjectsPassed;
+
+	const gates: number[] = [];
+	if (courses.length > 0) {
+		gates.push(
+			courses.reduce((s, c) => s + c.percent, 0) / (courses.length * 100),
+		);
+	}
+	if (input.finalRequired) gates.push(input.finalAssessmentPassed ? 1 : 0);
+	if (input.projectsCount > 0) gates.push(input.allProjectsPassed ? 1 : 0);
+
+	const percent = gates.length
+		? Math.round((gates.reduce((s, g) => s + g, 0) / gates.length) * 100)
 		: isComplete
 			? 100
 			: 0;
-	return { isComplete, percent };
+
+	return { allCoursesComplete, isComplete, percent };
 }
 
 export interface CohortItemProgress {

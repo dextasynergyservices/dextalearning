@@ -179,6 +179,9 @@ enum AntiCheatEventType {
   fullscreen_exit
   camera_face_missing
   camera_multiple_faces
+  // Not an accusation — the monitor itself couldn't run (§4.6.2). Recorded so an
+  // unmonitored attempt is never mistaken for a clean one.
+  camera_monitor_unavailable
   fast_answer
   viewport_change
   devtools_open
@@ -187,6 +190,9 @@ enum AntiCheatEventType {
 }
 
 enum Severity {
+  // Recorded evidence that is NOT an accusation and carries no penalty (§4.6.2)
+  // — e.g. the camera monitor failing to load. Weight 0.
+  info
   low
   medium
   high
@@ -225,6 +231,20 @@ enum OrderStatus {
   earn_back_issued
 
   @@map("order_status")
+}
+
+/// Who decided the Earn-Back deadline on an order (§4.11.1).
+/// `creator`     — the course/path/cohort fixed it; the learner cannot change it.
+/// `provisional` — the creator left it open, so the platform max applies until
+///                 the learner commits to their own (shorter) deadline.
+/// `learner`     — the learner has committed. Locked: a deadline you can push
+///                 back when you're late is not a commitment device.
+enum EarnBackDeadlineSource {
+  creator
+  provisional
+  learner
+
+  @@map("earn_back_deadline_source")
 }
 
 enum PaymentProvider {
@@ -284,6 +304,11 @@ model User {
   avatarUrl             String?       @map("avatar_url")
   phone                 String?       @db.VarChar(20)
   phoneVerified         Boolean       @default(false) @map("phone_verified")
+  // Admin suspension (§8.7). Non-null = suspended: every authenticated request
+  // is refused by SessionGuard, so it holds against a fresh login too — not
+  // just a hidden UI. Their content and money are untouched.
+  suspendedAt           DateTime?     @map("suspended_at") @db.Timestamptz(6)
+  suspendedReason       String?       @map("suspended_reason") @db.Text
   payoutProvider        PayoutProvider? @map("payout_provider")
   payoutAccountJson     Json?         @map("payout_account_json")
   payoutVerified        Boolean       @default(false) @map("payout_verified")
@@ -337,6 +362,7 @@ model User {
   orders                         Order[]                     @relation("OrderUser")
   instructorOrders               Order[]                     @relation("OrderInstructor")
   instructorPayouts              InstructorPayout[]
+  payoutAccounts                 PayoutAccount[]
   earnBackTransactions           EarnBackTransaction[]
   updatedPlatformSettings        PlatformSetting[]
   certificates                   Certificate[]
@@ -629,6 +655,10 @@ model Cohort {
   currency           String            @default("NGN") @db.VarChar(3)
   isEarnBackEligible Boolean           @default(false) @map("is_earn_back_eligible")
   earnBackPercentage Int?              @map("earn_back_percentage")
+  // Admin-set, like everything else on a cohort (§4.11.1). A cohort is a
+  // scheduled programme, not a self-paced purchase — its window is a programme
+  // decision, so a learner never sets it. Blank falls back to the platform max.
+  earnBackDeadlineDays Int?            @map("earn_back_deadline_days")
   examMode           CohortExamMode?   @map("exam_mode")
   unlockMode         CohortUnlockMode? @map("unlock_mode")
   groupingMode       GroupingMode      @default(randomized) @map("grouping_mode")
@@ -778,6 +808,7 @@ model Assessment {
   timeLimitMinutes                    Int?                   @map("time_limit_minutes")
   maxRetakes                          Int?                   @map("max_retakes")
   retakeCooldownHours                 Int?                   @map("retake_cooldown_hours")
+  retakeLockoutDays                   Int?                   @map("retake_lockout_days")
   questionPoolSize                    Int?                   @map("question_pool_size")
   shuffleQuestions                    Boolean                @default(true) @map("shuffle_questions")
   shuffleAnswers                      Boolean                @default(true) @map("shuffle_answers")
@@ -838,6 +869,16 @@ model AssessmentAttempt {
   feedback          String?
   integrityScore    Int       @default(100) @map("integrity_score")
   flagCount         Int       @default(0) @map("flag_count")
+  /**
+   * Did camera monitoring actually run? (§4.6.2)
+   *   null  — not required for this assessment
+   *   true  — the monitor ran
+   *   false — the model never loaded; NOBODY was watching
+   * Denormalised alongside integrityScore because the Admin integrity queue
+   * filters on these columns: without it, an unmonitored attempt scores a clean
+   * 100 and is invisible to the one dashboard meant to surface problems.
+   */
+  cameraMonitored   Boolean?  @map("camera_monitored")
   invalidated       Boolean   @default(false)
   invalidatedBy     String?   @map("invalidated_by") @db.Uuid
   invalidatedReason String?   @map("invalidated_reason")
@@ -883,6 +924,9 @@ model Project {
   passMark         Decimal            @default(70.00) @map("pass_mark") @db.Decimal(5, 2)
   gradingType      ProjectGradingType @default(manual) @map("grading_type")
   peerReviewCount  Int                @default(2) @map("peer_review_count")
+  maxAttempts      Int?               @map("max_attempts")
+  retryCooldownHours Int?             @map("retry_cooldown_hours")
+  retryLockoutDays Int?               @map("retry_lockout_days")
   dueAt            DateTime?          @map("due_at") @db.Timestamptz(6)
   orderIndex       Int                @default(1) @map("order_index")
   createdBy        String?            @map("created_by") @db.Uuid
@@ -965,6 +1009,7 @@ model Order {
   userId             String?                @map("user_id") @db.Uuid
   entityType         CompletableEntityType? @map("entity_type")
   entityId           String?                @map("entity_id") @db.Uuid
+  // `amount` is the price actually paid P — the top of the order-time snapshot.
   amount             Decimal?               @db.Decimal(10, 2)
   currency           String?                @db.VarChar(3)
   platformAmount     Decimal?               @map("platform_amount") @db.Decimal(10, 2)
@@ -976,6 +1021,24 @@ model Order {
   idempotencyKey     String?                @unique @map("idempotency_key")
   isEarnBackEligible Boolean                @default(false) @map("is_earn_back_eligible")
   earnBackDeadline   DateTime?              @map("earn_back_deadline") @db.Timestamptz(6)
+  // Order-time snapshot (§4.11.2) — frozen at purchase; ALL later settlement /
+  // earn-back math reads these, never a live catalogue lookup, so later
+  // price/percentage edits never corrupt in-flight enrolments.
+  earnBackPercentage Int?                   @map("earn_back_percentage")
+  // Frozen at checkout: the creator's days, or the platform max when the
+  // creator left it open (then `source = provisional` and the learner may
+  // commit to any value <= this). Never re-read from the catalogue.
+  earnBackDeadlineDays Int?                 @map("earn_back_deadline_days")
+  earnBackDeadlineSource EarnBackDeadlineSource? @map("earn_back_deadline_source")
+  earnBackDeadlineSetAt DateTime?           @map("earn_back_deadline_set_at") @db.Timestamptz(6)
+  revenueSplitPct    Int?                   @map("revenue_split_pct")
+  platformFeePct     Int?                   @map("platform_fee_pct")
+  platformFee        Decimal?               @map("platform_fee") @db.Decimal(10, 2)
+  earnBackBase       Decimal?               @map("earn_back_base") @db.Decimal(10, 2)
+  guaranteedRevenue  Decimal?               @map("guaranteed_revenue") @db.Decimal(10, 2)
+  isPlatformOwned    Boolean                @default(false) @map("is_platform_owned")
+  entityTitle        String?                @map("entity_title") @db.VarChar(200)
+  paidAt             DateTime?              @map("paid_at") @db.Timestamptz(6)
   createdAt          DateTime               @default(now()) @map("created_at") @db.Timestamptz(6)
 
   user                 User?                 @relation("OrderUser", fields: [userId], references: [id])
@@ -984,6 +1047,24 @@ model Order {
   earnBackTransactions EarnBackTransaction[]
 
   @@map("orders")
+}
+
+model PayoutAccount {
+  id           String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId       String          @map("user_id") @db.Uuid
+  provider     PayoutProvider
+  // Provider-shaped snapshot: { bankCode, accountNumber, accountName, bankName }
+  // for Paystack, or { stripeAccountId } for Stripe Connect.
+  accountJson  Json            @map("account_json")
+  label        String?         @db.VarChar(120)
+  verified     Boolean         @default(false)
+  isDefault    Boolean         @default(false) @map("is_default")
+  createdAt    DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("payout_accounts")
 }
 
 model InstructorPayout {

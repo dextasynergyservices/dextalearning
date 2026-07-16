@@ -87,13 +87,22 @@ export function detectFastAnswers(input: FastAnswerInput): FastAnswerFlag[] {
 	return flags;
 }
 
-export type AntiCheatSeverity = "low" | "medium" | "high";
+export type AntiCheatSeverity = "info" | "low" | "medium" | "high";
 
+/**
+ * `info` is recorded evidence that is NOT an accusation: it must never cost the
+ * learner a point. The camera monitor failing to load is a fact about our
+ * software, not their conduct.
+ */
 export const SEVERITY_WEIGHT: Record<string, number> = {
+	info: 0,
 	low: 2,
 	medium: 5,
 	high: 10,
 };
+
+/** Events that describe the monitoring itself rather than the learner (§4.6.2). */
+export const SYSTEM_EVENT_TYPES = new Set(["camera_monitor_unavailable"]);
 
 export const DEFAULT_SEVERITY: Record<string, AntiCheatSeverity> = {
 	tab_switch: "medium",
@@ -105,19 +114,30 @@ export const DEFAULT_SEVERITY: Record<string, AntiCheatSeverity> = {
 	fullscreen_exit: "high",
 	camera_face_missing: "medium",
 	camera_multiple_faces: "high",
+	camera_monitor_unavailable: "info",
 	fast_answer: "low",
 	viewport_change: "low",
 	devtools_open: "high",
 };
 
-/** Client-reported severity wins; otherwise fall back to the event's default,
- *  and "medium" for an unrecognised event type. */
+/**
+ * Client-reported severity wins; otherwise fall back to the event's default,
+ * and "medium" for an unrecognised event type.
+ *
+ * With two exceptions the client does NOT get to decide, because severity comes
+ * from the party being measured:
+ *  - a system event is always `info` — it describes our software, not them;
+ *  - `info` is never client-grantable on anything else, or a cheat could label
+ *    a real tab-switch weightless and zero out its own penalty.
+ */
 export function resolveSeverity(
 	eventType: string,
 	explicit?: string,
 ): AntiCheatSeverity {
+	if (SYSTEM_EVENT_TYPES.has(eventType)) return "info";
+	const claimed = explicit === "info" ? undefined : explicit;
 	return (
-		(explicit as AntiCheatSeverity | undefined) ??
+		(claimed as AntiCheatSeverity | undefined) ??
 		DEFAULT_SEVERITY[eventType] ??
 		"medium"
 	);
@@ -126,11 +146,30 @@ export function resolveSeverity(
 export interface IntegrityResult {
 	integrityScore: number;
 	flagCount: number;
+	/**
+	 * False when the camera monitor never ran. An integrity score only means
+	 * something if something was actually watching — see `calculateIntegrity`.
+	 */
+	cameraMonitorFailed: boolean;
 }
 
-/** 100 minus the weighted penalty of every logged flag, floored at 0. */
+/**
+ * 100 minus the weighted penalty of every logged flag, floored at 0.
+ *
+ * **A clean score is not the same as a clean attempt.** With no logs this
+ * returns 100 — which is correct for a monitored learner who behaved, and a lie
+ * for an attempt where the camera monitor never loaded and nobody was watching.
+ * The two are indistinguishable by score alone, so the absence of monitoring is
+ * reported separately (`cameraMonitorFailed`) and callers must surface it
+ * instead of the number. Penalising it would punish a learner for our CDN, and
+ * scoring it 100 would hand a cheat a clean bill of health for blocking one
+ * network request.
+ *
+ * System events (`info`) are evidence, not accusations: weight 0, and excluded
+ * from `flagCount` so "1 flag / 100 integrity" never appears.
+ */
 export function calculateIntegrity(
-	logs: { severity: string }[],
+	logs: { severity: string; eventType?: string }[],
 ): IntegrityResult {
 	const penalty = logs.reduce(
 		(sum, l) => sum + (SEVERITY_WEIGHT[l.severity] ?? 0),
@@ -138,7 +177,12 @@ export function calculateIntegrity(
 	);
 	return {
 		integrityScore: Math.max(0, 100 - penalty),
-		flagCount: logs.length,
+		flagCount: logs.filter(
+			(l) => !(l.eventType && SYSTEM_EVENT_TYPES.has(l.eventType)),
+		).length,
+		cameraMonitorFailed: logs.some(
+			(l) => l.eventType === "camera_monitor_unavailable",
+		),
 	};
 }
 

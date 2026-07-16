@@ -367,7 +367,20 @@ function PathDetailPage() {
 						) : null}
 
 						<div className="mt-4">
-							<EnrollCta type="path" id={path.id} size="lg" />
+							<EnrollCta
+								type="path"
+								id={path.id}
+								size="lg"
+								commercials={{
+									title: path.title,
+									price: path.price ?? 0,
+									currency: path.currency,
+									isFree: path.isFree,
+									isEarnBackEligible: path.isEarnBackEligible,
+									earnBackPercentage: path.earnBackPercentage,
+									earnBackDeadlineDays: path.earnBackDeadlineDays,
+								}}
+							/>
 						</div>
 
 						<h3 className="mt-6 font-display text-foreground">
@@ -405,7 +418,20 @@ function PathDetailPage() {
 							<span className="text-amber-700 text-xs">{earnBadge}</span>
 						) : null}
 					</div>
-					<EnrollCta type="path" id={path.id} size="sm" />
+					<EnrollCta
+						type="path"
+						id={path.id}
+						size="sm"
+						commercials={{
+							title: path.title,
+							price: path.price ?? 0,
+							currency: path.currency,
+							isFree: path.isFree,
+							isEarnBackEligible: path.isEarnBackEligible,
+							earnBackPercentage: path.earnBackPercentage,
+							earnBackDeadlineDays: path.earnBackDeadlineDays,
+						}}
+					/>
 				</div>
 			</div>
 		</PublicShell>

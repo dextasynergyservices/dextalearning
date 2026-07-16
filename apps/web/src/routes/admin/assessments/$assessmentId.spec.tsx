@@ -34,6 +34,7 @@ function assessmentDetail(): AssessmentDetail {
 		cohortId: null,
 		maxRetakes: null,
 		retakeCooldownHours: null,
+		retakeLockoutDays: null,
 		questionPoolSize: null,
 		shuffleQuestions: false,
 		shuffleAnswers: false,

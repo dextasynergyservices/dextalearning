@@ -3,6 +3,7 @@ import {
 	calculateCohortCompletion,
 	calculateCourseCompletion,
 	calculatePathCompletion,
+	type PathCourseProgress,
 } from "./completion.calculator";
 
 describe("calculateCourseCompletion", () => {
@@ -119,14 +120,24 @@ describe("calculateCourseCompletion", () => {
 });
 
 describe("calculatePathCompletion", () => {
+	/** A path with no final and no projects — courses are the only gate. */
+	const coursesOnly = (courses: PathCourseProgress[]) =>
+		calculatePathCompletion({
+			courses,
+			finalRequired: false,
+			finalAssessmentPassed: true,
+			projectsCount: 0,
+			allProjectsPassed: true,
+		});
+
 	it("is 0% with no courses", () => {
-		const result = calculatePathCompletion([]);
+		const result = coursesOnly([]);
 		expect(result.percent).toBe(0);
 		expect(result.isComplete).toBe(false);
 	});
 
 	it("averages plain percent across ALL courses, required or not", () => {
-		const result = calculatePathCompletion([
+		const result = coursesOnly([
 			{ isRequired: true, isComplete: true, percent: 100 },
 			{ isRequired: false, isComplete: false, percent: 0 },
 		]);
@@ -134,7 +145,7 @@ describe("calculatePathCompletion", () => {
 	});
 
 	it("gates completion on required courses only, when some are required", () => {
-		const result = calculatePathCompletion([
+		const result = coursesOnly([
 			{ isRequired: true, isComplete: true, percent: 100 },
 			{ isRequired: false, isComplete: false, percent: 0 },
 		]);
@@ -144,7 +155,7 @@ describe("calculatePathCompletion", () => {
 	});
 
 	it("gates completion on ALL courses when none are marked required", () => {
-		const result = calculatePathCompletion([
+		const result = coursesOnly([
 			{ isRequired: false, isComplete: true, percent: 100 },
 			{ isRequired: false, isComplete: false, percent: 0 },
 		]);
@@ -152,12 +163,67 @@ describe("calculatePathCompletion", () => {
 	});
 
 	it("is complete only when every required course is complete", () => {
-		const result = calculatePathCompletion([
+		const result = coursesOnly([
 			{ isRequired: true, isComplete: true, percent: 100 },
 			{ isRequired: true, isComplete: false, percent: 60 },
 		]);
 		expect(result.isComplete).toBe(false);
 		expect(result.percent).toBe(80);
+	});
+
+	// ── The path's own summative work gates it too (§4.3.1) ─────────────────
+	const done: PathCourseProgress[] = [
+		{ isRequired: true, isComplete: true, percent: 100 },
+	];
+
+	it("is NOT complete while the path final is unpassed, even with every course done", () => {
+		const result = calculatePathCompletion({
+			courses: done,
+			finalRequired: true,
+			finalAssessmentPassed: false,
+			projectsCount: 0,
+			allProjectsPassed: true,
+		});
+		expect(result.allCoursesComplete).toBe(true);
+		expect(result.isComplete).toBe(false);
+		// Courses 100%, final 0% -> 50%.
+		expect(result.percent).toBe(50);
+	});
+
+	it("is NOT complete while a path project is unpassed", () => {
+		const result = calculatePathCompletion({
+			courses: done,
+			finalRequired: false,
+			finalAssessmentPassed: true,
+			projectsCount: 1,
+			allProjectsPassed: false,
+		});
+		expect(result.isComplete).toBe(false);
+		expect(result.percent).toBe(50);
+	});
+
+	it("completes once the courses, the final and the projects are all done", () => {
+		const result = calculatePathCompletion({
+			courses: done,
+			finalRequired: true,
+			finalAssessmentPassed: true,
+			projectsCount: 2,
+			allProjectsPassed: true,
+		});
+		expect(result.isComplete).toBe(true);
+		expect(result.percent).toBe(100);
+	});
+
+	it("ignores a final that isn't required — an empty one can't gate", () => {
+		const result = calculatePathCompletion({
+			courses: done,
+			finalRequired: false,
+			finalAssessmentPassed: true,
+			projectsCount: 0,
+			allProjectsPassed: true,
+		});
+		expect(result.isComplete).toBe(true);
+		expect(result.percent).toBe(100);
 	});
 });
 

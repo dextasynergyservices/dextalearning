@@ -42,6 +42,9 @@ function submissionRow(overrides: Partial<SubmissionRow> = {}): SubmissionRow {
 		graded: false,
 		score: null,
 		passed: null,
+		gradedByName: null,
+		isOverrideGrade: false,
+		canGrade: true,
 		...overrides,
 	};
 }

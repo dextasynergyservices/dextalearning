@@ -180,5 +180,15 @@
 		"because_collab": "Porque los estudiantes inscritos en tus cursos también se inscribieron en estos",
 		"because_collab_paths": "Porque los estudiantes inscritos en tus rutas también se inscribieron en estas",
 		"because_collab_cohorts": "Porque los estudiantes que se unieron a tus cohortes también se unieron a estas"
+	},
+	"checkout": {
+		"method": "¿Cómo quieres pagar?",
+		"secure": "Pago seguro con {{providers}}",
+		"method_help": {
+			"paystack": "Tarjeta, transferencia bancaria o USSD",
+			"stripe": "Tarjeta o monedero"
+		},
+		"earnback_hint_learner_deadline": "Fijarás tu propia fecha límite — hasta {{max}} días — justo después del pago. Termina antes y te devolvemos los {{amount}} reembolsables a tu tarjeta.",
+		"skip_deadline": "Ahora no"
 	}
 }

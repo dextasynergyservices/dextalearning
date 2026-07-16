@@ -114,6 +114,16 @@ export class UpdateCohortDto {
 	@Max(100)
 	earnBackPercentage?: number;
 
+	@ApiPropertyOptional({
+		description:
+			"Days the learner has to earn the refund back. Admin-set — a cohort's window is a programme decision, never the learner's (§4.11.1). Blank falls back to the platform max.",
+	})
+	@IsOptional()
+	@IsInt()
+	@Min(1)
+	@Max(365)
+	earnBackDeadlineDays?: number;
+
 	@ApiPropertyOptional({ description: "Feature on the homepage." })
 	@IsOptional()
 	@IsBoolean()

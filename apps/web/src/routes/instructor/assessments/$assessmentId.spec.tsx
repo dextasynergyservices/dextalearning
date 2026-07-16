@@ -84,7 +84,17 @@ function assessmentDetail(
 				orderIndex: 0,
 			},
 		],
-		sourceLessons: [{ id: "l1", title: "Intro", hasTranscript: true }],
+		sourceLessons: [
+			{
+				id: "l1",
+				title: "Intro",
+				hasTranscript: true,
+				moduleId: "m1",
+				moduleTitle: "Getting started",
+				courseId: "c1",
+				courseTitle: "Course",
+			},
+		],
 		...overrides,
 	} as AssessmentDetail;
 }
@@ -194,7 +204,7 @@ describe("InstructorAssessmentRoute", () => {
 		});
 	});
 
-	it("generates questions with AI from a lesson with a transcript", async () => {
+	it("generates questions with AI from every in-scope lesson that has a source", async () => {
 		getAssessmentMock.mockResolvedValue(assessmentDetail({ questions: [] }));
 		generateQuestionsMock.mockResolvedValue([{}, {}]);
 		const user = userEvent.setup();
@@ -208,9 +218,8 @@ describe("InstructorAssessmentRoute", () => {
 			await screen.findByText("Generate questions with AI"),
 		).toBeInTheDocument();
 
-		// AssessmentSettingsPanel also renders a "Grading" select in the
-		// background — target the dialog's own labeled "Source lesson" select.
-		await user.selectOptions(screen.getByLabelText("Source lesson"), "l1");
+		// A course-final assessment preselects everything in scope with a source.
+		expect(await screen.findByText("1 lesson selected")).toBeInTheDocument();
 		const generateButtons = screen.getAllByRole("button", {
 			name: /Generate with AI/,
 		});
@@ -219,9 +228,28 @@ describe("InstructorAssessmentRoute", () => {
 		await waitFor(() => {
 			expect(generateQuestionsMock).toHaveBeenCalledWith(
 				"a1",
-				expect.objectContaining({ lessonId: "l1" }),
+				expect.objectContaining({ lessonIds: ["l1"] }),
 			);
 		});
+	});
+
+	it("lets a lesson be deselected, and blocks generating with nothing chosen", async () => {
+		getAssessmentMock.mockResolvedValue(assessmentDetail({ questions: [] }));
+		const user = userEvent.setup();
+		renderRoute("/instructor/assessments/a1");
+		await screen.findByText(
+			"No questions yet. Add one or generate from a lesson.",
+		);
+		await user.click(screen.getByRole("button", { name: /Generate with AI/ }));
+		await screen.findByText("Generate questions with AI");
+
+		await user.click(screen.getByRole("button", { name: /Clear/ }));
+		expect(await screen.findByText("0 lessons selected")).toBeInTheDocument();
+
+		const generateButtons = screen.getAllByRole("button", {
+			name: /Generate with AI/,
+		});
+		expect(generateButtons[generateButtons.length - 1]).toBeDisabled();
 	});
 
 	it("deletes the whole assessment after confirming", async () => {

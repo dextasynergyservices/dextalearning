@@ -41,6 +41,7 @@ import {
 	reorderCohortCourses,
 	updateCohort,
 } from "@/lib/content-api";
+import { getPlatformFeePct } from "@/lib/payments-api";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/admin/cohorts/$cohortId")({
@@ -196,6 +197,7 @@ function SettingsCard({
 		currency: cohort.currency ?? "NGN",
 		earnBack: cohort.isEarnBackEligible,
 		pct: String(cohort.earnBackPercentage ?? 100),
+		earnBackDays: String(cohort.earnBackDeadlineDays ?? 30),
 		examMode: cohort.examMode ?? "unified",
 		unlockMode: cohort.unlockMode ?? "all_at_once",
 		groupingMode: cohort.groupingMode ?? "randomized",
@@ -220,6 +222,10 @@ function SettingsCard({
 				isEarnBackEligible: form.isFree ? false : form.earnBack,
 				earnBackPercentage:
 					!form.isFree && form.earnBack ? Number(form.pct) || 100 : undefined,
+				earnBackDeadlineDays:
+					!form.isFree && form.earnBack
+						? Number(form.earnBackDays) || 30
+						: undefined,
 				examMode: form.examMode,
 				unlockMode: form.unlockMode,
 				groupingMode: form.groupingMode,
@@ -234,10 +240,18 @@ function SettingsCard({
 		onError: (e) => toast.error(e.message),
 	});
 
+	const { data: feeData } = useQuery({
+		queryKey: ["platform-fee"],
+		queryFn: getPlatformFeePct,
+		staleTime: 5 * 60_000,
+	});
+
+	// Earn-back applies to the post-fee remainder R = price − platform fee (§2).
+	const priceNum = Number(form.price) || 0;
+	const feePct = feeData?.pct ?? 0;
+	const remainderNum = priceNum - Math.round((priceNum * feePct) / 100);
 	const earnBase = Math.round(
-		((Number(form.price) || 0) *
-			Math.min(100, Math.max(1, Number(form.pct) || 0))) /
-			100,
+		(remainderNum * Math.min(100, Math.max(1, Number(form.pct) || 0))) / 100,
 	);
 
 	return (
@@ -345,27 +359,51 @@ function SettingsCard({
 						/>
 						{form.earnBack ? (
 							<div className="mt-4">
-								<Field
-									label={t("settings.earnback_pct", {
-										defaultValue: "Earn-Back %",
-									})}
-								>
-									<input
-										type="number"
-										min={1}
-										max={100}
-										value={form.pct}
-										onChange={(e) => set({ pct: e.target.value })}
-										className="h-11 w-full rounded-input border border-border px-3.5 text-foreground outline-none focus:border-brand-primary sm:max-w-40"
-									/>
-								</Field>
+								<div className="grid gap-4 sm:grid-cols-2">
+									<Field
+										label={t("settings.earnback_pct", {
+											defaultValue: "Earn-Back %",
+										})}
+									>
+										<input
+											type="number"
+											min={1}
+											max={100}
+											value={form.pct}
+											onChange={(e) => set({ pct: e.target.value })}
+											className="h-11 w-full rounded-input border border-border px-3.5 text-foreground outline-none focus:border-brand-primary"
+										/>
+									</Field>
+									{/* A cohort is a scheduled programme — you set the window,
+									    not the learner (§4.11.1). Keep it inside the cohort's
+									    own dates so the deadline is actually reachable. */}
+									<Field
+										label={t("settings.earnback_days", {
+											defaultValue: "Deadline (days)",
+										})}
+										hint={t("settings.earnback_days_hint", {
+											defaultValue:
+												"Days from payment. You set this for a cohort — learners can't.",
+										})}
+									>
+										<input
+											type="number"
+											min={1}
+											max={365}
+											value={form.earnBackDays}
+											onChange={(e) => set({ earnBackDays: e.target.value })}
+											className="h-11 w-full rounded-input border border-border px-3.5 text-foreground outline-none focus:border-brand-primary"
+										/>
+									</Field>
+								</div>
 								<p className="mt-2 text-amber-800 dark:text-amber-200 text-sm">
 									{t("settings.earnback_preview", {
 										defaultValue:
-											"Learners can earn back {{pct}}% — {{amount}} of {{price}}.",
+											"Learners can earn back up to {{amount}} — {{pct}}% of {{remainder}} (the price minus the {{fee}}% platform fee).",
 										pct: Math.min(100, Math.max(1, Number(form.pct) || 0)),
 										amount: formatMoney(form.currency, earnBase),
-										price: formatMoney(form.currency, Number(form.price) || 0),
+										remainder: formatMoney(form.currency, remainderNum),
+										fee: feePct,
 									})}
 								</p>
 							</div>
@@ -836,7 +874,15 @@ function StaffColumn({
 }
 
 // ── Small form controls ─────────────────────────────────────────────────────
-function Field({ label, children }: { label: string; children: ReactNode }) {
+function Field({
+	label,
+	hint,
+	children,
+}: {
+	label: string;
+	hint?: string;
+	children: ReactNode;
+}) {
 	return (
 		// biome-ignore lint/a11y/noLabelWithoutControl: control passed via children.
 		<label className="block">
@@ -844,6 +890,9 @@ function Field({ label, children }: { label: string; children: ReactNode }) {
 				{label}
 			</span>
 			{children}
+			{hint ? (
+				<span className="mt-1 block text-muted-foreground text-xs">{hint}</span>
+			) : null}
 		</label>
 	);
 }

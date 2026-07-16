@@ -7,10 +7,14 @@ import { EventEmitter2 } from "@nestjs/event-emitter";
 import { beforeEach, describe, expect, it } from "vitest";
 import type { AuthenticatedUser } from "../../src/auth/types";
 import { AttemptsService } from "../../src/modules/assessments/attempts.service";
+import { CompletionService } from "../../src/modules/completion/completion.service";
 import { LearningEvents } from "../../src/shared/events/learning-events";
 import { getTestPrisma } from "./support/db";
 import {
 	createAssessment,
+	createAssessmentAttempt,
+	createLesson,
+	createModule,
 	createQuestion,
 	createUser,
 } from "./support/factories";
@@ -24,11 +28,14 @@ function asAuthenticatedUser(id: string): AuthenticatedUser {
 describe("AttemptsService (integration)", () => {
 	const prisma = getTestPrisma();
 	const events = new EventEmitter2();
+	// A real CompletionService — the finals gate (§4.3) is part of what these
+	// specs are checking, so stubbing it would hide the thing under test.
 	const service = new AttemptsService(
 		prisma,
 		new FakeStorageAdapter(),
 		new FakeAiAdapter(),
 		events,
+		new CompletionService(prisma, new FakeStorageAdapter(), events),
 	);
 
 	let learnerId: string;
@@ -52,6 +59,212 @@ describe("AttemptsService (integration)", () => {
 			);
 			expect(info.canStart).toBe(false);
 			expect(info.reason).toBe("no_questions");
+		});
+	});
+
+	// ── A final only opens once the course work is done (§4.3) ──────────────
+	describe("finals prerequisite gate", () => {
+		/** A course with one module + one video lesson, and a course final. */
+		async function courseWithFinal(slug: string) {
+			const course = await prisma.course.create({
+				data: { title: "C", slug, createdBy: learnerId },
+			});
+			const mod = await createModule(prisma, course.id);
+			const lesson = await createLesson(prisma, mod.id, {
+				contentType: "video",
+				minVideoWatchPct: 90,
+			});
+			const final = await createAssessment(prisma, {
+				scope: "course_final",
+				courseId: course.id,
+			});
+			await createQuestion(prisma, final.id);
+			return { course, mod, lesson, final };
+		}
+
+		const watched = (lessonId: string, pct: number) =>
+			prisma.lessonCompletion.create({
+				data: { userId: learnerId, lessonId, videoWatchedPct: pct },
+			});
+
+		it("locks the final while lessons are unfinished", async () => {
+			const { final } = await courseWithFinal("gate-locked");
+
+			const info = await service.getInfo(
+				asAuthenticatedUser(learnerId),
+				final.id,
+			);
+			expect(info.canStart).toBe(false);
+			expect(info.reason).toBe("prerequisites");
+			expect(info.prerequisitesMet).toBe(false);
+		});
+
+		it("refuses to start a locked final, not just hide it", async () => {
+			const { final } = await courseWithFinal("gate-locked-start");
+
+			// The UI locks the row, but the route stays reachable — the server is
+			// what actually stops a direct navigation.
+			await expect(
+				service.startOrResume(
+					asAuthenticatedUser(learnerId),
+					final.id,
+					undefined,
+					undefined,
+				),
+			).rejects.toThrow(ConflictException);
+			expect(
+				await prisma.assessmentAttempt.count({
+					where: { assessmentId: final.id },
+				}),
+			).toBe(0);
+		});
+
+		it("unlocks the final once every lesson is done", async () => {
+			const { lesson, final } = await courseWithFinal("gate-unlocked");
+			await watched(lesson.id, 95); // ≥ minVideoWatchPct
+
+			const info = await service.getInfo(
+				asAuthenticatedUser(learnerId),
+				final.id,
+			);
+			expect(info.prerequisitesMet).toBe(true);
+			expect(info.canStart).toBe(true);
+		});
+
+		it("keeps the final locked while a module quiz is unpassed", async () => {
+			const { mod, lesson, final } = await courseWithFinal("gate-module-quiz");
+			await watched(lesson.id, 95);
+			// A module quiz with questions the learner hasn't passed.
+			const moduleQuiz = await createAssessment(prisma, {
+				scope: "module",
+				moduleId: mod.id,
+			});
+			await createQuestion(prisma, moduleQuiz.id);
+
+			const info = await service.getInfo(
+				asAuthenticatedUser(learnerId),
+				final.id,
+			);
+			expect(info.canStart).toBe(false);
+			expect(info.reason).toBe("prerequisites");
+		});
+
+		it("never gates a formative quiz on the course's progress", async () => {
+			const { lesson } = await courseWithFinal("gate-formative");
+			const quiz = await createAssessment(prisma, {
+				scope: "lesson_post",
+				lessonId: lesson.id,
+			});
+			await createQuestion(prisma, quiz.id);
+
+			// Nothing done yet — a lesson quiz must still be takeable.
+			const info = await service.getInfo(
+				asAuthenticatedUser(learnerId),
+				quiz.id,
+			);
+			expect(info.canStart).toBe(true);
+			expect(info.prerequisitesMet).toBe(true);
+		});
+	});
+
+	// ── Retry policy is for finals only (§4.4.1) ────────────────────────────
+	describe("retry policy scope", () => {
+		/** A used-up allowance: 1 retake allowed (2 tries), both failed. */
+		async function exhaust(assessment: { id: string }) {
+			await createQuestion(prisma, assessment.id);
+			for (const n of [1, 2]) {
+				const attempt = await createAssessmentAttempt(prisma, {
+					assessmentId: assessment.id,
+					userId: learnerId,
+					passed: false,
+					attemptNumber: n,
+				});
+				await prisma.assessmentAttempt.update({
+					where: { id: attempt.id },
+					data: { submittedAt: new Date() },
+				});
+			}
+		}
+
+		it("enforces the policy on a course final", async () => {
+			const assessment = await createAssessment(prisma, {
+				scope: "course_final",
+			});
+			await prisma.assessment.update({
+				where: { id: assessment.id },
+				data: { maxRetakes: 1, retakeCooldownHours: 24 },
+			});
+			await exhaust(assessment);
+
+			const info = await service.getInfo(
+				asAuthenticatedUser(learnerId),
+				assessment.id,
+			);
+			expect(info.hasRetryPolicy).toBe(true);
+			expect(info.canStart).toBe(false);
+			expect(info.reason).toBe("no_retakes_left");
+			expect(info.retakesRemaining).toBe(0);
+		});
+
+		it("ignores the policy on a module quiz — practice stays unlimited", async () => {
+			const assessment = await createAssessment(prisma, { scope: "module" });
+			// Stale values on the row must not gate a formative quiz.
+			await prisma.assessment.update({
+				where: { id: assessment.id },
+				data: { maxRetakes: 1, retakeCooldownHours: 24, retakeLockoutDays: 7 },
+			});
+			await exhaust(assessment);
+
+			const info = await service.getInfo(
+				asAuthenticatedUser(learnerId),
+				assessment.id,
+			);
+			expect(info.hasRetryPolicy).toBe(false);
+			expect(info.canStart).toBe(true);
+			expect(info.reason).toBeUndefined();
+			expect(info.retakesRemaining).toBeNull();
+			// The effective policy is reported as none, not the stale row values.
+			expect(info.maxRetakes).toBeNull();
+			expect(info.retakeCooldownHours).toBeNull();
+			expect(info.retakeLockoutDays).toBeNull();
+		});
+
+		it("ignores the policy on a lesson quiz too", async () => {
+			const assessment = await createAssessment(prisma, {
+				scope: "lesson_post",
+			});
+			await prisma.assessment.update({
+				where: { id: assessment.id },
+				data: { maxRetakes: 0 },
+			});
+			await exhaust(assessment);
+
+			const info = await service.getInfo(
+				asAuthenticatedUser(learnerId),
+				assessment.id,
+			);
+			expect(info.canStart).toBe(true);
+		});
+
+		it("still blocks a passed formative quiz from being retaken", async () => {
+			const assessment = await createAssessment(prisma, { scope: "module" });
+			await createQuestion(prisma, assessment.id);
+			const attempt = await createAssessmentAttempt(prisma, {
+				assessmentId: assessment.id,
+				userId: learnerId,
+				passed: true,
+			});
+			await prisma.assessmentAttempt.update({
+				where: { id: attempt.id },
+				data: { submittedAt: new Date() },
+			});
+
+			const info = await service.getInfo(
+				asAuthenticatedUser(learnerId),
+				assessment.id,
+			);
+			expect(info.canStart).toBe(false);
+			expect(info.reason).toBe("already_passed");
 		});
 	});
 
@@ -413,6 +626,105 @@ describe("AttemptsService (integration)", () => {
 			expect(result.tabSwitches).toBe(2);
 			expect(result.autoSubmit).toBe(true);
 			expect(result.integrityScore).toBeLessThan(100);
+		});
+
+		/**
+		 * §4.6.2 — the camera monitor failing is a fact about our software, not the
+		 * learner's conduct. It must cost them nothing, and must still make the
+		 * attempt distinguishable from one that was actually watched and clean.
+		 */
+		describe("camera monitor unavailable", () => {
+			async function startAttempt() {
+				const assessment = await createAssessment(prisma);
+				await createQuestion(prisma, assessment.id);
+				const state = await service.startOrResume(
+					asAuthenticatedUser(learnerId),
+					assessment.id,
+					undefined,
+					undefined,
+				);
+				return state.attemptId;
+			}
+
+			it("records it without penalty, and never as a flag", async () => {
+				const attemptId = await startAttempt();
+
+				const result = await service.ingestAntiCheat(
+					asAuthenticatedUser(learnerId),
+					attemptId,
+					{ events: [{ eventType: "camera_monitor_unavailable" }] },
+				);
+
+				expect(result.integrityScore).toBe(100); // not their fault
+				expect(result.flagCount).toBe(0); // not an accusation
+
+				const attempt = await prisma.assessmentAttempt.findUnique({
+					where: { id: attemptId },
+				});
+				// The fact itself is on the record — this is what stops a clean 100
+				// being mistaken for a monitored, clean attempt.
+				expect(attempt?.cameraMonitored).toBe(false);
+			});
+
+			it("stores it as info severity even if the client claims otherwise", async () => {
+				const attemptId = await startAttempt();
+				await service.ingestAntiCheat(
+					asAuthenticatedUser(learnerId),
+					attemptId,
+					{
+						events: [
+							{ eventType: "camera_monitor_unavailable", severity: "high" },
+						],
+					},
+				);
+
+				const log = await prisma.assessmentAntiCheatLog.findFirst({
+					where: { attemptId, eventType: "camera_monitor_unavailable" },
+				});
+				expect(log?.severity).toBe("info");
+			});
+
+			/** The exploit `info` would otherwise open: a weightless real flag. */
+			it("refuses a client-claimed info severity on a real flag", async () => {
+				const attemptId = await startAttempt();
+				await service.ingestAntiCheat(
+					asAuthenticatedUser(learnerId),
+					attemptId,
+					{
+						events: [{ eventType: "tab_switch", severity: "info" as "low" }],
+					},
+				);
+
+				const log = await prisma.assessmentAntiCheatLog.findFirst({
+					where: { attemptId, eventType: "tab_switch" },
+				});
+				expect(log?.severity).toBe("medium"); // the event's real default
+				const attempt = await prisma.assessmentAttempt.findUnique({
+					where: { id: attemptId },
+				});
+				expect(attempt?.integrityScore).toBe(95); // penalty still applied
+			});
+
+			it("keeps the unmonitored fact through submission", async () => {
+				const attemptId = await startAttempt();
+				await service.ingestAntiCheat(
+					asAuthenticatedUser(learnerId),
+					attemptId,
+					{
+						events: [{ eventType: "camera_monitor_unavailable" }],
+					},
+				);
+
+				await service.submit(asAuthenticatedUser(learnerId), attemptId, {});
+
+				const attempt = await prisma.assessmentAttempt.findUnique({
+					where: { id: attemptId },
+				});
+				// Submit recomputes from the logs — the fact must survive it.
+				expect(attempt?.cameraMonitored).toBe(false);
+				expect(attempt?.integrityScore).toBe(100);
+				expect(attempt?.flagCount).toBe(0);
+			});
 		});
 	});
 

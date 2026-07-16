@@ -34,7 +34,12 @@ const TUTOR_MODELS = [FLASH, FLASH_LITE];
 // Simplifying can run over long prose → the cheaper Flash-Lite first (§5 bulk).
 const SIMPLIFY_MODELS = [FLASH_LITE, FLASH];
 // Embeddings for RAG (§4.10/§7) — 768-dim vectors from text-embedding-004.
-const EMBED_MODEL = "text-embedding-004";
+// `text-embedding-004` was removed from the Gemini API (v1beta returns 404 for
+// embedContent); `gemini-embedding-001` is the current model. We request 768-dim
+// output (EMBED_DIMENSIONS) via MRL so the pgvector(768) column is unchanged;
+// cosine similarity is scale-invariant, so the truncated vectors need no
+// re-normalisation for our `vector_cosine_ops` index.
+const EMBED_MODEL = "gemini-embedding-001";
 // The weekly coach is quality-sensitive but low-volume → stronger Flash first.
 const COACH_MODELS = [FLASH, FLASH_LITE];
 const VALID_TYPES = new Set(["mcq", "true_false", "short_answer"]);

@@ -7,11 +7,17 @@ import {
 	Bell,
 	BellRing,
 	BookOpenCheck,
+	ClipboardCheck,
+	GraduationCap,
+	Inbox,
+	Sparkles,
 	Sprout,
+	Wallet,
 } from "lucide-react";
 import { type ComponentType, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
+import { useSession } from "@/lib/auth-client";
 import {
 	type AppNotification,
 	engagementKeys,
@@ -22,7 +28,18 @@ import { cn } from "@/lib/utils";
 
 const TYPE_META: Record<
 	string,
-	{ icon: ComponentType<{ className?: string }>; to: string; tint: string }
+	{
+		icon: ComponentType<{ className?: string }>;
+		to: string;
+		tint: string;
+		/**
+		 * Where an **admin** recipient should land instead, when the same
+		 * notification exists in both studios (e.g. a project's grading queue).
+		 */
+		adminTo?: string;
+		/** Route params pulled off the notification's own payload. */
+		params?: (data: Record<string, unknown>) => Record<string, string>;
+	}
 > = {
 	reminder_digest: {
 		icon: BookOpenCheck,
@@ -43,6 +60,70 @@ const TYPE_META: Record<
 		icon: AlertTriangle,
 		to: "/dashboard",
 		tint: "bg-warning/15 text-amber-600 dark:text-amber-400",
+	},
+	certificate_issued: {
+		icon: GraduationCap,
+		to: "/learn/mine",
+		tint: "bg-brand-primary/10 text-brand-primary",
+	},
+	project_graded: {
+		icon: ClipboardCheck,
+		to: "/learn/mine",
+		tint: "bg-info/10 text-info",
+	},
+	// Creator-facing: lands straight in that project's grading queue (§4.5),
+	// so "you have work" and "here's the work" are one tap apart.
+	project_submission_received: {
+		icon: Inbox,
+		to: "/instructor/project-submissions/$projectId",
+		adminTo: "/admin/project-submissions/$projectId",
+		params: (data) => ({ projectId: String(data.projectId ?? "") }),
+		tint: "bg-brand-primary/10 text-brand-primary",
+	},
+	assessment_invalidated: {
+		icon: AlertTriangle,
+		to: "/learn/mine",
+		tint: "bg-error/10 text-error",
+	},
+	final_failed: {
+		icon: AlertTriangle,
+		to: "/learn/mine",
+		tint: "bg-warning/15 text-amber-600 dark:text-amber-400",
+	},
+	payout_processed: {
+		icon: Wallet,
+		to: "/instructor/earnings",
+		tint: "bg-success/10 text-success",
+	},
+	payout_failed: {
+		icon: Wallet,
+		to: "/instructor/earnings",
+		tint: "bg-error/10 text-error",
+	},
+	earn_back_processed: {
+		icon: Sparkles,
+		to: "/learn/mine",
+		tint: "bg-success/10 text-success",
+	},
+	earn_back_no_payout: {
+		icon: Award,
+		to: "/learn/mine",
+		tint: "bg-muted text-muted-foreground",
+	},
+	earn_back_failed: {
+		icon: Sparkles,
+		to: "/learn/mine",
+		tint: "bg-warning/15 text-amber-600 dark:text-amber-400",
+	},
+	payout_failed_admin: {
+		icon: AlertTriangle,
+		to: "/admin/payouts",
+		tint: "bg-error/10 text-error",
+	},
+	earn_back_failed_admin: {
+		icon: AlertTriangle,
+		to: "/admin/payouts",
+		tint: "bg-error/10 text-error",
 	},
 };
 const DEFAULT_TYPE_META = {
@@ -69,6 +150,10 @@ function timeAgo(iso: string, language: string): string {
 export function NotificationBell() {
 	const { t, i18n } = useTranslation("engagement");
 	const queryClient = useQueryClient();
+	const { data: session } = useSession();
+	// Better Auth's inferred user type doesn't carry our `role` column.
+	const isAdmin =
+		(session?.user as { role?: string } | undefined)?.role === "admin";
 	const [open, setOpen] = useState(false);
 	const containerRef = useRef<HTMLDivElement>(null);
 	// The mobile sheet is portaled to <body>, outside containerRef — track it
@@ -123,10 +208,16 @@ export function NotificationBell() {
 			item.type === "badge_awarded" && item.data
 				? String(item.data.badgeKey ?? "")
 				: null;
+		// Some notifications exist in both studios — send admins to theirs.
+		const to = isAdmin && meta.adminTo ? meta.adminTo : meta.to;
+		const params = meta.params?.(item.data ?? {});
 		return (
 			<li key={item.id}>
 				<Link
-					to={meta.to}
+					// biome-ignore lint/suspicious/noExplicitAny: typed route paths vary by notification type.
+					to={to as any}
+					// biome-ignore lint/suspicious/noExplicitAny: param shape varies to match whichever route `to` resolves to.
+					params={params as any}
 					onClick={() => setOpen(false)}
 					className="flex items-start gap-3 rounded-btn px-3 py-2.5 transition-colors hover:bg-accent"
 				>
@@ -158,7 +249,10 @@ export function NotificationBell() {
 									`notifications.types.${item.type}.body`,
 									"notifications.types.default.body",
 								],
-								badgeKey ? { name: t(`badges.${badgeKey}.name`) } : undefined,
+								{
+									...(item.data ?? {}),
+									...(badgeKey ? { name: t(`badges.${badgeKey}.name`) } : {}),
+								},
 							)}
 						</span>
 						<span className="mt-0.5 block text-[0.65rem] text-muted-foreground/80">

@@ -180,5 +180,15 @@
 		"because_collab": "Parce que les apprenants inscrits à vos cours se sont aussi inscrits à ceux-ci",
 		"because_collab_paths": "Parce que les apprenants inscrits à vos parcours se sont aussi inscrits à ceux-ci",
 		"because_collab_cohorts": "Parce que les apprenants ayant rejoint vos cohortes ont aussi rejoint celles-ci"
+	},
+	"checkout": {
+		"method": "Comment souhaitez-vous payer ?",
+		"secure": "Paiement sécurisé via {{providers}}",
+		"method_help": {
+			"paystack": "Carte, virement bancaire ou USSD",
+			"stripe": "Carte ou portefeuille"
+		},
+		"earnback_hint_learner_deadline": "Vous fixerez votre propre échéance — jusqu'à {{max}} jours — juste après le paiement. Terminez avant et nous renvoyons les {{amount}} remboursables sur votre carte.",
+		"skip_deadline": "Plus tard"
 	}
 }

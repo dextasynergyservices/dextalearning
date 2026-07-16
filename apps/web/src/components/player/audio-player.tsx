@@ -81,6 +81,9 @@ export function AudioPlayer({
 		wrapper.appendChild(audio);
 
 		const player = new Plyr(audio, {
+			// Plyr otherwise preloads a placeholder from cdn.plyr.io, which trips a
+			// harmless CORS console error; we have a real source, so disable it.
+			blankVideo: "",
 			controls: [
 				"play",
 				"progress",

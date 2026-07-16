@@ -1,10 +1,13 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
+	AlertTriangle,
 	Ban,
 	CheckCircle2,
 	Loader2,
+	RotateCcw,
 	ShieldAlert,
 	ShieldCheck,
+	VideoOff,
 	X,
 } from "lucide-react";
 import { type ReactNode, useEffect, useState } from "react";
@@ -55,7 +58,14 @@ export function AttemptReportDialog({
 		return () => document.removeEventListener("keydown", onKey);
 	}, [onClose]);
 
-	const { data: report, isPending } = useQuery({
+	const {
+		data: report,
+		isPending,
+		isError,
+		error,
+		refetch,
+		isRefetching,
+	} = useQuery({
 		queryKey: ["attempt-report", attemptId],
 		queryFn: () => getAttemptReport(attemptId),
 	});
@@ -120,9 +130,38 @@ export function AttemptReportDialog({
 				</header>
 
 				<div className="overflow-y-auto p-5">
-					{isPending || !report ? (
+					{isPending ? (
 						<div className="flex h-40 items-center justify-center">
 							<Loader2 className="size-6 animate-spin text-brand-primary" />
+						</div>
+					) : isError || !report ? (
+						<div className="flex h-48 flex-col items-center justify-center gap-3 text-center">
+							<AlertTriangle className="size-8 text-error" />
+							<div>
+								<p className="font-medium text-foreground">
+									{t("report.load_failed", {
+										defaultValue: "Couldn't load this report",
+									})}
+								</p>
+								<p className="mt-1 max-w-xs text-muted-foreground text-sm">
+									{(error as Error)?.message ||
+										t("report.load_failed_hint", {
+											defaultValue: "Something went wrong. Please try again.",
+										})}
+								</p>
+							</div>
+							<Button
+								variant="outline"
+								onClick={() => refetch()}
+								disabled={isRefetching}
+							>
+								{isRefetching ? (
+									<Loader2 className="size-4 animate-spin" />
+								) : (
+									<RotateCcw className="size-4" />
+								)}
+								{t("report.retry", { defaultValue: "Try again" })}
+							</Button>
 						</div>
 					) : (
 						<div className="space-y-5">
@@ -152,20 +191,50 @@ export function AttemptReportDialog({
 											: ""}
 									</p>
 								</div>
+								{/* An integrity score only means something if something was
+								    watching. When the monitor never ran, a bold "100" is a
+								    lie of omission — say "not monitored" instead (§4.6.2). */}
 								<div className="text-right">
-									<p
-										className={cn(
-											"font-stats font-bold text-3xl",
-											integrityTone(report.integrityScore),
-										)}
-									>
-										{report.integrityScore}
-									</p>
-									<p className="text-muted-foreground text-xs">
-										{t("report.integrity", { defaultValue: "integrity" })}
-									</p>
+									{report.cameraMonitored === false ? (
+										<>
+											<p className="font-stats font-bold text-2xl text-amber-600 dark:text-amber-400">
+												{t("report.unmonitored_value", { defaultValue: "—" })}
+											</p>
+											<p className="text-amber-600 text-xs dark:text-amber-400">
+												{t("report.unmonitored", {
+													defaultValue: "not monitored",
+												})}
+											</p>
+										</>
+									) : (
+										<>
+											<p
+												className={cn(
+													"font-stats font-bold text-3xl",
+													integrityTone(report.integrityScore),
+												)}
+											>
+												{report.integrityScore}
+											</p>
+											<p className="text-muted-foreground text-xs">
+												{t("report.integrity", { defaultValue: "integrity" })}
+											</p>
+										</>
+									)}
 								</div>
 							</div>
+
+							{report.cameraMonitored === false ? (
+								<p className="flex items-start gap-2 rounded-card border border-amber-500/30 bg-amber-500/5 px-3 py-2 text-amber-700 text-xs dark:text-amber-300">
+									<VideoOff className="mt-0.5 size-3.5 shrink-0" />
+									<span>
+										{t("report.unmonitored_note", {
+											defaultValue:
+												"Camera monitoring failed to start, so this attempt was never watched. That is not evidence of wrongdoing — and not evidence of a clean attempt either. Judge it on its own merits.",
+										})}
+									</span>
+								</p>
+							) : null}
 
 							<div className="flex flex-wrap gap-2 text-sm">
 								<Stat
