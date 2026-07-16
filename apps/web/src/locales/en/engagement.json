@@ -152,6 +152,54 @@
 			"dropoff_alert": {
 				"title": "Learners may be falling behind",
 				"body": "Some learners in your cohort look at risk — check in with them."
+			},
+			"certificate_issued": {
+				"title": "Certificate ready 🎓",
+				"body": "You completed {{title}} — view or download your certificate."
+			},
+			"project_graded": {
+				"title": "Your project was graded",
+				"body": "{{title}} has been reviewed. Tap to see your result."
+			},
+			"assessment_invalidated": {
+				"title": "An attempt was invalidated",
+				"body": "An integrity review invalidated an attempt — you may need to retake it."
+			},
+			"final_failed": {
+				"title": "Not passed yet",
+				"body": "You didn’t pass {{title}} this time. Check your retakes and try again."
+			},
+			"payout_processed": {
+				"title": "You got paid 💸",
+				"body": "{{amount}} for {{entityTitle}} is on its way to your account."
+			},
+			"payout_failed": {
+				"title": "Payout issue",
+				"body": "We had an issue paying out {{entityTitle}}. Our team is on it."
+			},
+			"earn_back_processed": {
+				"title": "Earn-Back on its way 🎉",
+				"body": "{{amount}} is being refunded to your payment method."
+			},
+			"earn_back_no_payout": {
+				"title": "Course complete",
+				"body": "No Earn-Back remaining on {{entityTitle}} — but your certificate is ready."
+			},
+			"earn_back_failed": {
+				"title": "Earn-Back processing",
+				"body": "We're processing your Earn-Back for {{entityTitle}} — our team will be in touch."
+			},
+			"payout_failed_admin": {
+				"title": "Payout failed (action needed)",
+				"body": "Instructor payout failed: {{reason}}. Please review and open a support ticket."
+			},
+			"earn_back_failed_admin": {
+				"title": "Earn-Back refund failed (action needed)",
+				"body": "Earn-Back refund failed: {{reason}}. Please review and open a support ticket."
+			},
+			"project_submission_received": {
+				"title": "New submission to grade",
+				"body": "{{learnerName}} submitted {{projectTitle}}."
 			}
 		}
 	},

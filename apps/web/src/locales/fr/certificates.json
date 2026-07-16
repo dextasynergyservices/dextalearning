@@ -1,1 +1,15 @@
-{}
+{
+	"completion": {
+		"eyebrow": "Certificat obtenu",
+		"earned_title": "Félicitations — vous avez réussi ! 🎓",
+		"earned_body": "Votre certificat pour {{title}} est prêt à télécharger et à partager.",
+		"download": "Télécharger le PDF",
+		"verify": "Vérifier",
+		"share": "Partager",
+		"share_text": "J'ai obtenu un certificat pour {{title}} sur DextaLearning ! 🎓",
+		"link_copied": "Lien de vérification copié",
+		"share_failed": "Impossible de partager",
+		"preparing_title": "Préparation de votre certificat…",
+		"preparing_body": "Cela prend un instant — il apparaîtra ici et dans Mon apprentissage sous peu."
+	}
+}

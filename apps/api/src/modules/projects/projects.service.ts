@@ -22,6 +22,7 @@ import {
 	STORAGE_PORT,
 	type StoragePort,
 } from "../../shared/storage/storage.port";
+import { NotificationsService } from "../notifications/notifications.service";
 import type {
 	CreateProjectDto,
 	ProjectScopeDto,
@@ -55,6 +56,7 @@ export class ProjectsService {
 		@Inject(STORAGE_PORT) private readonly storage: StoragePort,
 		@Inject(AI_PORT) private readonly ai: AiPort,
 		private readonly events: EventEmitter2,
+		private readonly notifications: NotificationsService,
 	) {}
 
 	private async assertCanManage(user: AuthenticatedUser, parent: ParentRef) {
@@ -231,11 +233,44 @@ export class ProjectsService {
 		return { submission, project };
 	}
 
+	/**
+	 * Who may grade (§4.5). **The project's creator** — not merely whoever owns
+	 * the parent course — so one instructor can never mark another's work. This
+	 * is deliberately stricter than `assertCanManage`, which lets any course
+	 * owner (and every admin) through.
+	 *
+	 * Admins keep an override, and that is on purpose: an ungraded project
+	 * blocks course completion, which in turn blocks the learner's certificate
+	 * AND strands their Earn-Back until it expires as a full forfeit. If the
+	 * creator goes quiet, a hard lock would cost the learner real money for
+	 * someone else's silence. So the escape hatch stays — but it is recorded:
+	 * every grade writes `gradedBy`, and the UI shows when a grade came from an
+	 * admin override rather than the creator. Fraud is deterred by
+	 * accountability, not by trapping learners.
+	 */
+	private assertCanGrade(
+		user: AuthenticatedUser,
+		project: { createdBy: string | null },
+	): { isOverride: boolean } {
+		if (project.createdBy && project.createdBy === user.id) {
+			return { isOverride: false };
+		}
+		if (user.role === "admin") return { isOverride: true };
+		throw new ForbiddenException({
+			code: "NOT_PROJECT_CREATOR",
+			message:
+				"Only the person who created this project can grade it. Ask them, or an admin, to step in.",
+		});
+	}
+
 	async listSubmissions(user: AuthenticatedUser, projectId: string) {
-		await this.loadOwned(user, projectId);
+		const project = await this.loadOwned(user, projectId);
 		const subs = await this.prisma.projectSubmission.findMany({
 			where: { projectId },
-			include: { user: { select: { name: true, email: true } } },
+			include: {
+				user: { select: { name: true, email: true } },
+				grader: { select: { name: true } },
+			},
 			orderBy: [{ gradedAt: "asc" }, { submittedAt: "desc" }],
 		});
 		return subs.map((s) => ({
@@ -247,6 +282,17 @@ export class ProjectsService {
 			graded: s.gradedAt != null,
 			score: s.score == null ? null : Number(s.score),
 			passed: s.passed,
+			// Accountability for the admin escape hatch (§4.5): a grade that
+			// didn't come from the creator is shown as an override, by name.
+			gradedByName: s.grader?.name ?? null,
+			isOverrideGrade:
+				s.gradedAt != null &&
+				!!s.gradedBy &&
+				s.gradedBy !== (project.createdBy ?? ""),
+			/** Whether the *viewer* may grade — the queue hides the action if not. */
+			canGrade:
+				(!!project.createdBy && project.createdBy === user.id) ||
+				user.role === "admin",
 		}));
 	}
 
@@ -320,6 +366,9 @@ export class ProjectsService {
 			user,
 			submissionId,
 		);
+		// Only the creator grades — admins may override, and it's on the record
+		// (`gradedBy`), which the queue surfaces as an override (§4.5).
+		this.assertCanGrade(user, project);
 		const firstGrade = submission.gradedAt == null;
 		const rubric = this.rubricOf(project);
 		let score = dto.score;
@@ -366,6 +415,28 @@ export class ProjectsService {
 				score: updated.score == null ? null : Number(updated.score),
 				passed,
 			} satisfies ProjectGradedEvent);
+
+			// §8.6: Project graded → learner (in-app + email).
+			const recipient = await this.prisma.user.findUnique({
+				where: { id: submission.userId },
+				select: { email: true },
+			});
+			if (recipient) {
+				await this.notifications.notify(submission.userId, {
+					type: "project_graded",
+					dataJson: { title: project.title, passed },
+					inApp: true,
+					email: {
+						to: recipient.email,
+						subject: passed
+							? `Your project passed — ${project.title} ✅`
+							: `Feedback on your project — ${project.title}`,
+						html: passed
+							? `<p>Great work! Your submission for <strong>${project.title}</strong> passed. See your feedback in the app.</p>`
+							: `<p>Your submission for <strong>${project.title}</strong> was reviewed. Check the feedback and, if retakes are allowed, try again.</p>`,
+					},
+				});
+			}
 		}
 		return {
 			id: updated.id,

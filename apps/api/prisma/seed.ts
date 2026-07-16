@@ -27,6 +27,8 @@ async function main(): Promise<void> {
 	const settings: Array<{ key: string; value: string }> = [
 		{ key: "earn_back_max_duration_days", value: "60" },
 		{ key: "instructor_revenue_share_pct", value: "90" },
+		{ key: "default_earn_back_percentage", value: "100" },
+		{ key: "platform_fee_pct", value: "5" },
 		{ key: "platform_name", value: "DextaLearning" },
 		{ key: "platform_domain", value: "dextalearning.com" },
 	];

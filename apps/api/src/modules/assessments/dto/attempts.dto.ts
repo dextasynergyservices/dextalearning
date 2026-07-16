@@ -47,11 +47,19 @@ export const ANTI_CHEAT_EVENT_TYPES = [
 	"fullscreen_exit",
 	"camera_face_missing",
 	"camera_multiple_faces",
+	// Reports that the monitor itself couldn't run (§4.6.2) — not an accusation.
+	"camera_monitor_unavailable",
 	"fast_answer",
 	"viewport_change",
 	"devtools_open",
 ] as const;
 
+/**
+ * Deliberately NOT including `info`: severity is client-reported, and `info`
+ * carries zero penalty (§4.6.2). Accepting it here would let a cheat label a
+ * real tab-switch weightless. The server assigns `info` itself, only to system
+ * event types — see `resolveSeverity`.
+ */
 const SEVERITIES = ["low", "medium", "high"] as const;
 
 export class AntiCheatEventDto {

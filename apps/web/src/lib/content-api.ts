@@ -612,6 +612,8 @@ export interface CohortPathNode {
 
 export interface CohortDetail extends CohortSummary {
 	description: string | null;
+	/** Admin-set Earn-Back window; null falls back to the platform max (§4.11.1). */
+	earnBackDeadlineDays: number | null;
 	examMode: string | null;
 	unlockMode: string | null;
 	groupingMode: string;
@@ -668,6 +670,8 @@ export interface CohortSettingsInput {
 	currency?: string;
 	isEarnBackEligible?: boolean;
 	earnBackPercentage?: number;
+	/** Admin-set — a cohort's window is never the learner's to pick (§4.11.1). */
+	earnBackDeadlineDays?: number;
 	isFeatured?: boolean;
 	examMode?: string;
 	unlockMode?: string;
@@ -877,6 +881,7 @@ export interface AssessmentSummary {
 export interface AssessmentDetail extends AssessmentSummary {
 	maxRetakes: number | null;
 	retakeCooldownHours: number | null;
+	retakeLockoutDays: number | null;
 	questionPoolSize: number | null;
 	shuffleQuestions: boolean;
 	shuffleAnswers: boolean;
@@ -889,7 +894,22 @@ export interface AssessmentDetail extends AssessmentSummary {
 	scheduledAt: string | null;
 	dueAt: string | null;
 	questions: QuestionNode[];
-	sourceLessons: { id: string; title: string; hasTranscript: boolean }[];
+	sourceLessons: AssessmentSourceLesson[];
+}
+
+/**
+ * A lesson the AI generator may draw on, carrying its place in the curriculum
+ * so the picker can group by course → module (§4.4).
+ */
+export interface AssessmentSourceLesson {
+	id: string;
+	title: string;
+	/** Has any usable source — a transcript, text, or readable media. */
+	hasTranscript: boolean;
+	moduleId: string | null;
+	moduleTitle: string | null;
+	courseId: string | null;
+	courseTitle: string | null;
 }
 
 export interface CreateAssessmentInput {
@@ -909,6 +929,7 @@ export interface AssessmentSettingsInput {
 	timeLimitMinutes?: number | null;
 	maxRetakes?: number | null;
 	retakeCooldownHours?: number | null;
+	retakeLockoutDays?: number | null;
 	questionPoolSize?: number | null;
 	shuffleQuestions?: boolean;
 	shuffleAnswers?: boolean;
@@ -987,7 +1008,12 @@ export const reorderQuestions = (assessmentId: string, questionIds: string[]) =>
 
 export const generateQuestions = (
 	assessmentId: string,
-	body: { lessonId?: string; count?: number; types?: QuestionType[] },
+	body: {
+		lessonId?: string;
+		lessonIds?: string[];
+		count?: number;
+		types?: QuestionType[];
+	},
 ) =>
 	apiFetch<QuestionNode[]>(`/assessments/${assessmentId}/generate`, {
 		method: "POST",
@@ -1009,8 +1035,13 @@ export interface AttemptInfo {
 	passMark: number;
 	timeLimitMinutes: number | null;
 	questionCount: number;
+	/** Only finals carry a retry policy (§4.4.1); quizzes are unlimited practice. */
+	hasRetryPolicy: boolean;
+	/** False while the final is still locked behind unfinished work (§4.3). */
+	prerequisitesMet: boolean;
 	maxRetakes: number | null;
 	retakeCooldownHours: number | null;
+	retakeLockoutDays: number | null;
 	anticheat: AttemptAnticheat;
 	inProgressAttemptId: string | null;
 	canStart: boolean;
@@ -1020,6 +1051,8 @@ export interface AttemptInfo {
 	alreadyPassed: boolean;
 	bestScore: number;
 	cooldownUntil: string | null;
+	/** Post-exhaustion lockout end (§4.4) — after this the allowance resets. */
+	lockedUntil: string | null;
 	lastAttemptId: string | null;
 }
 
@@ -1132,6 +1165,8 @@ export type AntiCheatEventType =
 	| "fullscreen_exit"
 	| "camera_face_missing"
 	| "camera_multiple_faces"
+	/** The monitor itself couldn't run (§4.6.2) — not an accusation. */
+	| "camera_monitor_unavailable"
 	| "fast_answer"
 	| "viewport_change"
 	| "devtools_open";
@@ -1196,6 +1231,8 @@ export interface AttemptSummaryRow {
 	passed: boolean | null;
 	integrityScore: number;
 	flagCount: number;
+	/** null = camera not required · false = the monitor never ran (§4.6.2). */
+	cameraMonitored: boolean | null;
 	invalidated: boolean;
 	escalated: boolean;
 }
@@ -1203,7 +1240,7 @@ export interface AttemptSummaryRow {
 export interface AttemptReportEvent {
 	id: string;
 	eventType: AntiCheatEventType;
-	severity: "low" | "medium" | "high";
+	severity: "info" | "low" | "medium" | "high";
 	occurredAt: string;
 	metadata: unknown;
 	screenshotUrl: string | null;
@@ -1220,6 +1257,8 @@ export interface AttemptReport {
 	autoSubmitted: boolean;
 	integrityScore: number;
 	flagCount: number;
+	/** null = camera not required · false = the monitor never ran (§4.6.2). */
+	cameraMonitored: boolean | null;
 	ipAddress: string | null;
 	userAgent: string | null;
 	invalidated: boolean;
@@ -1301,6 +1340,9 @@ export interface ProjectDetail extends ProjectSummary {
 	allowedFileTypes: string[];
 	maxFileSizeMb: number;
 	peerReviewCount: number;
+	maxAttempts: number | null;
+	retryCooldownHours: number | null;
+	retryLockoutDays: number | null;
 }
 
 export interface CreateProjectInput {
@@ -1320,6 +1362,9 @@ export interface ProjectSettingsInput {
 	passMark?: number;
 	gradingType?: ProjectGradingType;
 	peerReviewCount?: number;
+	maxAttempts?: number | null;
+	retryCooldownHours?: number | null;
+	retryLockoutDays?: number | null;
 	dueAt?: string | null;
 	rubric?: RubricCriterion[];
 }
@@ -1389,6 +1434,31 @@ export interface ProjectInfo {
 	rubric: RubricCriterion[] | null;
 	mySubmission: MySubmission | null;
 	peerReview: { required: number; completed: number } | null;
+	/** False while the course/path/cohort work is unfinished (§4.3). */
+	prerequisitesMet: boolean;
+	/** Retry policy (§4.5) — the creator's rules… */
+	maxAttempts: number | null;
+	retryCooldownHours: number | null;
+	retryLockoutDays: number | null;
+	/** …and this learner's state against them. */
+	retry: ProjectRetryState;
+}
+
+export type RetryBlockReason =
+	| "already_passed"
+	| "no_attempts_left"
+	| "cooldown"
+	| "locked_out";
+
+export interface ProjectRetryState {
+	attemptsUsed: number;
+	attemptsRemaining: number | null;
+	canRetry: boolean;
+	reason: RetryBlockReason | null;
+	/** When the spacing cooldown between attempts ends. */
+	nextAttemptAt: string | null;
+	/** When the post-exhaustion lockout ends and the allowance resets. */
+	lockedUntil: string | null;
 }
 
 export interface SubmissionRow {
@@ -1400,6 +1470,12 @@ export interface SubmissionRow {
 	graded: boolean;
 	score: number | null;
 	passed: boolean | null;
+	/** Who graded it — shown when it wasn't the creator (§4.5 audit trail). */
+	gradedByName: string | null;
+	/** True when an admin graded someone else's project (an override). */
+	isOverrideGrade: boolean;
+	/** Whether the viewer may grade — only the creator, or an admin. */
+	canGrade: boolean;
 }
 
 export interface SubmissionForGrading {
@@ -1639,9 +1715,16 @@ export interface PathProgressCourse {
 export interface PathProgress {
 	path: { id: string; title: string };
 	courses: PathProgressCourse[];
+	/** The path's own summative work (§4.3.1) — gated behind its courses. */
+	projects: CourseProgressProject[];
+	finalAssessment: { id: string; passed: boolean; required: boolean } | null;
 	summary: {
 		coursesTotal: number;
 		coursesComplete: number;
+		/** Honours required-vs-optional courses; the finals gate reads this. */
+		allCoursesComplete: boolean;
+		finalAssessmentPassed: boolean;
+		allProjectsPassed: boolean;
 		isComplete: boolean;
 		percent: number;
 	};

@@ -35,15 +35,22 @@ export function createUser(
 		email: string;
 		firstName: string;
 		lastName: string;
+		name: string;
 		role: UserRole;
 	}> = {},
 ): Promise<User> {
 	const id = randomUUID().slice(0, 8);
+	const firstName = overrides.firstName ?? "Test";
+	const lastName = overrides.lastName ?? "User";
 	return prisma.user.create({
 		data: {
 			email: overrides.email ?? `user-${id}@example.com`,
-			firstName: overrides.firstName ?? "Test",
-			lastName: overrides.lastName ?? "User",
+			firstName,
+			lastName,
+			// Better Auth populates `name` on every real signup, and the app reads
+			// it for display everywhere. Leaving it null here made fixtures quietly
+			// unlike production.
+			name: overrides.name ?? `${firstName} ${lastName}`,
 			role: overrides.role ?? "learner",
 		},
 	});

@@ -45,6 +45,7 @@ function report(overrides: Partial<AttemptReport> = {}): AttemptReport {
 		autoSubmitted: false,
 		integrityScore: 92,
 		flagCount: 0,
+		cameraMonitored: true,
 		ipAddress: null,
 		userAgent: null,
 		invalidated: false,
@@ -81,6 +82,7 @@ describe("AttemptReportDialog", () => {
 		getAttemptReportMock.mockResolvedValue(
 			report({
 				flagCount: 1,
+				cameraMonitored: true,
 				events: [
 					{
 						id: "e1",

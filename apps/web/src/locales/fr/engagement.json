@@ -152,6 +152,54 @@
 			"dropoff_alert": {
 				"title": "Des apprenants décrochent peut-être",
 				"body": "Certains apprenants de ta cohorte semblent à risque — prends de leurs nouvelles."
+			},
+			"certificate_issued": {
+				"title": "Certificat prêt 🎓",
+				"body": "Vous avez terminé {{title}} — consultez ou téléchargez votre certificat."
+			},
+			"project_graded": {
+				"title": "Votre projet a été noté",
+				"body": "{{title}} a été évalué. Touchez pour voir le résultat."
+			},
+			"assessment_invalidated": {
+				"title": "Une tentative a été invalidée",
+				"body": "Un contrôle d’intégrité a invalidé une tentative — vous devrez peut-être la refaire."
+			},
+			"final_failed": {
+				"title": "Pas encore réussi",
+				"body": "Vous n’avez pas réussi {{title}} cette fois. Vérifiez vos essais et réessayez."
+			},
+			"payout_processed": {
+				"title": "Vous êtes payé 💸",
+				"body": "{{amount}} pour {{entityTitle}} arrive sur votre compte."
+			},
+			"payout_failed": {
+				"title": "Problème de paiement",
+				"body": "Un problème est survenu pour {{entityTitle}}. Notre équipe s’en occupe."
+			},
+			"earn_back_processed": {
+				"title": "Earn-Back en route 🎉",
+				"body": "{{amount}} est remboursé sur votre moyen de paiement."
+			},
+			"earn_back_no_payout": {
+				"title": "Cours terminé",
+				"body": "Aucun Earn-Back restant pour {{entityTitle}} — votre certificat est prêt."
+			},
+			"earn_back_failed": {
+				"title": "Earn-Back en traitement",
+				"body": "Nous traitons votre Earn-Back pour {{entityTitle}} — notre équipe vous contactera."
+			},
+			"payout_failed_admin": {
+				"title": "Échec du versement (action requise)",
+				"body": "Le versement à l'instructeur a échoué : {{reason}}. Veuillez vérifier et ouvrir un ticket de support."
+			},
+			"earn_back_failed_admin": {
+				"title": "Échec du remboursement Earn-Back (action requise)",
+				"body": "Le remboursement Earn-Back a échoué : {{reason}}. Veuillez vérifier et ouvrir un ticket de support."
+			},
+			"project_submission_received": {
+				"title": "Nouveau rendu à noter",
+				"body": "{{learnerName}} a rendu {{projectTitle}}."
 			}
 		}
 	},

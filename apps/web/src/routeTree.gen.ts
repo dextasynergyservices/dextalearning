@@ -29,11 +29,13 @@ import { Route as InstructorIndexRouteImport } from './routes/instructor/index'
 import { Route as FacilitatorIndexRouteImport } from './routes/facilitator/index'
 import { Route as BlogIndexRouteImport } from './routes/blog/index'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
+import { Route as VerifyTokenRouteImport } from './routes/verify.$token'
 import { Route as LessonsLessonIdRouteImport } from './routes/lessons.$lessonId'
 import { Route as LearnMineRouteImport } from './routes/learn/mine'
 import { Route as InstructorsIdRouteImport } from './routes/instructors.$id'
 import { Route as InstructorProfileRouteImport } from './routes/instructor/profile'
 import { Route as CoursesSlugRouteImport } from './routes/courses.$slug'
+import { Route as CheckoutCallbackRouteImport } from './routes/checkout.callback'
 import { Route as BlogSlugRouteImport } from './routes/blog/$slug'
 import { Route as AdminProfileRouteImport } from './routes/admin/profile'
 import { Route as AdminIntegrityRouteImport } from './routes/admin/integrity'
@@ -41,10 +43,15 @@ import { Route as TeachersPathsIndexRouteImport } from './routes/teachers/paths/
 import { Route as TeachersCoursesIndexRouteImport } from './routes/teachers/courses/index'
 import { Route as TeachersCohortsIndexRouteImport } from './routes/teachers/cohorts/index'
 import { Route as InstructorPathsIndexRouteImport } from './routes/instructor/paths/index'
+import { Route as InstructorEarningsIndexRouteImport } from './routes/instructor/earnings/index'
 import { Route as InstructorCoursesIndexRouteImport } from './routes/instructor/courses/index'
 import { Route as InstructorCohortsIndexRouteImport } from './routes/instructor/cohorts/index'
 import { Route as InstructorAnalyticsIndexRouteImport } from './routes/instructor/analytics/index'
+import { Route as AdminUsersIndexRouteImport } from './routes/admin/users/index'
+import { Route as AdminSettingsIndexRouteImport } from './routes/admin/settings/index'
+import { Route as AdminPayoutsIndexRouteImport } from './routes/admin/payouts/index'
 import { Route as AdminPathsIndexRouteImport } from './routes/admin/paths/index'
+import { Route as AdminEarningsIndexRouteImport } from './routes/admin/earnings/index'
 import { Route as AdminCoursesIndexRouteImport } from './routes/admin/courses/index'
 import { Route as AdminCohortsIndexRouteImport } from './routes/admin/cohorts/index'
 import { Route as AdminBlogIndexRouteImport } from './routes/admin/blog/index'
@@ -181,6 +188,11 @@ const AdminIndexRoute = AdminIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AdminRoute,
 } as any)
+const VerifyTokenRoute = VerifyTokenRouteImport.update({
+  id: '/verify/$token',
+  path: '/verify/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LessonsLessonIdRoute = LessonsLessonIdRouteImport.update({
   id: '/lessons/$lessonId',
   path: '/lessons/$lessonId',
@@ -204,6 +216,11 @@ const InstructorProfileRoute = InstructorProfileRouteImport.update({
 const CoursesSlugRoute = CoursesSlugRouteImport.update({
   id: '/courses/$slug',
   path: '/courses/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CheckoutCallbackRoute = CheckoutCallbackRouteImport.update({
+  id: '/checkout/callback',
+  path: '/checkout/callback',
   getParentRoute: () => rootRouteImport,
 } as any)
 const BlogSlugRoute = BlogSlugRouteImport.update({
@@ -241,6 +258,11 @@ const InstructorPathsIndexRoute = InstructorPathsIndexRouteImport.update({
   path: '/instructor/paths/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const InstructorEarningsIndexRoute = InstructorEarningsIndexRouteImport.update({
+  id: '/instructor/earnings/',
+  path: '/instructor/earnings/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const InstructorCoursesIndexRoute = InstructorCoursesIndexRouteImport.update({
   id: '/instructor/courses/',
   path: '/instructor/courses/',
@@ -257,9 +279,29 @@ const InstructorAnalyticsIndexRoute =
     path: '/instructor/analytics/',
     getParentRoute: () => rootRouteImport,
   } as any)
+const AdminUsersIndexRoute = AdminUsersIndexRouteImport.update({
+  id: '/users/',
+  path: '/users/',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminSettingsIndexRoute = AdminSettingsIndexRouteImport.update({
+  id: '/settings/',
+  path: '/settings/',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminPayoutsIndexRoute = AdminPayoutsIndexRouteImport.update({
+  id: '/payouts/',
+  path: '/payouts/',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminPathsIndexRoute = AdminPathsIndexRouteImport.update({
   id: '/paths/',
   path: '/paths/',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminEarningsIndexRoute = AdminEarningsIndexRouteImport.update({
+  id: '/earnings/',
+  path: '/earnings/',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminCoursesIndexRoute = AdminCoursesIndexRouteImport.update({
@@ -472,11 +514,13 @@ export interface FileRoutesByFullPath {
   '/admin/integrity': typeof AdminIntegrityRoute
   '/admin/profile': typeof AdminProfileRoute
   '/blog/$slug': typeof BlogSlugRoute
+  '/checkout/callback': typeof CheckoutCallbackRoute
   '/courses/$slug': typeof CoursesSlugRoute
   '/instructor/profile': typeof InstructorProfileRoute
   '/instructors/$id': typeof InstructorsIdRoute
   '/learn/mine': typeof LearnMineRoute
   '/lessons/$lessonId': typeof LessonsLessonIdRoute
+  '/verify/$token': typeof VerifyTokenRoute
   '/admin/': typeof AdminIndexRoute
   '/blog/': typeof BlogIndexRoute
   '/facilitator/': typeof FacilitatorIndexRoute
@@ -515,10 +559,15 @@ export interface FileRoutesByFullPath {
   '/admin/blog/': typeof AdminBlogIndexRoute
   '/admin/cohorts/': typeof AdminCohortsIndexRoute
   '/admin/courses/': typeof AdminCoursesIndexRoute
+  '/admin/earnings/': typeof AdminEarningsIndexRoute
   '/admin/paths/': typeof AdminPathsIndexRoute
+  '/admin/payouts/': typeof AdminPayoutsIndexRoute
+  '/admin/settings/': typeof AdminSettingsIndexRoute
+  '/admin/users/': typeof AdminUsersIndexRoute
   '/instructor/analytics/': typeof InstructorAnalyticsIndexRoute
   '/instructor/cohorts/': typeof InstructorCohortsIndexRoute
   '/instructor/courses/': typeof InstructorCoursesIndexRoute
+  '/instructor/earnings/': typeof InstructorEarningsIndexRoute
   '/instructor/paths/': typeof InstructorPathsIndexRoute
   '/teachers/cohorts/': typeof TeachersCohortsIndexRoute
   '/teachers/courses/': typeof TeachersCoursesIndexRoute
@@ -544,11 +593,13 @@ export interface FileRoutesByTo {
   '/admin/integrity': typeof AdminIntegrityRoute
   '/admin/profile': typeof AdminProfileRoute
   '/blog/$slug': typeof BlogSlugRoute
+  '/checkout/callback': typeof CheckoutCallbackRoute
   '/courses/$slug': typeof CoursesSlugRoute
   '/instructor/profile': typeof InstructorProfileRoute
   '/instructors/$id': typeof InstructorsIdRoute
   '/learn/mine': typeof LearnMineRoute
   '/lessons/$lessonId': typeof LessonsLessonIdRoute
+  '/verify/$token': typeof VerifyTokenRoute
   '/admin': typeof AdminIndexRoute
   '/blog': typeof BlogIndexRoute
   '/facilitator': typeof FacilitatorIndexRoute
@@ -587,10 +638,15 @@ export interface FileRoutesByTo {
   '/admin/blog': typeof AdminBlogIndexRoute
   '/admin/cohorts': typeof AdminCohortsIndexRoute
   '/admin/courses': typeof AdminCoursesIndexRoute
+  '/admin/earnings': typeof AdminEarningsIndexRoute
   '/admin/paths': typeof AdminPathsIndexRoute
+  '/admin/payouts': typeof AdminPayoutsIndexRoute
+  '/admin/settings': typeof AdminSettingsIndexRoute
+  '/admin/users': typeof AdminUsersIndexRoute
   '/instructor/analytics': typeof InstructorAnalyticsIndexRoute
   '/instructor/cohorts': typeof InstructorCohortsIndexRoute
   '/instructor/courses': typeof InstructorCoursesIndexRoute
+  '/instructor/earnings': typeof InstructorEarningsIndexRoute
   '/instructor/paths': typeof InstructorPathsIndexRoute
   '/teachers/cohorts': typeof TeachersCohortsIndexRoute
   '/teachers/courses': typeof TeachersCoursesIndexRoute
@@ -618,11 +674,13 @@ export interface FileRoutesById {
   '/admin/integrity': typeof AdminIntegrityRoute
   '/admin/profile': typeof AdminProfileRoute
   '/blog/$slug': typeof BlogSlugRoute
+  '/checkout/callback': typeof CheckoutCallbackRoute
   '/courses/$slug': typeof CoursesSlugRoute
   '/instructor/profile': typeof InstructorProfileRoute
   '/instructors/$id': typeof InstructorsIdRoute
   '/learn/mine': typeof LearnMineRoute
   '/lessons/$lessonId': typeof LessonsLessonIdRoute
+  '/verify/$token': typeof VerifyTokenRoute
   '/admin/': typeof AdminIndexRoute
   '/blog/': typeof BlogIndexRoute
   '/facilitator/': typeof FacilitatorIndexRoute
@@ -661,10 +719,15 @@ export interface FileRoutesById {
   '/admin/blog/': typeof AdminBlogIndexRoute
   '/admin/cohorts/': typeof AdminCohortsIndexRoute
   '/admin/courses/': typeof AdminCoursesIndexRoute
+  '/admin/earnings/': typeof AdminEarningsIndexRoute
   '/admin/paths/': typeof AdminPathsIndexRoute
+  '/admin/payouts/': typeof AdminPayoutsIndexRoute
+  '/admin/settings/': typeof AdminSettingsIndexRoute
+  '/admin/users/': typeof AdminUsersIndexRoute
   '/instructor/analytics/': typeof InstructorAnalyticsIndexRoute
   '/instructor/cohorts/': typeof InstructorCohortsIndexRoute
   '/instructor/courses/': typeof InstructorCoursesIndexRoute
+  '/instructor/earnings/': typeof InstructorEarningsIndexRoute
   '/instructor/paths/': typeof InstructorPathsIndexRoute
   '/teachers/cohorts/': typeof TeachersCohortsIndexRoute
   '/teachers/courses/': typeof TeachersCoursesIndexRoute
@@ -693,11 +756,13 @@ export interface FileRouteTypes {
     | '/admin/integrity'
     | '/admin/profile'
     | '/blog/$slug'
+    | '/checkout/callback'
     | '/courses/$slug'
     | '/instructor/profile'
     | '/instructors/$id'
     | '/learn/mine'
     | '/lessons/$lessonId'
+    | '/verify/$token'
     | '/admin/'
     | '/blog/'
     | '/facilitator/'
@@ -736,10 +801,15 @@ export interface FileRouteTypes {
     | '/admin/blog/'
     | '/admin/cohorts/'
     | '/admin/courses/'
+    | '/admin/earnings/'
     | '/admin/paths/'
+    | '/admin/payouts/'
+    | '/admin/settings/'
+    | '/admin/users/'
     | '/instructor/analytics/'
     | '/instructor/cohorts/'
     | '/instructor/courses/'
+    | '/instructor/earnings/'
     | '/instructor/paths/'
     | '/teachers/cohorts/'
     | '/teachers/courses/'
@@ -765,11 +835,13 @@ export interface FileRouteTypes {
     | '/admin/integrity'
     | '/admin/profile'
     | '/blog/$slug'
+    | '/checkout/callback'
     | '/courses/$slug'
     | '/instructor/profile'
     | '/instructors/$id'
     | '/learn/mine'
     | '/lessons/$lessonId'
+    | '/verify/$token'
     | '/admin'
     | '/blog'
     | '/facilitator'
@@ -808,10 +880,15 @@ export interface FileRouteTypes {
     | '/admin/blog'
     | '/admin/cohorts'
     | '/admin/courses'
+    | '/admin/earnings'
     | '/admin/paths'
+    | '/admin/payouts'
+    | '/admin/settings'
+    | '/admin/users'
     | '/instructor/analytics'
     | '/instructor/cohorts'
     | '/instructor/courses'
+    | '/instructor/earnings'
     | '/instructor/paths'
     | '/teachers/cohorts'
     | '/teachers/courses'
@@ -838,11 +915,13 @@ export interface FileRouteTypes {
     | '/admin/integrity'
     | '/admin/profile'
     | '/blog/$slug'
+    | '/checkout/callback'
     | '/courses/$slug'
     | '/instructor/profile'
     | '/instructors/$id'
     | '/learn/mine'
     | '/lessons/$lessonId'
+    | '/verify/$token'
     | '/admin/'
     | '/blog/'
     | '/facilitator/'
@@ -881,10 +960,15 @@ export interface FileRouteTypes {
     | '/admin/blog/'
     | '/admin/cohorts/'
     | '/admin/courses/'
+    | '/admin/earnings/'
     | '/admin/paths/'
+    | '/admin/payouts/'
+    | '/admin/settings/'
+    | '/admin/users/'
     | '/instructor/analytics/'
     | '/instructor/cohorts/'
     | '/instructor/courses/'
+    | '/instructor/earnings/'
     | '/instructor/paths/'
     | '/teachers/cohorts/'
     | '/teachers/courses/'
@@ -910,11 +994,13 @@ export interface RootRouteChildren {
   SearchRoute: typeof SearchRoute
   VerifyEmailRoute: typeof VerifyEmailRoute
   BlogSlugRoute: typeof BlogSlugRoute
+  CheckoutCallbackRoute: typeof CheckoutCallbackRoute
   CoursesSlugRoute: typeof CoursesSlugRoute
   InstructorProfileRoute: typeof InstructorProfileRoute
   InstructorsIdRoute: typeof InstructorsIdRoute
   LearnMineRoute: typeof LearnMineRoute
   LessonsLessonIdRoute: typeof LessonsLessonIdRoute
+  VerifyTokenRoute: typeof VerifyTokenRoute
   BlogIndexRoute: typeof BlogIndexRoute
   FacilitatorIndexRoute: typeof FacilitatorIndexRoute
   InstructorIndexRoute: typeof InstructorIndexRoute
@@ -942,6 +1028,7 @@ export interface RootRouteChildren {
   InstructorAnalyticsIndexRoute: typeof InstructorAnalyticsIndexRoute
   InstructorCohortsIndexRoute: typeof InstructorCohortsIndexRoute
   InstructorCoursesIndexRoute: typeof InstructorCoursesIndexRoute
+  InstructorEarningsIndexRoute: typeof InstructorEarningsIndexRoute
   InstructorPathsIndexRoute: typeof InstructorPathsIndexRoute
   TeachersCohortsIndexRoute: typeof TeachersCohortsIndexRoute
   TeachersCoursesIndexRoute: typeof TeachersCoursesIndexRoute
@@ -1091,6 +1178,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminIndexRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/verify/$token': {
+      id: '/verify/$token'
+      path: '/verify/$token'
+      fullPath: '/verify/$token'
+      preLoaderRoute: typeof VerifyTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/lessons/$lessonId': {
       id: '/lessons/$lessonId'
       path: '/lessons/$lessonId'
@@ -1124,6 +1218,13 @@ declare module '@tanstack/react-router' {
       path: '/courses/$slug'
       fullPath: '/courses/$slug'
       preLoaderRoute: typeof CoursesSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/checkout/callback': {
+      id: '/checkout/callback'
+      path: '/checkout/callback'
+      fullPath: '/checkout/callback'
+      preLoaderRoute: typeof CheckoutCallbackRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/blog/$slug': {
@@ -1175,6 +1276,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof InstructorPathsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/instructor/earnings/': {
+      id: '/instructor/earnings/'
+      path: '/instructor/earnings'
+      fullPath: '/instructor/earnings/'
+      preLoaderRoute: typeof InstructorEarningsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/instructor/courses/': {
       id: '/instructor/courses/'
       path: '/instructor/courses'
@@ -1196,11 +1304,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof InstructorAnalyticsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/users/': {
+      id: '/admin/users/'
+      path: '/users'
+      fullPath: '/admin/users/'
+      preLoaderRoute: typeof AdminUsersIndexRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/settings/': {
+      id: '/admin/settings/'
+      path: '/settings'
+      fullPath: '/admin/settings/'
+      preLoaderRoute: typeof AdminSettingsIndexRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/payouts/': {
+      id: '/admin/payouts/'
+      path: '/payouts'
+      fullPath: '/admin/payouts/'
+      preLoaderRoute: typeof AdminPayoutsIndexRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/paths/': {
       id: '/admin/paths/'
       path: '/paths'
       fullPath: '/admin/paths/'
       preLoaderRoute: typeof AdminPathsIndexRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/earnings/': {
+      id: '/admin/earnings/'
+      path: '/earnings'
+      fullPath: '/admin/earnings/'
+      preLoaderRoute: typeof AdminEarningsIndexRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/courses/': {
@@ -1468,7 +1604,11 @@ interface AdminRouteChildren {
   AdminBlogIndexRoute: typeof AdminBlogIndexRoute
   AdminCohortsIndexRoute: typeof AdminCohortsIndexRoute
   AdminCoursesIndexRoute: typeof AdminCoursesIndexRoute
+  AdminEarningsIndexRoute: typeof AdminEarningsIndexRoute
   AdminPathsIndexRoute: typeof AdminPathsIndexRoute
+  AdminPayoutsIndexRoute: typeof AdminPayoutsIndexRoute
+  AdminSettingsIndexRoute: typeof AdminSettingsIndexRoute
+  AdminUsersIndexRoute: typeof AdminUsersIndexRoute
   AdminAnalyticsEntityTypeEntityIdRoute: typeof AdminAnalyticsEntityTypeEntityIdRoute
 }
 
@@ -1489,7 +1629,11 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminBlogIndexRoute: AdminBlogIndexRoute,
   AdminCohortsIndexRoute: AdminCohortsIndexRoute,
   AdminCoursesIndexRoute: AdminCoursesIndexRoute,
+  AdminEarningsIndexRoute: AdminEarningsIndexRoute,
   AdminPathsIndexRoute: AdminPathsIndexRoute,
+  AdminPayoutsIndexRoute: AdminPayoutsIndexRoute,
+  AdminSettingsIndexRoute: AdminSettingsIndexRoute,
+  AdminUsersIndexRoute: AdminUsersIndexRoute,
   AdminAnalyticsEntityTypeEntityIdRoute: AdminAnalyticsEntityTypeEntityIdRoute,
 }
 
@@ -1512,11 +1656,13 @@ const rootRouteChildren: RootRouteChildren = {
   SearchRoute: SearchRoute,
   VerifyEmailRoute: VerifyEmailRoute,
   BlogSlugRoute: BlogSlugRoute,
+  CheckoutCallbackRoute: CheckoutCallbackRoute,
   CoursesSlugRoute: CoursesSlugRoute,
   InstructorProfileRoute: InstructorProfileRoute,
   InstructorsIdRoute: InstructorsIdRoute,
   LearnMineRoute: LearnMineRoute,
   LessonsLessonIdRoute: LessonsLessonIdRoute,
+  VerifyTokenRoute: VerifyTokenRoute,
   BlogIndexRoute: BlogIndexRoute,
   FacilitatorIndexRoute: FacilitatorIndexRoute,
   InstructorIndexRoute: InstructorIndexRoute,
@@ -1547,6 +1693,7 @@ const rootRouteChildren: RootRouteChildren = {
   InstructorAnalyticsIndexRoute: InstructorAnalyticsIndexRoute,
   InstructorCohortsIndexRoute: InstructorCohortsIndexRoute,
   InstructorCoursesIndexRoute: InstructorCoursesIndexRoute,
+  InstructorEarningsIndexRoute: InstructorEarningsIndexRoute,
   InstructorPathsIndexRoute: InstructorPathsIndexRoute,
   TeachersCohortsIndexRoute: TeachersCohortsIndexRoute,
   TeachersCoursesIndexRoute: TeachersCoursesIndexRoute,

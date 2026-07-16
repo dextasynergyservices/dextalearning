@@ -13,6 +13,7 @@ import { useTranslation } from "react-i18next";
 import { Carousel } from "@/components/catalog/carousel";
 import { CommercialBadge } from "@/components/catalog/commercial-badge";
 import { LearnerShell } from "@/components/layout/learner-shell";
+import { CertificatesSection } from "@/components/learn/certificates-section";
 import { MyLearningCard } from "@/components/learn/my-learning-card";
 import { buttonVariants } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -130,6 +131,7 @@ function MyLearningPage() {
 									items={completed}
 								/>
 							) : null}
+							<CertificatesSection />
 						</div>
 					</>
 				)}

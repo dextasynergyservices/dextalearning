@@ -119,4 +119,50 @@ describe("AssessmentSettingsPanel", () => {
 			expect(toast.error).toHaveBeenCalledWith("Network error");
 		});
 	});
+
+	// ── Retry rules are for finals only (§4.4.1) ────────────────────────────
+	describe("retry policy visibility", () => {
+		it("offers the retry rules on a final assessment", () => {
+			renderWithProviders(
+				<AssessmentSettingsPanel
+					assessment={assessment({ scope: "course_final" })}
+				/>,
+			);
+			expect(screen.getByText("Retry policy")).toBeInTheDocument();
+			expect(screen.getByText("Max retakes")).toBeInTheDocument();
+		});
+
+		it.each([
+			"lesson_pre",
+			"lesson_post",
+			"module",
+		] as const)("hides the retry rules on a %s quiz — it's unlimited practice", (scope) => {
+			renderWithProviders(
+				<AssessmentSettingsPanel assessment={assessment({ scope })} />,
+			);
+			expect(screen.queryByText("Retry policy")).not.toBeInTheDocument();
+			expect(screen.queryByText("Max retakes")).not.toBeInTheDocument();
+			expect(screen.getByText(/retakes are unlimited/i)).toBeInTheDocument();
+		});
+
+		it("never sends retry fields when saving a formative quiz", async () => {
+			updateAssessmentMock.mockResolvedValue({});
+			const user = userEvent.setup();
+			renderWithProviders(
+				<AssessmentSettingsPanel
+					assessment={assessment({ scope: "module" })}
+				/>,
+			);
+
+			await user.click(screen.getByRole("button", { name: "Save settings" }));
+
+			await waitFor(() => {
+				expect(updateAssessmentMock).toHaveBeenCalled();
+			});
+			const body = updateAssessmentMock.mock.calls[0][1];
+			expect(body).not.toHaveProperty("maxRetakes");
+			expect(body).not.toHaveProperty("retakeCooldownHours");
+			expect(body).not.toHaveProperty("retakeLockoutDays");
+		});
+	});
 });

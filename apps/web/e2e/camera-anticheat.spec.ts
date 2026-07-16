@@ -7,7 +7,19 @@ const PASSWORD = "TestPass123!";
 test("camera-required assessment flags a missing face via real client-side detection", async ({
 	page,
 }) => {
-	test.slow(); // real TensorFlow.js model download + inference, not instant
+	/**
+	 * Measured, not guessed: headless Chromium has no GPU, so TF.js logs
+	 * "Initialization of backend webgl failed" and falls back to CPU, where a
+	 * single `estimateFaces` costs seconds. This spec is also the pathological
+	 * case — a fake camera with NO face, ever — so every tick runs the full
+	 * 4-sample confirm loop (§4.6.2) rather than exiting on the first clean
+	 * look. Click→flag measured at ~53s (login+nav was only 4.5s of it).
+	 *
+	 * `test.slow()` (90s) sat right on that edge and flaked. This is a property
+	 * of the environment, not the app: a real learner with a face in frame pays
+	 * ONE inference per tick.
+	 */
+	test.setTimeout(240_000);
 	const { assessmentId } = await seedCameraAssessment();
 	const email = `e2e-${randomUUID()}@example.com`;
 
@@ -36,7 +48,9 @@ test("camera-required assessment flags a missing face via real client-side detec
 	const proctoringRequest = page.waitForResponse(
 		(res) =>
 			res.url().includes("/proctoring") && res.request().method() === "POST",
-		{ timeout: 90_000 },
+		// Must also be raised: this inner wait — not the test timeout — is what
+		// actually caps how long we'll wait for the flag.
+		{ timeout: 200_000 },
 	);
 	await page.getByRole("button", { name: "Enable camera & start" }).click();
 	await proctoringRequest;

@@ -21,11 +21,14 @@ import {
 	type AttemptSubmittedEvent,
 	LearningEvents,
 } from "../../shared/events/learning-events";
+import { computeRetryState } from "../../shared/retry/retry-policy.calculator";
 import {
 	STORAGE_PORT,
 	type StoragePort,
 } from "../../shared/storage/storage.port";
+import { CompletionService } from "../completion/completion.service";
 import type { UploadFile } from "../media/media.constants";
+import { isFinalAssessmentScope } from "./assessment-scopes";
 import {
 	calculateIntegrity,
 	calculateScore,
@@ -85,6 +88,7 @@ export class AttemptsService {
 		@Inject(STORAGE_PORT) private readonly storage: StoragePort,
 		@Inject(AI_PORT) private readonly ai: AiPort,
 		private readonly events: EventEmitter2,
+		private readonly completion: CompletionService,
 	) {}
 
 	// ── Timer helpers ─────────────────────────────────────────────────────────
@@ -127,12 +131,39 @@ export class AttemptsService {
 		);
 	}
 
+	/**
+	 * Is the final open yet (§4.3)? A final examines the course/path/cohort, so
+	 * it only unlocks once that work is done — asked of the Completion context,
+	 * never re-derived here (§6.4). Formative quizzes have nothing to gate on.
+	 */
+	private async prerequisitesMet(
+		user: AuthenticatedUser,
+		assessment: Assessment,
+	): Promise<boolean> {
+		if (!isFinalAssessmentScope(assessment.scope)) return true;
+		const parent = assessment.courseId
+			? (["course", assessment.courseId] as const)
+			: assessment.pathId
+				? (["path", assessment.pathId] as const)
+				: assessment.cohortId
+					? (["cohort", assessment.cohortId] as const)
+					: null;
+		if (!parent) return true;
+		const { unlocked } = await this.completion.getFinalsGate(
+			user,
+			parent[0],
+			parent[1],
+		);
+		return unlocked;
+	}
+
 	// ── Eligibility / retake rules (§4.4) ─────────────────────────────────────
 	private async eligibility(
-		userId: string,
+		user: AuthenticatedUser,
 		assessment: Assessment,
 		questionCount: number,
 	) {
+		const userId = user.id;
 		const submitted = await this.prisma.assessmentAttempt.findMany({
 			where: {
 				userId,
@@ -144,51 +175,67 @@ export class AttemptsService {
 		// Invalidated attempts don't count — invalidating frees a retake (§4.6.4).
 		const attempts = submitted.filter((a) => !a.invalidated);
 		const attemptsUsed = attempts.length;
-		const alreadyPassed = attempts.some((a) => a.passed === true);
 		const bestScore = attempts.reduce(
 			(max, a) => Math.max(max, a.score ? Number(a.score) : 0),
 			0,
 		);
-		const allowedTotal =
-			assessment.maxRetakes == null
-				? Number.POSITIVE_INFINITY
-				: assessment.maxRetakes + 1;
-		const retakesRemaining = Number.isFinite(allowedTotal)
-			? Math.max(0, allowedTotal - attemptsUsed)
-			: null;
 
-		let canStart = true;
-		let reason: string | undefined;
-		let cooldownUntil: string | null = null;
+		// Shared three-knob retry model (attempts + spacing + post-exhaustion
+		// lockout). maxRetakes is expressed as *retakes*, so total tries = +1.
+		// Only finals carry a policy (§4.4.1) — lesson/module quizzes are
+		// formative and stay unlimited and immediate.
+		const policied = isFinalAssessmentScope(assessment.scope);
+		const retry = computeRetryState(
+			attempts
+				.filter((a) => a.submittedAt)
+				.map((a) => ({
+					submittedAt: a.submittedAt as Date,
+					passed: a.passed === true,
+				})),
+			{
+				maxAttempts:
+					!policied || assessment.maxRetakes == null
+						? null
+						: assessment.maxRetakes + 1,
+				spacingHours: policied
+					? (assessment.retakeCooldownHours ?? null)
+					: null,
+				lockoutDays: policied ? (assessment.retakeLockoutDays ?? null) : null,
+			},
+		);
+
+		let canStart = retry.canRetry;
+		// Preserve the frontend's existing reason vocabulary.
+		let reason: string | undefined =
+			retry.reason === "no_attempts_left" ? "no_retakes_left" : retry.reason;
+
+		// The final stays shut until the work it examines is done (§4.3) — checked
+		// after the cheap in-memory rules, since it hits the completion engine.
+		let prereqOk = true;
+		if (canStart) {
+			prereqOk = await this.prerequisitesMet(user, assessment);
+			if (!prereqOk) {
+				canStart = false;
+				reason = "prerequisites";
+			}
+		}
 
 		if (questionCount === 0) {
 			canStart = false;
 			reason = "no_questions";
-		} else if (alreadyPassed) {
-			canStart = false;
-			reason = "already_passed";
-		} else if (retakesRemaining === 0) {
-			canStart = false;
-			reason = "no_retakes_left";
-		} else if (assessment.retakeCooldownHours && attempts[0]?.submittedAt) {
-			const until =
-				new Date(attempts[0].submittedAt).getTime() +
-				assessment.retakeCooldownHours * 3_600_000;
-			if (until > Date.now()) {
-				canStart = false;
-				reason = "cooldown";
-				cooldownUntil = new Date(until).toISOString();
-			}
 		}
 
 		return {
 			canStart,
 			reason,
+			/** False when the final is still locked behind unfinished work (§4.3). */
+			prerequisitesMet: prereqOk,
 			attemptsUsed,
-			retakesRemaining,
-			alreadyPassed,
+			retakesRemaining: retry.attemptsRemaining,
+			alreadyPassed: retry.alreadyPassed,
 			bestScore,
-			cooldownUntil,
+			cooldownUntil: retry.nextAttemptAt,
+			lockedUntil: retry.lockedUntil,
 			lastAttemptId: attempts[0]?.id ?? null,
 		};
 	}
@@ -211,7 +258,7 @@ export class AttemptsService {
 		if (!assessment) throw new NotFoundException("Assessment not found");
 
 		const elig = await this.eligibility(
-			user.id,
+			user,
 			assessment,
 			assessment._count.questions,
 		);
@@ -228,8 +275,18 @@ export class AttemptsService {
 			passMark: Number(assessment.passMark),
 			timeLimitMinutes: assessment.timeLimitMinutes,
 			questionCount: assessment._count.questions,
-			maxRetakes: assessment.maxRetakes,
-			retakeCooldownHours: assessment.retakeCooldownHours,
+			// The *effective* policy: a formative quiz reports none, whatever
+			// stale values may sit on its row (§4.4.1).
+			hasRetryPolicy: isFinalAssessmentScope(assessment.scope),
+			maxRetakes: isFinalAssessmentScope(assessment.scope)
+				? assessment.maxRetakes
+				: null,
+			retakeCooldownHours: isFinalAssessmentScope(assessment.scope)
+				? assessment.retakeCooldownHours
+				: null,
+			retakeLockoutDays: isFinalAssessmentScope(assessment.scope)
+				? assessment.retakeLockoutDays
+				: null,
 			anticheat: this.anticheat(assessment),
 			inProgressAttemptId: inProgress?.id ?? null,
 			...elig,
@@ -263,7 +320,7 @@ export class AttemptsService {
 		}
 
 		const elig = await this.eligibility(
-			user.id,
+			user,
 			assessment,
 			assessment.questions.length,
 		);
@@ -299,6 +356,10 @@ export class AttemptsService {
 				return "You have no retakes left for this assessment.";
 			case "cooldown":
 				return "Please wait before retaking this assessment.";
+			case "locked_out":
+				return "You have used all your retakes. You can try again once the cooldown ends.";
+			case "prerequisites":
+				return "Finish all the lessons and module quizzes before taking the final assessment.";
 			default:
 				return "You cannot start this assessment right now.";
 		}
@@ -407,14 +468,21 @@ export class AttemptsService {
 			where: { attemptId },
 			select: { eventType: true, severity: true },
 		});
-		const { integrityScore, flagCount } = calculateIntegrity(logs);
+		const { integrityScore, flagCount, cameraMonitorFailed } =
+			calculateIntegrity(logs);
 		await this.prisma.assessmentAttempt.update({
 			where: { id: attemptId },
-			data: { integrityScore, flagCount },
+			data: {
+				integrityScore,
+				flagCount,
+				// Only ever set to false here — a later clean recompute must not
+				// erase the fact that monitoring failed at some point in the attempt.
+				...(cameraMonitorFailed ? { cameraMonitored: false } : {}),
+			},
 		});
 		const counts: Record<string, number> = {};
 		for (const l of logs) counts[l.eventType] = (counts[l.eventType] ?? 0) + 1;
-		return { integrityScore, flagCount, counts };
+		return { integrityScore, flagCount, counts, cameraMonitorFailed };
 	}
 
 	/**
@@ -661,11 +729,14 @@ export class AttemptsService {
 				});
 			}
 			// Integrity reflects ALL flags — server fast-answer + client-ingested (§4.6.4).
+			// `eventType` is required, not cosmetic: it's how system events are told
+			// apart from accusations (§4.6.2).
 			const logs = await tx.assessmentAntiCheatLog.findMany({
 				where: { attemptId: attempt.id },
-				select: { severity: true },
+				select: { severity: true, eventType: true },
 			});
-			const { integrityScore, flagCount } = calculateIntegrity(logs);
+			const { integrityScore, flagCount, cameraMonitorFailed } =
+				calculateIntegrity(logs);
 			return tx.assessmentAttempt.update({
 				where: { id: attempt.id },
 				data: {
@@ -677,6 +748,7 @@ export class AttemptsService {
 					passed,
 					flagCount,
 					integrityScore,
+					...(cameraMonitorFailed ? { cameraMonitored: false } : {}),
 				},
 			});
 		});

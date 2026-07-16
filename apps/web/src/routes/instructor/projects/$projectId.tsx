@@ -1,9 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { Inbox, Loader2, Plus, Save, Trash2, X } from "lucide-react";
+import { Inbox, Loader2, Plus, RotateCcw, Save, Trash2, X } from "lucide-react";
 import { type ReactNode, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
+import { DurationInput } from "@/components/authoring/duration-input";
 import { StudioShell } from "@/components/authoring/studio-shell";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
@@ -156,6 +157,18 @@ function ProjectForm({ project }: { project: ProjectDetail }) {
 	const [peerCount, setPeerCount] = useState(
 		String(project.peerReviewCount ?? 2),
 	);
+	// Retry policy (§4.5)
+	const [maxAttempts, setMaxAttempts] = useState(
+		project.maxAttempts == null ? "" : String(project.maxAttempts),
+	);
+	const [retryCooldown, setRetryCooldown] = useState(
+		project.retryCooldownHours == null
+			? ""
+			: String(project.retryCooldownHours),
+	);
+	const [retryLockoutDays, setRetryLockoutDays] = useState<number | null>(
+		project.retryLockoutDays ?? null,
+	);
 	const [rubric, setRubric] = useState<RubricCriterion[]>(
 		project.rubricJson ?? [],
 	);
@@ -187,6 +200,10 @@ function ProjectForm({ project }: { project: ProjectDetail }) {
 					.map((s) => s.trim().replace(/^\./, "").toLowerCase())
 					.filter(Boolean),
 				peerReviewCount: Number(peerCount) || 0,
+				maxAttempts: maxAttempts.trim() === "" ? null : Number(maxAttempts),
+				retryCooldownHours:
+					retryCooldown.trim() === "" ? null : Number(retryCooldown),
+				retryLockoutDays,
 				rubric: rubric
 					.filter((r) => r.label.trim())
 					.map((r) => ({
@@ -295,6 +312,67 @@ function ProjectForm({ project }: { project: ProjectDetail }) {
 								className="h-11 w-full rounded-input border border-border px-3 outline-none focus:border-brand-primary"
 							/>
 						</Field>
+					</div>
+
+					{/* Retry policy (§4.5) — the three knobs read as one rule. */}
+					<div className="rounded-card border border-border bg-muted/30 p-4">
+						<div className="flex items-center gap-2 font-medium text-foreground text-sm">
+							<RotateCcw className="size-4 text-brand-primary" />
+							{t("project.retry_policy", { defaultValue: "Retry policy" })}
+						</div>
+						<p className="mt-1 text-muted-foreground text-xs">
+							{t("project.retry_policy_hint", {
+								defaultValue:
+									"What happens when a submission doesn't pass: how many attempts the learner gets, how long they wait after a failed grade, and whether their attempts reset after a break.",
+							})}
+						</p>
+						<div className="mt-4 grid gap-4 sm:grid-cols-3">
+							<Field
+								label={t("project.max_attempts", {
+									defaultValue: "Max attempts",
+								})}
+								hint={t("project.blank_unlimited", {
+									defaultValue: "Blank = unlimited",
+								})}
+							>
+								<input
+									type="number"
+									min={1}
+									max={100}
+									value={maxAttempts}
+									onChange={(e) => setMaxAttempts(e.target.value)}
+									className="h-11 w-full rounded-input border border-border px-3.5 outline-none focus:border-brand-primary"
+								/>
+							</Field>
+							<Field
+								label={t("project.retry_cooldown", {
+									defaultValue: "Wait after a fail (hrs)",
+								})}
+								hint={t("project.blank_none", { defaultValue: "Blank = none" })}
+							>
+								<input
+									type="number"
+									min={0}
+									max={720}
+									value={retryCooldown}
+									onChange={(e) => setRetryCooldown(e.target.value)}
+									className="h-11 w-full rounded-input border border-border px-3.5 outline-none focus:border-brand-primary"
+								/>
+							</Field>
+							<Field
+								label={t("project.retry_lockout", {
+									defaultValue: "Reset attempts after",
+								})}
+								hint={t("project.retry_lockout_hint", {
+									defaultValue: "Blank = attempts never reset",
+								})}
+							>
+								<DurationInput
+									days={retryLockoutDays}
+									onChange={setRetryLockoutDays}
+								/>
+							</Field>
+						</div>
 					</div>
 
 					{showFile ? (
@@ -435,7 +513,15 @@ function ProjectForm({ project }: { project: ProjectDetail }) {
 	);
 }
 
-function Field({ label, children }: { label: string; children: ReactNode }) {
+function Field({
+	label,
+	hint,
+	children,
+}: {
+	label: string;
+	hint?: string;
+	children: ReactNode;
+}) {
 	return (
 		// biome-ignore lint/a11y/noLabelWithoutControl: control passed as children.
 		<label className="block">
@@ -443,6 +529,9 @@ function Field({ label, children }: { label: string; children: ReactNode }) {
 				{label}
 			</span>
 			{children}
+			{hint ? (
+				<span className="mt-1 block text-muted-foreground text-xs">{hint}</span>
+			) : null}
 		</label>
 	);
 }

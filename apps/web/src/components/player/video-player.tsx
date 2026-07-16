@@ -133,6 +133,9 @@ export function VideoPlayer({
 		wrapper.appendChild(video);
 
 		const player = new Plyr(video, {
+			// Plyr otherwise preloads a placeholder from cdn.plyr.io, which trips a
+			// harmless CORS console error; we have a real source, so disable it.
+			blankVideo: "",
 			captions: { active: true, update: true, language: "auto" },
 			quality: { default: initialQuality, options: qualityOptions },
 			settings: ["captions", "quality", "speed"],

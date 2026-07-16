@@ -4,9 +4,11 @@ import {
 	ForbiddenException,
 	Inject,
 	Injectable,
+	Logger,
 	NotFoundException,
 } from "@nestjs/common";
 import type { AuthenticatedUser } from "../../auth/types";
+import { renderNotificationEmail } from "../../emails/render";
 import { PrismaService } from "../../prisma/prisma.service";
 import {
 	AI_PORT,
@@ -22,6 +24,8 @@ import {
 	STORAGE_PORT,
 	type StoragePort,
 } from "../../shared/storage/storage.port";
+import { NotificationsService } from "../notifications/notifications.service";
+import { isFinalAssessmentScope } from "./assessment-scopes";
 import type {
 	AssessmentScopeDto,
 	CreateAssessmentDto,
@@ -47,14 +51,31 @@ const SCOPE_PARENT_KEY: Record<AssessmentScopeDto, keyof ParentRef> = {
 	cohort: "cohortId",
 };
 
+/**
+ * Ceiling on the prose sent to the quiz generator. A course-final assessment can
+ * legitimately span dozens of transcripts; without a cap the request cost grows
+ * with the course. Trimmed at a paragraph break so we never cut mid-sentence.
+ */
+const MAX_SOURCE_CHARS = 40_000;
+
+function truncateSource(text: string): string {
+	if (text.length <= MAX_SOURCE_CHARS) return text;
+	const cut = text.slice(0, MAX_SOURCE_CHARS);
+	const lastBreak = cut.lastIndexOf("\n\n");
+	return lastBreak > MAX_SOURCE_CHARS * 0.5 ? cut.slice(0, lastBreak) : cut;
+}
+
 /** Assessment + question authoring (§4.4). Instructor/admin owned. */
 @Injectable()
 export class AssessmentsService {
+	private readonly logger = new Logger(AssessmentsService.name);
+
 	constructor(
 		private readonly prisma: PrismaService,
 		@Inject(AI_PORT) private readonly ai: AiPort,
 		@Inject(STORAGE_PORT) private readonly storage: StoragePort,
 		@Inject(MEDIA_ENCODER_PORT) private readonly encoder: MediaEncoderPort,
+		private readonly notifications: NotificationsService,
 	) {}
 
 	/**
@@ -183,35 +204,96 @@ export class AssessmentsService {
 			where: { id },
 			include: { questions: { orderBy: { orderIndex: "asc" } } },
 		});
-		// Candidate lessons (of the owning course) for the AI generator's picker.
+		// Candidate lessons across the assessment's whole scope, for the AI
+		// generator's multi-select picker (§4.4).
 		const sourceLessons = await this.resolveSourceLessons(owned);
 		return { ...assessment, sourceLessons };
 	}
 
-	/** Lessons of the assessment's owning course — seeds for AI question generation. */
-	private async resolveSourceLessons(a: {
+	/**
+	 * Every course in the assessment's scope. A course/module/lesson-scoped
+	 * assessment resolves to its own course; a path-final spans the path's
+	 * courses; a cohort-final spans the cohort's courses *and* the courses of
+	 * any path the cohort carries. These are documented analytical reads across
+	 * the link tables (§6.4) — the generator needs the full picture to draw on.
+	 */
+	private async resolveScopeCourseIds(a: {
 		courseId: string | null;
 		moduleId: string | null;
 		lessonId: string | null;
-	}) {
-		let courseId = a.courseId;
-		if (!courseId && a.moduleId) {
+		pathId: string | null;
+		cohortId: string | null;
+	}): Promise<string[]> {
+		if (a.courseId) return [a.courseId];
+		if (a.moduleId) {
 			const mod = await this.prisma.module.findUnique({
 				where: { id: a.moduleId },
 				select: { courseId: true },
 			});
-			courseId = mod?.courseId ?? null;
+			return mod?.courseId ? [mod.courseId] : [];
 		}
-		if (!courseId && a.lessonId) {
+		if (a.lessonId) {
 			const lesson = await this.prisma.lesson.findUnique({
 				where: { id: a.lessonId },
 				select: { module: { select: { courseId: true } } },
 			});
-			courseId = lesson?.module?.courseId ?? null;
+			return lesson?.module?.courseId ? [lesson.module.courseId] : [];
 		}
-		if (!courseId) return [];
+		if (a.pathId) {
+			const links = await this.prisma.pathCourse.findMany({
+				where: { pathId: a.pathId },
+				select: { courseId: true },
+				orderBy: { orderIndex: "asc" },
+			});
+			return links.map((l) => l.courseId).filter((id): id is string => !!id);
+		}
+		if (a.cohortId) {
+			const [direct, viaPaths] = await Promise.all([
+				this.prisma.cohortCourse.findMany({
+					where: { cohortId: a.cohortId },
+					select: { courseId: true },
+					orderBy: { orderIndex: "asc" },
+				}),
+				this.prisma.cohortPath.findMany({
+					where: { cohortId: a.cohortId },
+					select: {
+						path: {
+							select: {
+								pathCourses: {
+									select: { courseId: true },
+									orderBy: { orderIndex: "asc" },
+								},
+							},
+						},
+					},
+				}),
+			]);
+			const ids = [
+				...direct.map((c) => c.courseId),
+				...viaPaths.flatMap((cp) =>
+					(cp.path?.pathCourses ?? []).map((pc) => pc.courseId),
+				),
+			].filter((id): id is string => !!id);
+			return [...new Set(ids)];
+		}
+		return [];
+	}
+
+	/**
+	 * Candidate source lessons for AI question generation, grouped by course +
+	 * module so the picker can offer "select all in this module / course".
+	 */
+	private async resolveSourceLessons(a: {
+		courseId: string | null;
+		moduleId: string | null;
+		lessonId: string | null;
+		pathId: string | null;
+		cohortId: string | null;
+	}) {
+		const courseIds = await this.resolveScopeCourseIds(a);
+		if (courseIds.length === 0) return [];
 		const lessons = await this.prisma.lesson.findMany({
-			where: { module: { courseId } },
+			where: { module: { courseId: { in: courseIds } } },
 			select: {
 				id: true,
 				title: true,
@@ -221,6 +303,14 @@ export class AssessmentsService {
 				audioKey: true,
 				pdfKey: true,
 				videoKeysJson: true,
+				module: {
+					select: {
+						id: true,
+						title: true,
+						orderIndex: true,
+						course: { select: { id: true, title: true } },
+					},
+				},
 			},
 			orderBy: [{ module: { orderIndex: "asc" } }, { orderIndex: "asc" }],
 		});
@@ -238,6 +328,10 @@ export class AssessmentsService {
 				title: l.title ?? "Untitled lesson",
 				// Generatable when there's any usable source: text OR media.
 				hasTranscript: hasText || hasMedia,
+				moduleId: l.module?.id ?? null,
+				moduleTitle: l.module?.title ?? null,
+				courseId: l.module?.course?.id ?? null,
+				courseTitle: l.module?.course?.title ?? null,
 			};
 		});
 	}
@@ -247,7 +341,22 @@ export class AssessmentsService {
 		id: string,
 		dto: UpdateAssessmentDto,
 	) {
-		await this.loadOwnedAssessment(user, id);
+		const owned = await this.loadOwnedAssessment(user, id);
+		// Retry rules belong to finals only (§4.4.1) — a formative lesson/module
+		// quiz is practice and stays unlimited. Clearing (null) is always fine.
+		if (!isFinalAssessmentScope(owned.scope)) {
+			const offending = (
+				["maxRetakes", "retakeCooldownHours", "retakeLockoutDays"] as const
+			).filter((k) => dto[k] != null);
+			if (offending.length > 0) {
+				throw new BadRequestException({
+					code: "RETRY_POLICY_FINALS_ONLY",
+					message:
+						"Retry rules apply to final assessments only — lesson and module quizzes are unlimited practice.",
+					details: { fields: offending, scope: owned.scope },
+				});
+			}
+		}
 		const { scheduledAt, dueAt, ...rest } = dto;
 		return this.prisma.assessment.update({
 			where: { id },
@@ -397,21 +506,42 @@ export class AssessmentsService {
 		assessmentId: string,
 		dto: {
 			lessonId?: string;
+			lessonIds?: string[];
 			count?: number;
 			types?: GeneratedQuestionType[];
 		},
 	) {
 		const assessment = await this.loadOwnedAssessment(user, assessmentId);
-		const lessonId = dto.lessonId ?? assessment.lessonId ?? undefined;
-		if (!lessonId) {
+		// Multi-select is the modern path; a single `lessonId` (and the
+		// assessment's own lesson) stay supported for lesson-scoped quizzes.
+		const requested = [
+			...(dto.lessonIds ?? []),
+			...(dto.lessonId ? [dto.lessonId] : []),
+			...(dto.lessonIds?.length || dto.lessonId
+				? []
+				: assessment.lessonId
+					? [assessment.lessonId]
+					: []),
+		];
+		const lessonIds = [...new Set(requested)];
+		if (lessonIds.length === 0) {
 			throw new BadRequestException({
 				code: "LESSON_REQUIRED",
-				message: "Choose a lesson to generate questions from.",
+				message: "Choose at least one lesson to generate questions from.",
 			});
 		}
-		const lesson = await this.prisma.lesson.findUnique({
-			where: { id: lessonId },
+		// Only lessons inside this assessment's own scope may seed it (§6.4) —
+		// otherwise a course quiz could be built from someone else's content.
+		const allowedCourseIds = await this.resolveScopeCourseIds(assessment);
+		const lessons = await this.prisma.lesson.findMany({
+			where: {
+				id: { in: lessonIds },
+				...(allowedCourseIds.length > 0
+					? { module: { courseId: { in: allowedCourseIds } } }
+					: {}),
+			},
 			select: {
+				id: true,
 				title: true,
 				contentType: true,
 				transcriptText: true,
@@ -419,30 +549,51 @@ export class AssessmentsService {
 				audioKey: true,
 				pdfKey: true,
 				videoKeysJson: true,
+				module: { select: { orderIndex: true } },
+				orderIndex: true,
 			},
+			orderBy: [{ module: { orderIndex: "asc" } }, { orderIndex: "asc" }],
 		});
-		if (!lesson) throw new NotFoundException("Lesson not found");
+		if (lessons.length === 0) {
+			throw new NotFoundException(
+				"None of the chosen lessons are available for this assessment.",
+			);
+		}
+
 		// Cheapest-first source: the instructor transcript plus, for text lessons,
 		// the lesson's own rich-text content (its content IS the transcript, §4.2).
-		// HTML tags stripped so we send clean prose, not markup.
-		const transcript = (lesson.transcriptText ?? "").trim();
-		const richText = (lesson.contentText ?? "")
-			.replace(/<[^>]+>/g, " ")
-			.replace(/&nbsp;/g, " ")
-			.replace(/\s+/g, " ")
-			.trim();
-		const sourceText = [transcript, richText].filter(Boolean).join("\n\n");
+		// HTML tags stripped so we send clean prose, not markup. Each lesson is
+		// labelled so the model can spread questions across the material rather
+		// than reading it as one undifferentiated wall of text.
+		const sections = lessons
+			.map((l) => {
+				const transcript = (l.transcriptText ?? "").trim();
+				const richText = (l.contentText ?? "")
+					.replace(/<[^>]+>/g, " ")
+					.replace(/&nbsp;/g, " ")
+					.replace(/\s+/g, " ")
+					.trim();
+				const body = [transcript, richText].filter(Boolean).join("\n\n");
+				return body ? `## ${l.title ?? "Untitled lesson"}\n${body}` : "";
+			})
+			.filter(Boolean);
+		const sourceText = truncateSource(sections.join("\n\n"));
 
 		// No usable text → fall back to the lesson media itself (§4.10): PDF or
 		// audio inline, video as its extracted audio track (cheap, speech-only).
+		// Only for a single lesson: sending several videos would be needlessly
+		// expensive, and the fix (add transcripts) is the one we want to nudge.
 		let media: QuizMedia | null = null;
 		if (sourceText.length < 40) {
-			media = await this.resolveLessonMedia(lesson);
+			media =
+				lessons.length === 1 ? await this.resolveLessonMedia(lessons[0]) : null;
 			if (!media) {
 				throw new BadRequestException({
 					code: "NO_SOURCE",
 					message:
-						"This lesson has no transcript, text, or readable media yet — add a transcript or content to generate questions from it.",
+						lessons.length === 1
+							? "This lesson has no transcript, text, or readable media yet — add a transcript or content to generate questions from it."
+							: "None of the chosen lessons have a transcript or text yet. Add transcripts, or pick a single lesson to generate from its media.",
 				});
 			}
 		}
@@ -458,7 +609,12 @@ export class AssessmentsService {
 			media: media ?? undefined,
 			count,
 			types,
-			context: lesson.title ?? undefined,
+			context:
+				lessons.length === 1
+					? (lessons[0].title ?? undefined)
+					: `${assessment.title ?? "Assessment"} — covering: ${lessons
+							.map((l) => l.title ?? "Untitled lesson")
+							.join(", ")}`,
 		});
 		if (generated.length === 0) {
 			throw new BadGatewayException({
@@ -500,10 +656,16 @@ export class AssessmentsService {
 		const attempt = await this.prisma.assessmentAttempt.findUnique({
 			where: { id: attemptId },
 		});
-		if (!attempt?.assessmentId)
-			throw new NotFoundException("Attempt not found");
-		// Reuses the authoring ownership check: the caller must manage the parent.
-		await this.loadOwnedAssessment(user, attempt.assessmentId);
+		if (!attempt) throw new NotFoundException("Attempt not found");
+		if (attempt.assessmentId) {
+			// Reuses the authoring ownership check: the caller must manage the parent.
+			await this.loadOwnedAssessment(user, attempt.assessmentId);
+		} else if (user.role !== "admin") {
+			// Orphaned attempt (its assessment was deleted → `assessmentId` set null).
+			// No owner to check, so only Admin may review the surviving integrity
+			// record; instructors can't lay claim to a null-parent attempt.
+			throw new ForbiddenException("You do not own this content");
+		}
 		return attempt;
 	}
 
@@ -525,6 +687,7 @@ export class AssessmentsService {
 			passed: a.passed,
 			integrityScore: a.integrityScore,
 			flagCount: a.flagCount,
+			cameraMonitored: a.cameraMonitored,
 			invalidated: a.invalidated,
 			escalated: a.escalated,
 		}));
@@ -552,8 +715,17 @@ export class AssessmentsService {
 				severity: l.severity,
 				occurredAt: l.occurredAt,
 				metadata: l.metadataJson,
+				// Signing is best-effort — a missing/broken screenshot key must never
+				// 500 the whole report (that left the admin modal spinning forever).
 				screenshotUrl: l.screenshotKey
-					? await this.storage.getSignedDownloadUrl(l.screenshotKey)
+					? await this.storage
+							.getSignedDownloadUrl(l.screenshotKey)
+							.catch((e) => {
+								this.logger.warn(
+									`Could not sign proctoring screenshot ${l.screenshotKey}: ${(e as Error).message}`,
+								);
+								return null;
+							})
 					: null,
 			})),
 		);
@@ -568,6 +740,7 @@ export class AssessmentsService {
 			autoSubmitted: attempt.autoSubmitted,
 			integrityScore: attempt.integrityScore,
 			flagCount: attempt.flagCount,
+			cameraMonitored: attempt.cameraMonitored,
 			ipAddress: attempt.ipAddress,
 			userAgent: attempt.userAgent,
 			invalidated: attempt.invalidated,
@@ -583,7 +756,7 @@ export class AssessmentsService {
 		attemptId: string,
 		reason?: string,
 	) {
-		await this.loadManagedAttempt(user, attemptId);
+		const attempt = await this.loadManagedAttempt(user, attemptId);
 		await this.prisma.assessmentAttempt.update({
 			where: { id: attemptId },
 			data: {
@@ -592,6 +765,34 @@ export class AssessmentsService {
 				invalidatedReason: reason ?? null,
 			},
 		});
+		// §8.6: Assessment invalidated → learner (in-app + email).
+		if (attempt.userId) {
+			const learner = await this.prisma.user.findUnique({
+				where: { id: attempt.userId },
+				select: { email: true },
+			});
+			if (learner) {
+				await this.notifications.notify(attempt.userId, {
+					type: "assessment_invalidated",
+					dataJson: { reason: reason ?? null },
+					inApp: true,
+					email: {
+						to: learner.email,
+						subject: "An assessment attempt was invalidated",
+						html: await renderNotificationEmail({
+							preview: "An assessment attempt was invalidated",
+							heading: "An attempt was invalidated",
+							paragraphs: [
+								`An integrity review invalidated one of your assessment attempts${reason ? ` (${reason})` : ""}.`,
+								"You may need to retake it — check your course for the details.",
+							],
+							cta: "View my learning",
+							ctaUrl: `${process.env.FRONTEND_URL ?? "http://localhost:5173"}/learn/mine`,
+						}),
+					},
+				});
+			}
+		}
 		return { invalidated: true };
 	}
 
@@ -638,6 +839,9 @@ export class AssessmentsService {
 					{ escalated: true },
 					{ invalidated: true },
 					{ integrityScore: { lt: 100 } },
+					// An unmonitored attempt scores a clean 100 — without this it is
+					// invisible to the one queue meant to surface problems (§4.6.2).
+					{ cameraMonitored: false },
 				],
 			},
 			include: {
@@ -663,6 +867,7 @@ export class AssessmentsService {
 			passed: a.passed,
 			integrityScore: a.integrityScore,
 			flagCount: a.flagCount,
+			cameraMonitored: a.cameraMonitored,
 			invalidated: a.invalidated,
 			escalated: a.escalated,
 		}));

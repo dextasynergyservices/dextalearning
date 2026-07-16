@@ -410,7 +410,20 @@ function CoursePage() {
 									</span>
 								) : null}
 								<div className="mt-4">
-									<EnrollCta type="course" id={course.id} size="lg" />
+									<EnrollCta
+										type="course"
+										id={course.id}
+										size="lg"
+										commercials={{
+											title: course.title,
+											price: course.price ?? 0,
+											currency: course.currency,
+											isFree: course.isFree,
+											isEarnBackEligible: course.isEarnBackEligible,
+											earnBackPercentage: course.earnBackPercentage,
+											earnBackDeadlineDays: course.earnBackDeadlineDays,
+										}}
+									/>
 								</div>
 								<h3 className="mt-6 font-display text-foreground">
 									{t("detail.includes_title")}
@@ -457,7 +470,20 @@ function CoursePage() {
 								</span>
 							)}
 						</div>
-						<EnrollCta type="course" id={course.id} size="sm" />
+						<EnrollCta
+							type="course"
+							id={course.id}
+							size="sm"
+							commercials={{
+								title: course.title,
+								price: course.price ?? 0,
+								currency: course.currency,
+								isFree: course.isFree,
+								isEarnBackEligible: course.isEarnBackEligible,
+								earnBackPercentage: course.earnBackPercentage,
+								earnBackDeadlineDays: course.earnBackDeadlineDays,
+							}}
+						/>
 					</div>
 				</div>
 			) : null}

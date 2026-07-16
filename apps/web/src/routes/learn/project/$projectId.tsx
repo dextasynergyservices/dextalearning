@@ -7,6 +7,7 @@ import {
 	FileUp,
 	Link2,
 	Loader2,
+	Lock,
 	Paperclip,
 	Upload,
 	Users,
@@ -18,6 +19,7 @@ import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { RequireAuth } from "@/components/auth/require-auth";
 import { ReadingLanguageToggle } from "@/components/learn/reading-language-toggle";
+import { RetryPolicyNotice } from "@/components/learn/retry-policy-notice";
 import { Button } from "@/components/ui/button";
 import { useReadingTranslation } from "@/hooks/use-reading-translation";
 import {
@@ -104,7 +106,14 @@ function ProjectBody({
 	} = useReadingTranslation(briefTexts);
 
 	const mine = info.mySubmission;
-	const locked = mine?.passed === true;
+	// A graded submission means the next send starts a fresh attempt, so the
+	// retry policy (§4.5) applies; an ungraded one is still an editable draft.
+	const startsNewAttempt = !mine || mine.graded;
+	const locked =
+		mine?.passed === true ||
+		// The material comes first (§4.3) — the server refuses too.
+		!info.prerequisitesMet ||
+		(startsNewAttempt && !info.retry.canRetry);
 	const [text, setText] = useState(mine?.textContent ?? "");
 	const [url, setUrl] = useState(mine?.urlSubmission ?? "");
 	const [files, setFiles] = useState<{ key: string; name: string }[]>(
@@ -238,6 +247,32 @@ function ProjectBody({
 						</p>
 					)}
 				</section>
+			) : null}
+
+			{/* Locked until the course work is done (§4.3) — say so plainly. */}
+			{!info.prerequisitesMet ? (
+				<section
+					role="status"
+					className="flex items-start gap-3 rounded-card border border-amber-500/30 bg-amber-500/5 p-4 text-sm"
+				>
+					<Lock className="mt-0.5 size-4 shrink-0 text-amber-600 dark:text-amber-400" />
+					<div>
+						<p className="font-medium text-foreground">
+							{t("submit.locked_title", { defaultValue: "Not open yet" })}
+						</p>
+						<p className="mt-0.5 text-muted-foreground">
+							{t("submit.locked_body", {
+								defaultValue:
+									"Finish all the lessons and module quizzes in this course before submitting your project.",
+							})}
+						</p>
+					</div>
+				</section>
+			) : null}
+
+			{/* Retry policy standing (§4.5) — only once a new attempt is at stake. */}
+			{info.prerequisitesMet && mine?.passed !== true && startsNewAttempt ? (
+				<RetryPolicyNotice retry={info.retry} />
 			) : null}
 
 			{/* Peer-review obligation (§4.5) */}

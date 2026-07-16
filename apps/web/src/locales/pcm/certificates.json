@@ -1,1 +1,15 @@
-{}
+{
+	"completion": {
+		"eyebrow": "You don get certificate",
+		"earned_title": "Congratulations — you don do am! 🎓",
+		"earned_body": "Your certificate for {{title}} ready to download and share.",
+		"download": "Download PDF",
+		"verify": "Verify",
+		"share": "Share",
+		"share_text": "I don get certificate for {{title}} for DextaLearning! 🎓",
+		"link_copied": "Verification link don copy",
+		"share_failed": "No fit share",
+		"preparing_title": "We dey prepare your certificate…",
+		"preparing_body": "E go take small time — e go show here and for My Learning soon."
+	}
+}

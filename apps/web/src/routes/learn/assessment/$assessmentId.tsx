@@ -147,6 +147,10 @@ const REASON_KEY: Record<string, string> = {
 	already_passed: "take.reason_passed",
 	no_retakes_left: "take.reason_no_retakes",
 	cooldown: "take.reason_cooldown",
+	// Retakes used up, but the allowance resets once the lockout elapses (§4.4).
+	locked_out: "take.reason_locked_out",
+	// The final is still gated behind unfinished lessons/quizzes (§4.3).
+	prerequisites: "take.reason_prerequisites",
 };
 
 function IntroView({
@@ -294,6 +298,14 @@ function IntroView({
 									{t("take.cooldown_until", {
 										defaultValue: "Available {{when}}",
 										when: new Date(info.cooldownUntil).toLocaleString(),
+									})}
+								</p>
+							) : null}
+							{info.reason === "locked_out" && info.lockedUntil ? (
+								<p className="mt-0.5 text-xs">
+									{t("take.locked_until", {
+										defaultValue: "Your retakes reset {{when}}",
+										when: new Date(info.lockedUntil).toLocaleString(),
 									})}
 								</p>
 							) : null}

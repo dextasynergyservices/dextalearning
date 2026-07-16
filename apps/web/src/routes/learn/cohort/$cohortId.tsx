@@ -5,6 +5,7 @@ import {
 	ChevronRight,
 	ClipboardCheck,
 	FolderKanban,
+	Lock,
 	MessagesSquare,
 	PlayCircle,
 	Trophy,
@@ -12,7 +13,9 @@ import {
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { LearnerShell } from "@/components/layout/learner-shell";
+import { CompletionCertificate } from "@/components/learn/completion-certificate";
 import { ContentSearch } from "@/components/learn/content-search";
+import { EarnBackStatus } from "@/components/learn/earn-back-status";
 import { ProgressRing } from "@/components/learn/progress-ring";
 import { Skeleton } from "@/components/ui/skeleton";
 import { chatKeys, getMyGroupInCohort } from "@/lib/chat-api";
@@ -47,6 +50,13 @@ function CohortProgressRoute() {
 				) : (
 					<>
 						<MyGroupCard cohortId={cohortId} />
+						<CompletionCertificate
+							type="cohort"
+							entityId={cohortId}
+							title={data.cohort.title}
+							isComplete={data.summary.isComplete}
+						/>
+						<EarnBackStatus type="cohort" entityId={cohortId} />
 						{/* Semantic search across the cohort's courses (§4.10 RAG). */}
 						<ContentSearch
 							scopeId={cohortId}
@@ -98,6 +108,25 @@ function CohortBody({ data }: { data: CohortProgress }) {
 	const { t } = useTranslation("authoring");
 	const s = data.summary;
 	const nextCourse = data.courses.find((c) => !c.isComplete);
+
+	// Cohort assessments + projects are summative — they only open once every
+	// course and path in the cohort is finished (§4.3). The server enforces it
+	// too; this just stops the learner walking into a refusal.
+	const coursesLeft = s.coursesTotal - s.coursesComplete;
+	const pathsLeft = s.pathsTotal - s.pathsComplete;
+	const finalsUnlocked = coursesLeft === 0 && pathsLeft === 0;
+	const lockedNote =
+		coursesLeft > 0
+			? t("hub.locked_courses", {
+					defaultValue_one: "Finish {{count}} more course to unlock this.",
+					defaultValue_other: "Finish {{count}} more courses to unlock this.",
+					count: coursesLeft,
+				})
+			: t("hub.locked_paths", {
+					defaultValue_one: "Finish {{count}} more path to unlock this.",
+					defaultValue_other: "Finish {{count}} more paths to unlock this.",
+					count: pathsLeft,
+				});
 
 	return (
 		<>
@@ -258,6 +287,8 @@ function CohortBody({ data }: { data: CohortProgress }) {
 								}
 								passed={a.passed}
 								action={t("hub.take", { defaultValue: "Take" })}
+								locked={!finalsUnlocked && !a.passed}
+								lockedNote={lockedNote}
 							/>
 						))}
 					</div>
@@ -279,6 +310,8 @@ function CohortBody({ data }: { data: CohortProgress }) {
 								label={p.title}
 								passed={p.passed}
 								action={t("hub.open", { defaultValue: "Open" })}
+								locked={!finalsUnlocked && !p.passed}
+								lockedNote={lockedNote}
 							/>
 						))}
 					</div>
@@ -288,6 +321,11 @@ function CohortBody({ data }: { data: CohortProgress }) {
 	);
 }
 
+/**
+ * A row for a cohort assessment / project. When `locked` (§4.3) it is not a
+ * link at all — the summative work only opens once every course and path in the
+ * cohort is done — and it says *why* inline rather than failing on tap.
+ */
 function EntryRow({
 	icon: Icon,
 	to,
@@ -295,6 +333,8 @@ function EntryRow({
 	label,
 	passed,
 	action,
+	locked,
+	lockedNote,
 }: {
 	icon: typeof ClipboardCheck;
 	to: string;
@@ -302,8 +342,36 @@ function EntryRow({
 	label: string;
 	passed: boolean;
 	action: string;
+	locked?: boolean;
+	lockedNote?: string;
 }) {
 	const { t } = useTranslation("authoring");
+
+	if (locked) {
+		return (
+			<div
+				aria-disabled="true"
+				className="flex items-start gap-3 px-4 py-3 opacity-80"
+			>
+				<Icon className="mt-0.5 size-5 shrink-0 text-muted-foreground" />
+				<span className="min-w-0 flex-1">
+					<span className="block truncate font-medium text-muted-foreground text-sm">
+						{label}
+					</span>
+					{lockedNote ? (
+						<span className="mt-0.5 block text-muted-foreground text-xs">
+							{lockedNote}
+						</span>
+					) : null}
+				</span>
+				<span className="flex shrink-0 items-center gap-1 text-muted-foreground text-xs">
+					<Lock className="size-3.5" />
+					{t("hub.locked", { defaultValue: "Locked" })}
+				</span>
+			</div>
+		);
+	}
+
 	return (
 		<Link
 			// biome-ignore lint/suspicious/noExplicitAny: typed route paths vary by entry.

@@ -17,6 +17,7 @@ import { type ReactNode, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { AssessmentSettingsPanel } from "@/components/authoring/assessment-settings-panel";
+import { LessonSourcePicker } from "@/components/authoring/lesson-source-picker";
 import { StudioShell } from "@/components/authoring/studio-shell";
 import { ReadingLanguageToggle } from "@/components/learn/reading-language-toggle";
 import { Button } from "@/components/ui/button";
@@ -757,9 +758,17 @@ function AiGenerateDialog({
 }) {
 	const { t } = useTranslation("authoring");
 	const lessons = assessment.sourceLessons ?? [];
-	const firstWithTranscript =
-		lessons.find((l) => l.hasTranscript)?.id ?? assessment.lessonId ?? "";
-	const [lessonId, setLessonId] = useState(firstWithTranscript);
+	// Default to the material this assessment is actually about: its own lesson,
+	// its own module, or — for a final — everything in scope that has a source.
+	const defaultSelection = lessons
+		.filter((l) => {
+			if (!l.hasTranscript) return false;
+			if (assessment.lessonId) return l.id === assessment.lessonId;
+			if (assessment.moduleId) return l.moduleId === assessment.moduleId;
+			return true;
+		})
+		.map((l) => l.id);
+	const [lessonIds, setLessonIds] = useState<string[]>(defaultSelection);
 	const [count, setCount] = useState("5");
 	const [types, setTypes] = useState<QuestionType[]>([
 		"mcq",
@@ -775,7 +784,7 @@ function AiGenerateDialog({
 	const generate = useMutation({
 		mutationFn: () =>
 			generateQuestions(assessmentId, {
-				lessonId: lessonId || undefined,
+				lessonIds,
 				count: Number(count) || 5,
 				types,
 			}),
@@ -784,9 +793,7 @@ function AiGenerateDialog({
 	});
 
 	const hasUsableLesson = lessons.some((l) => l.hasTranscript);
-	const canGenerate =
-		types.length > 0 &&
-		(lessonId ? lessons.find((l) => l.id === lessonId)?.hasTranscript : false);
+	const canGenerate = types.length > 0 && lessonIds.length > 0;
 
 	return (
 		<Modal
@@ -801,7 +808,7 @@ function AiGenerateDialog({
 					<p>
 						{t("assessment.ai_blurb", {
 							defaultValue:
-								"AI drafts questions from the lesson transcript. Review and edit them before learners take the assessment.",
+								"AI drafts questions from the transcripts of every lesson you pick — choose a whole module or course to spread questions across it. Review and edit them before learners take the assessment.",
 						})}
 					</p>
 				</div>
@@ -815,29 +822,12 @@ function AiGenerateDialog({
 						})}
 					</p>
 				) : (
-					<label className="block">
-						<span className="mb-1.5 block font-medium text-foreground text-sm">
-							{t("assessment.ai_lesson", { defaultValue: "Source lesson" })}
-						</span>
-						<select
-							value={lessonId}
-							onChange={(e) => setLessonId(e.target.value)}
-							className="h-11 w-full rounded-input border border-border bg-card px-3 text-foreground text-sm outline-none focus:border-brand-primary"
-						>
-							<option value="">
-								{t("assessment.ai_pick_lesson", {
-									defaultValue: "Choose a lesson…",
-								})}
-							</option>
-							{lessons.map((l) => (
-								<option key={l.id} value={l.id} disabled={!l.hasTranscript}>
-									{l.title}
-									{l.hasTranscript
-										? ""
-										: ` — ${t("assessment.ai_no_transcript", { defaultValue: "no transcript" })}`}
-								</option>
-							))}
-						</select>
+					<div>
+						<LessonSourcePicker
+							lessons={lessons}
+							selected={lessonIds}
+							onChange={setLessonIds}
+						/>
 						{!hasUsableLesson ? (
 							<span className="mt-1 block text-amber-700 dark:text-amber-300 text-xs">
 								{t("assessment.ai_need_transcript", {
@@ -846,7 +836,7 @@ function AiGenerateDialog({
 								})}
 							</span>
 						) : null}
-					</label>
+					</div>
 				)}
 
 				<div className="grid grid-cols-2 gap-3">

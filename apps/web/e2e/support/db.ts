@@ -618,3 +618,34 @@ export async function seedCameraAssessment(): Promise<{
 		return { courseSlug: slug, assessmentId: assessmentRes.rows[0].id };
 	});
 }
+
+/**
+ * The monitoring verdict recorded against a learner's latest attempt (§4.6.2.1).
+ * `camera_monitored = false` is what stops an unwatched attempt being read as a
+ * clean 100/100 — asserting it here proves the record reached the database, not
+ * just the screen.
+ */
+export async function getAttemptMonitoring(
+	assessmentId: string,
+): Promise<{ cameraMonitored: boolean | null; integrityScore: number } | null> {
+	return withClient(async (client) => {
+		const res = await client.query<{
+			camera_monitored: boolean | null;
+			integrity_score: number;
+		}>(
+			`SELECT camera_monitored, integrity_score
+			 FROM assessment_attempts
+			 WHERE assessment_id = $1
+			 ORDER BY started_at DESC
+			 LIMIT 1`,
+			[assessmentId],
+		);
+		const row = res.rows[0];
+		return row
+			? {
+					cameraMonitored: row.camera_monitored,
+					integrityScore: Number(row.integrity_score),
+				}
+			: null;
+	});
+}

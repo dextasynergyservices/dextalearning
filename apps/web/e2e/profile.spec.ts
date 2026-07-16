@@ -35,7 +35,11 @@ test("learner edits their profile and uploads a real avatar", async ({
 	await page.goto("/profile");
 	await page.getByLabel("Last name").fill("Bakare-Johnson");
 	await page.getByPlaceholder("+234 800 000 0000").fill("+2348012345678");
-	await page.getByRole("button", { name: "Save changes" }).click();
+	// The page has TWO "Save changes" buttons — Account and Learning reminders
+	// (added with the §3.2 reminders section). Both fire the same mutation with
+	// the whole form, so either saves everything; take the one beside the fields
+	// we just edited rather than tripping strict mode.
+	await page.getByRole("button", { name: "Save changes" }).first().click();
 	await expect(page.getByText("Profile saved.")).toBeVisible();
 
 	// Real, not stubbed: phone verification has no actual send/verify flow

@@ -204,6 +204,7 @@ export class CohortsService {
 			currency,
 			isEarnBackEligible,
 			earnBackPercentage,
+			earnBackDeadlineDays,
 			startsAt,
 			endsAt,
 			...rest
@@ -220,6 +221,9 @@ export class CohortsService {
 					currency,
 					isEarnBackEligible,
 					earnBackPercentage,
+					// Admin-set, exactly like a course's (§4.11.1) — through the same
+					// normalizer so cohorts can't drift from the shared pricing rules.
+					earnBackDeadlineDays,
 				}),
 			},
 		});

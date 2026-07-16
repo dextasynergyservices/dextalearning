@@ -1,6 +1,13 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { CheckCircle2, ChevronRight, Clock, XCircle } from "lucide-react";
+import {
+	CheckCircle2,
+	ChevronRight,
+	Clock,
+	Lock,
+	ShieldAlert,
+	XCircle,
+} from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { GradeSubmissionDialog } from "@/components/authoring/grade-submission-dialog";
@@ -105,7 +112,8 @@ function SubmissionRowItem({
 			<button
 				type="button"
 				onClick={onOpen}
-				className="flex w-full items-center gap-3 rounded-card border border-border bg-card p-3.5 text-left shadow-card transition-colors hover:border-brand-primary/40 sm:p-4"
+				disabled={!row.canGrade}
+				className="flex w-full items-center gap-3 rounded-card border border-border bg-card p-3.5 text-left shadow-card transition-colors hover:border-brand-primary/40 disabled:cursor-not-allowed disabled:opacity-70 disabled:hover:border-border sm:p-4"
 			>
 				<span
 					className={cn(
@@ -142,8 +150,32 @@ function SubmissionRowItem({
 							? ` · ${new Date(row.submittedAt).toLocaleDateString()}`
 							: ""}
 					</p>
+					{/* Accountability for the admin escape hatch (§4.5): a grade that
+					    didn't come from the creator says so, by name. */}
+					{row.isOverrideGrade ? (
+						<p className="mt-0.5 flex items-center gap-1 text-amber-600 text-xs dark:text-amber-400">
+							<ShieldAlert className="size-3" />
+							{t("grade.override_by", {
+								defaultValue: "Graded by {{name}} — admin override",
+								name:
+									row.gradedByName ??
+									t("grade.an_admin", { defaultValue: "an admin" }),
+							})}
+						</p>
+					) : null}
+					{!row.canGrade ? (
+						<p className="mt-0.5 text-muted-foreground text-xs">
+							{t("grade.not_yours", {
+								defaultValue: "Only this project's creator can grade it.",
+							})}
+						</p>
+					) : null}
 				</div>
-				<ChevronRight className="size-4 shrink-0 text-muted-foreground" />
+				{row.canGrade ? (
+					<ChevronRight className="size-4 shrink-0 text-muted-foreground" />
+				) : (
+					<Lock className="size-4 shrink-0 text-muted-foreground" />
+				)}
 			</button>
 		</li>
 	);

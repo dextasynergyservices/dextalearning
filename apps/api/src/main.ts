@@ -39,9 +39,15 @@ async function bootstrap() {
 		next();
 	});
 	// Re-enable body parsing for the rest of the app (Nest's own parser, applied
-	// after the Better Auth middleware so /api/auth keeps its raw body).
+	// after the Better Auth middleware so /api/auth keeps its raw body). The
+	// `verify` hook stashes the untouched buffer on the request so payment
+	// webhooks can validate provider HMAC/Stripe signatures over the exact bytes.
 	// biome-ignore lint/correctness/useHookAtTopLevel: Nest application setup method, not a React hook.
-	app.useBodyParser("json");
+	app.useBodyParser("json", {
+		verify: (req: Request & { rawBody?: Buffer }, _res, buf: Buffer) => {
+			req.rawBody = buf;
+		},
+	});
 	// biome-ignore lint/correctness/useHookAtTopLevel: Nest application setup method, not a React hook.
 	app.useBodyParser("urlencoded");
 

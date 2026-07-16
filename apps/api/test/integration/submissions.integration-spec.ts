@@ -4,12 +4,14 @@ import {
 	ForbiddenException,
 } from "@nestjs/common";
 import { EventEmitter2 } from "@nestjs/event-emitter";
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { AuthenticatedUser } from "../../src/auth/types";
+import { CompletionService } from "../../src/modules/completion/completion.service";
+import type { NotificationsService } from "../../src/modules/notifications/notifications.service";
 import { SubmissionsService } from "../../src/modules/projects/submissions.service";
 import { LearningEvents } from "../../src/shared/events/learning-events";
 import { getTestPrisma } from "./support/db";
-import { createUser } from "./support/factories";
+import { createLesson, createModule, createUser } from "./support/factories";
 import { FakeStorageAdapter } from "./support/fakes/fake-storage.adapter";
 
 function asAuthenticatedUser(id: string): AuthenticatedUser {
@@ -19,10 +21,15 @@ function asAuthenticatedUser(id: string): AuthenticatedUser {
 describe("SubmissionsService (integration)", () => {
 	const prisma = getTestPrisma();
 	const events = new EventEmitter2();
+	// A real CompletionService — the finals gate (§4.3) is part of what these
+	// specs are checking, so stubbing it would hide the thing under test.
+	const notify = vi.fn().mockResolvedValue(undefined);
 	const service = new SubmissionsService(
 		prisma,
 		new FakeStorageAdapter(),
 		events,
+		new CompletionService(prisma, new FakeStorageAdapter(), events),
+		{ notify } as unknown as NotificationsService,
 	);
 
 	let learnerId: string;
@@ -34,6 +41,7 @@ describe("SubmissionsService (integration)", () => {
 
 	beforeEach(async () => {
 		emitted = [];
+		notify.mockClear();
 		learnerId = (await createUser(prisma, { role: "learner" })).id;
 	});
 
@@ -119,6 +127,98 @@ describe("SubmissionsService (integration)", () => {
 				where: { projectId: project.id, userId: learnerId },
 			});
 			expect(count).toBe(2);
+		});
+	});
+
+	// ── The creator is told there's work waiting (§4.5) ─────────────────────
+	describe("submission notification", () => {
+		async function projectBy(creatorId: string, overrides = {}) {
+			return prisma.project.create({
+				data: {
+					scope: "course",
+					title: "Capstone",
+					orderIndex: 1,
+					createdBy: creatorId,
+					...overrides,
+				},
+			});
+		}
+
+		it("tells the project's CREATOR a submission is waiting", async () => {
+			const creator = await createUser(prisma, { role: "instructor" });
+			const project = await projectBy(creator.id);
+
+			await service.submit(asAuthenticatedUser(learnerId), project.id, {
+				textContent: "My work",
+			});
+
+			expect(notify).toHaveBeenCalledWith(
+				creator.id,
+				expect.objectContaining({
+					type: "project_submission_received",
+					inApp: true,
+					dataJson: expect.objectContaining({ projectId: project.id }),
+				}),
+			);
+			// It emails too — the blueprint asks for both channels.
+			expect(notify.mock.calls[0][1].email).toBeTruthy();
+		});
+
+		it("doesn't re-ping for a draft edit — it's the same pending work", async () => {
+			const creator = await createUser(prisma, { role: "instructor" });
+			const project = await projectBy(creator.id);
+
+			await service.submit(asAuthenticatedUser(learnerId), project.id, {
+				textContent: "Draft v1",
+			});
+			await service.submit(asAuthenticatedUser(learnerId), project.id, {
+				textContent: "Draft v2",
+			});
+			expect(notify).toHaveBeenCalledTimes(1);
+		});
+
+		it("pings again on a fresh attempt after a graded failure", async () => {
+			const creator = await createUser(prisma, { role: "instructor" });
+			const project = await projectBy(creator.id);
+			const first = await service.submit(
+				asAuthenticatedUser(learnerId),
+				project.id,
+				{ textContent: "Attempt 1" },
+			);
+			await prisma.projectSubmission.update({
+				where: { id: first.id },
+				data: { passed: false, gradedAt: new Date() },
+			});
+
+			await service.submit(asAuthenticatedUser(learnerId), project.id, {
+				textContent: "Attempt 2",
+			});
+			expect(notify).toHaveBeenCalledTimes(2);
+		});
+
+		it("stays quiet for peer-reviewed projects — peers grade those", async () => {
+			const creator = await createUser(prisma, { role: "instructor" });
+			const project = await projectBy(creator.id, {
+				gradingType: "peer_review",
+			});
+
+			await service.submit(asAuthenticatedUser(learnerId), project.id, {
+				textContent: "My work",
+			});
+			expect(notify).not.toHaveBeenCalled();
+		});
+
+		it("never fails the learner's submission if notifying blows up", async () => {
+			const creator = await createUser(prisma, { role: "instructor" });
+			const project = await projectBy(creator.id);
+			notify.mockRejectedValueOnce(new Error("smtp down"));
+
+			const result = await service.submit(
+				asAuthenticatedUser(learnerId),
+				project.id,
+				{ textContent: "My work" },
+			);
+			expect(result.attemptNumber).toBe(1);
 		});
 	});
 
@@ -352,6 +452,252 @@ describe("SubmissionsService (integration)", () => {
 				where: { id: submission.id },
 			});
 			expect(Number(graded?.score)).toBe(100); // clamped to 10/10
+		});
+	});
+
+	// ── A project only opens once the course work is done (§4.3) ────────────
+	describe("prerequisite gate", () => {
+		async function courseWithProject(slug: string) {
+			const course = await prisma.course.create({
+				data: { title: "C", slug, createdBy: learnerId },
+			});
+			const mod = await createModule(prisma, course.id);
+			const lesson = await createLesson(prisma, mod.id, {
+				contentType: "video",
+				minVideoWatchPct: 90,
+			});
+			const project = await prisma.project.create({
+				data: {
+					scope: "course",
+					title: "Capstone",
+					orderIndex: 1,
+					courseId: course.id,
+				},
+			});
+			return { course, lesson, project };
+		}
+
+		it("refuses a submission while lessons are unfinished", async () => {
+			const { project } = await courseWithProject("proj-gate-locked");
+
+			await expect(
+				service.submit(asAuthenticatedUser(learnerId), project.id, {
+					textContent: "Early",
+				}),
+			).rejects.toMatchObject({
+				response: { details: { reason: "prerequisites" } },
+			});
+			// Nothing was written.
+			expect(
+				await prisma.projectSubmission.count({
+					where: { projectId: project.id },
+				}),
+			).toBe(0);
+		});
+
+		it("reports the lock on the learner's project info", async () => {
+			const { project } = await courseWithProject("proj-gate-info");
+			const info = await service.getProjectInfo(
+				asAuthenticatedUser(learnerId),
+				project.id,
+			);
+			expect(info.prerequisitesMet).toBe(false);
+		});
+
+		it("accepts the submission once every lesson is done", async () => {
+			const { lesson, project } = await courseWithProject("proj-gate-open");
+			await prisma.lessonCompletion.create({
+				data: { userId: learnerId, lessonId: lesson.id, videoWatchedPct: 95 },
+			});
+
+			const info = await service.getProjectInfo(
+				asAuthenticatedUser(learnerId),
+				project.id,
+			);
+			expect(info.prerequisitesMet).toBe(true);
+
+			const result = await service.submit(
+				asAuthenticatedUser(learnerId),
+				project.id,
+				{ textContent: "My capstone" },
+			);
+			expect(result.attemptNumber).toBe(1);
+		});
+	});
+
+	// ── Retry policy (§4.5) ─────────────────────────────────────────────────
+	describe("retry policy", () => {
+		/** A graded, failed attempt `hoursAgo` in the past. */
+		async function failedAttempt(
+			projectId: string,
+			userId: string,
+			attemptNumber: number,
+			hoursAgo: number,
+		) {
+			const when = new Date(Date.now() - hoursAgo * 3_600_000);
+			return prisma.projectSubmission.create({
+				data: {
+					projectId,
+					userId,
+					attemptNumber,
+					textContent: "Attempt",
+					submittedAt: when,
+					gradedAt: when,
+					score: 10,
+					passed: false,
+				},
+			});
+		}
+
+		it("blocks a new attempt once maxAttempts is used up (no lockout reset)", async () => {
+			const project = await prisma.project.create({
+				data: {
+					scope: "course",
+					title: "Two tries",
+					orderIndex: 1,
+					maxAttempts: 2,
+				},
+			});
+			await failedAttempt(project.id, learnerId, 1, 48);
+			await failedAttempt(project.id, learnerId, 2, 24);
+
+			await expect(
+				service.submit(asAuthenticatedUser(learnerId), project.id, {
+					textContent: "Third try",
+				}),
+			).rejects.toMatchObject({
+				response: { details: { reason: "no_attempts_left" } },
+			});
+		});
+
+		it("enforces the spacing cooldown between attempts", async () => {
+			const project = await prisma.project.create({
+				data: {
+					scope: "course",
+					title: "Spaced",
+					orderIndex: 1,
+					maxAttempts: 3,
+					retryCooldownHours: 24,
+				},
+			});
+			await failedAttempt(project.id, learnerId, 1, 2); // graded 2h ago
+
+			await expect(
+				service.submit(asAuthenticatedUser(learnerId), project.id, {
+					textContent: "Too soon",
+				}),
+			).rejects.toMatchObject({
+				response: { details: { reason: "cooldown" } },
+			});
+		});
+
+		it("allows the next attempt once the spacing cooldown has elapsed", async () => {
+			const project = await prisma.project.create({
+				data: {
+					scope: "course",
+					title: "Spacing elapsed",
+					orderIndex: 1,
+					maxAttempts: 3,
+					retryCooldownHours: 6,
+				},
+			});
+			await failedAttempt(project.id, learnerId, 1, 8); // graded 8h ago
+
+			const result = await service.submit(
+				asAuthenticatedUser(learnerId),
+				project.id,
+				{ textContent: "On time" },
+			);
+			expect(result.attemptNumber).toBe(2);
+		});
+
+		it("locks out after exhausting attempts, then resets the allowance once the lockout elapses", async () => {
+			const locked = await prisma.project.create({
+				data: {
+					scope: "course",
+					title: "Locked",
+					orderIndex: 1,
+					maxAttempts: 2,
+					retryLockoutDays: 14,
+				},
+			});
+			await failedAttempt(locked.id, learnerId, 1, 48);
+			await failedAttempt(locked.id, learnerId, 2, 24); // exhausted 1 day ago
+			await expect(
+				service.submit(asAuthenticatedUser(learnerId), locked.id, {
+					textContent: "Still locked",
+				}),
+			).rejects.toMatchObject({
+				response: { details: { reason: "locked_out" } },
+			});
+
+			// Same policy, but the lockout has long since elapsed → fresh window.
+			const reset = await prisma.project.create({
+				data: {
+					scope: "course",
+					title: "Reset",
+					orderIndex: 1,
+					maxAttempts: 2,
+					retryLockoutDays: 14,
+				},
+			});
+			const learner2 = (await createUser(prisma, { role: "learner" })).id;
+			await failedAttempt(reset.id, learner2, 1, 24 * 40);
+			await failedAttempt(reset.id, learner2, 2, 24 * 30); // 30 days ago > 14d
+			const result = await service.submit(
+				asAuthenticatedUser(learner2),
+				reset.id,
+				{ textContent: "Fresh window" },
+			);
+			expect(result.attemptNumber).toBe(3);
+		});
+
+		it("lets an ungraded draft be re-sent without consuming an attempt", async () => {
+			const project = await prisma.project.create({
+				data: {
+					scope: "course",
+					title: "Draft edit",
+					orderIndex: 1,
+					maxAttempts: 1,
+					retryCooldownHours: 24,
+				},
+			});
+			await service.submit(asAuthenticatedUser(learnerId), project.id, {
+				textContent: "First",
+			});
+			// Re-sending the still-ungraded draft is an edit, not a new attempt.
+			const again = await service.submit(
+				asAuthenticatedUser(learnerId),
+				project.id,
+				{ textContent: "Revised" },
+			);
+			expect(again.attemptNumber).toBe(1);
+			expect(again.textContent).toBe("Revised");
+		});
+
+		it("reports retry state on the learner's project info", async () => {
+			const project = await prisma.project.create({
+				data: {
+					scope: "course",
+					title: "Info",
+					orderIndex: 1,
+					maxAttempts: 3,
+					retryCooldownHours: 24,
+					retryLockoutDays: 7,
+				},
+			});
+			await failedAttempt(project.id, learnerId, 1, 2);
+
+			const info = await service.getProjectInfo(
+				asAuthenticatedUser(learnerId),
+				project.id,
+			);
+			expect(info.maxAttempts).toBe(3);
+			expect(info.retry.attemptsUsed).toBe(1);
+			expect(info.retry.attemptsRemaining).toBe(2);
+			expect(info.retry.canRetry).toBe(false); // still inside the 24h spacing
+			expect(info.retry.reason).toBe("cooldown");
+			expect(info.retry.nextAttemptAt).toBeTruthy();
 		});
 	});
 });
