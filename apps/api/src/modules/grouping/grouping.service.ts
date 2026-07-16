@@ -5,6 +5,7 @@ import {
 	UnprocessableEntityException,
 } from "@nestjs/common";
 import type { AuthenticatedUser } from "../../auth/types";
+import { renderNotificationEmail } from "../../emails/render";
 import { PrismaService } from "../../prisma/prisma.service";
 import { DropoffQueryService } from "../dropoff/dropoff-query.service";
 import { NotificationsService } from "../notifications/notifications.service";
@@ -242,7 +243,7 @@ export class GroupingService {
 			},
 		});
 		await Promise.allSettled(
-			users.map((u) => {
+			users.map(async (u) => {
 				const groupName = groupNameOf.get(u.id);
 				if (!groupName) return Promise.resolve();
 				const copy = GROUP_ASSIGNMENT_COPY[groupingLanguageOf(u.language)];
@@ -254,7 +255,13 @@ export class GroupingService {
 					email: {
 						to: u.email,
 						subject: copy.subject(ctx),
-						html: `<p>${copy.heading(ctx)}</p><p>${copy.body(ctx)}</p>`,
+						html: await renderNotificationEmail({
+							preview: copy.subject(ctx),
+							heading: copy.heading(ctx),
+							paragraphs: [copy.body(ctx)],
+							cta: "Open my cohort",
+							ctaUrl: `${process.env.FRONTEND_URL ?? "http://localhost:5173"}/learn/groups`,
+						}),
 					},
 					...(u.phone && u.whatsappOptIn
 						? { whatsapp: { phone: u.phone, message: copy.whatsapp(ctx) } }

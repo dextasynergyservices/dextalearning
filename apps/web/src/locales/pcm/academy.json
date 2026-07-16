@@ -180,5 +180,15 @@
 		"because_collab": "Because learners wey enroll for your courses also enroll for these",
 		"because_collab_paths": "Because learners wey enroll for your paths also enroll for these",
 		"because_collab_cohorts": "Because learners wey join your cohorts also join these"
+	},
+	"checkout": {
+		"method": "How you wan pay?",
+		"secure": "Secure payment via {{providers}}",
+		"method_help": {
+			"paystack": "Card, bank transfer or USSD",
+			"stripe": "Card or wallet"
+		},
+		"earnback_hint_learner_deadline": "You go set your own deadline — up to {{max}} days — sharp-sharp after payment. Finish before am and we go send the refundable {{amount}} back to your card.",
+		"skip_deadline": "Later"
 	}
 }

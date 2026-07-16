@@ -221,7 +221,20 @@ function CohortDetailPage() {
 							</p>
 						) : null}
 						<div className="mt-5">
-							<EnrollCta type="cohort" id={cohort.id} size="lg" />
+							<EnrollCta
+								type="cohort"
+								id={cohort.id}
+								size="lg"
+								commercials={{
+									title: cohort.title,
+									price: cohort.price ?? 0,
+									currency: cohort.currency,
+									isFree: cohort.isFree,
+									isEarnBackEligible: cohort.isEarnBackEligible,
+									earnBackPercentage: cohort.earnBackPercentage,
+									earnBackDeadlineDays: null,
+								}}
+							/>
 						</div>
 					</div>
 				</aside>
@@ -240,7 +253,20 @@ function CohortDetailPage() {
 							</span>
 						) : null}
 					</div>
-					<EnrollCta type="cohort" id={cohort.id} size="sm" />
+					<EnrollCta
+						type="cohort"
+						id={cohort.id}
+						size="sm"
+						commercials={{
+							title: cohort.title,
+							price: cohort.price ?? 0,
+							currency: cohort.currency,
+							isFree: cohort.isFree,
+							isEarnBackEligible: cohort.isEarnBackEligible,
+							earnBackPercentage: cohort.earnBackPercentage,
+							earnBackDeadlineDays: null,
+						}}
+					/>
 				</div>
 			</div>
 		</PublicShell>

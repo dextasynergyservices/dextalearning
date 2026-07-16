@@ -136,6 +136,35 @@ export class UpdateProjectDto {
 	@Max(10)
 	peerReviewCount?: number;
 
+	// ── Retry policy (§4.5) ──────────────────────────────────────────────────
+	@ApiPropertyOptional({
+		description: "Total attempts allowed per window. Omit for unlimited.",
+	})
+	@IsOptional()
+	@IsInt()
+	@Min(1)
+	@Max(100)
+	maxAttempts?: number;
+
+	@ApiPropertyOptional({
+		description: "Minimum hours between attempts after a graded failure.",
+	})
+	@IsOptional()
+	@IsInt()
+	@Min(0)
+	@Max(720)
+	retryCooldownHours?: number;
+
+	@ApiPropertyOptional({
+		description:
+			"Days locked out after using every attempt without passing; once elapsed the attempt allowance resets. Omit for no reset.",
+	})
+	@IsOptional()
+	@IsInt()
+	@Min(0)
+	@Max(365)
+	retryLockoutDays?: number;
+
 	@ApiPropertyOptional()
 	@IsOptional()
 	@IsDateString()

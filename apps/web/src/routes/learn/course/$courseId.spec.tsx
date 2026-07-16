@@ -141,4 +141,112 @@ describe("CourseHubRoute", () => {
 		expect(await screen.findByText("Build a todo app")).toBeInTheDocument();
 		expect(screen.getByText("Passed")).toBeInTheDocument();
 	});
+
+	// ── Finals open last (§4.3) ─────────────────────────────────────────────
+	describe("final assessment + project gating", () => {
+		const withFinals = (overrides: Partial<CourseProgress> = {}) =>
+			progress({
+				finalAssessment: { id: "fa1", passed: false, required: true },
+				projects: [
+					{
+						id: "p1",
+						title: "Capstone",
+						gradingType: "manual",
+						passed: false,
+					},
+				],
+				...overrides,
+			});
+
+		it("locks the final and the project while lessons are unfinished", async () => {
+			// Fixture is 1 of 2 lessons done.
+			getCourseProgressMock.mockResolvedValue(withFinals());
+			renderRoute("/learn/course/c1");
+
+			// "Final assessment" also appears in the completion sidebar, so assert
+			// on the row's own lock state rather than the bare label.
+			expect(await screen.findAllByText("Locked")).toHaveLength(2);
+			// Neither is a link — a lock the learner can click through is no lock.
+			expect(
+				screen.queryByRole("link", { name: /Final assessment/ }),
+			).not.toBeInTheDocument();
+			expect(
+				screen.queryByRole("link", { name: /Capstone/ }),
+			).not.toBeInTheDocument();
+		});
+
+		it("says why it's locked, naming the work that's left", async () => {
+			getCourseProgressMock.mockResolvedValue(withFinals());
+			renderRoute("/learn/course/c1");
+
+			expect(
+				await screen.findAllByText(
+					"Finish all 2 lessons to unlock this. 1 done so far.",
+				),
+			).toHaveLength(2);
+		});
+
+		it("points at the module quizzes when the lessons are done but a quiz isn't passed", async () => {
+			getCourseProgressMock.mockResolvedValue(
+				withFinals({
+					summary: {
+						lessonsDone: 2,
+						lessonsTotal: 2,
+						allLessonsDone: true,
+						allModuleAssessmentsPassed: false,
+						finalAssessmentPassed: false,
+						allProjectsPassed: false,
+						isComplete: false,
+						percent: 80,
+					},
+				}),
+			);
+			renderRoute("/learn/course/c1");
+
+			expect(
+				await screen.findAllByText("Pass every module quiz to unlock this."),
+			).toHaveLength(2);
+		});
+
+		it("opens both once the lessons and module quizzes are done", async () => {
+			getCourseProgressMock.mockResolvedValue(
+				withFinals({
+					summary: {
+						lessonsDone: 2,
+						lessonsTotal: 2,
+						allLessonsDone: true,
+						allModuleAssessmentsPassed: true,
+						finalAssessmentPassed: false,
+						allProjectsPassed: false,
+						isComplete: false,
+						percent: 90,
+					},
+				}),
+			);
+			renderRoute("/learn/course/c1");
+
+			expect(
+				await screen.findByRole("link", { name: /Final assessment/ }),
+			).toHaveAttribute("href", "/learn/assessment/fa1");
+			expect(screen.getByRole("link", { name: /Capstone/ })).toHaveAttribute(
+				"href",
+				"/learn/project/p1",
+			);
+			expect(screen.queryByText("Locked")).not.toBeInTheDocument();
+		});
+
+		it("never locks something already passed", async () => {
+			getCourseProgressMock.mockResolvedValue(
+				withFinals({
+					finalAssessment: { id: "fa1", passed: true, required: true },
+				}),
+			);
+			renderRoute("/learn/course/c1");
+
+			// Lessons are still unfinished, but a passed final stays reachable.
+			expect(
+				await screen.findByRole("link", { name: /Final assessment/ }),
+			).toBeInTheDocument();
+		});
+	});
 });

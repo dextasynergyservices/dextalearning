@@ -9,13 +9,16 @@ import {
 	FolderKanban,
 	GraduationCap,
 	Layers,
+	Lock,
 	PlayCircle,
 	Trophy,
 } from "lucide-react";
 import type { ComponentType } from "react";
 import { useTranslation } from "react-i18next";
 import { LearnerShell } from "@/components/layout/learner-shell";
+import { CompletionCertificate } from "@/components/learn/completion-certificate";
 import { ContentSearch } from "@/components/learn/content-search";
+import { EarnBackStatus } from "@/components/learn/earn-back-status";
 import { ProgressRing } from "@/components/learn/progress-ring";
 import { Skeleton } from "@/components/ui/skeleton";
 import { type CourseProgress, getCourseProgress } from "@/lib/content-api";
@@ -63,6 +66,21 @@ function CourseHub({ progress }: { progress: CourseProgress }) {
 		.find((l) => !l.done);
 
 	const moduleCount = progress.modules.length;
+
+	// The final assessment + projects are summative — they only open once the
+	// material they examine is done (§4.3). The server enforces this too; this
+	// just stops the learner walking into a refusal.
+	const finalsUnlocked = s.allLessonsDone && s.allModuleAssessmentsPassed;
+	const lockedNote = !s.allLessonsDone
+		? t("hub.locked_lessons", {
+				defaultValue:
+					"Finish all {{total}} lessons to unlock this. {{done}} done so far.",
+				done: s.lessonsDone,
+				total: s.lessonsTotal,
+			})
+		: t("hub.locked_quizzes", {
+				defaultValue: "Pass every module quiz to unlock this.",
+			});
 
 	return (
 		<div className="space-y-6">
@@ -130,6 +148,15 @@ function CourseHub({ progress }: { progress: CourseProgress }) {
 					</div>
 				</div>
 			</section>
+
+			<CompletionCertificate
+				type="course"
+				entityId={progress.course.id}
+				title={progress.course.title}
+				isComplete={s.isComplete}
+			/>
+
+			<EarnBackStatus type="course" entityId={progress.course.id} />
 
 			{/* Semantic search over the course's transcripts (§4.10 RAG). */}
 			<ContentSearch
@@ -216,7 +243,7 @@ function CourseHub({ progress }: { progress: CourseProgress }) {
 						</section>
 					))}
 
-					{/* Final assessment */}
+					{/* Final assessment — locked until the course work is done (§4.3) */}
 					{progress.finalAssessment ? (
 						<section className="overflow-hidden rounded-card border border-border bg-card shadow-card">
 							<EntryRow
@@ -228,11 +255,13 @@ function CourseHub({ progress }: { progress: CourseProgress }) {
 								})}
 								passed={progress.finalAssessment.passed}
 								action={t("hub.take", { defaultValue: "Take" })}
+								locked={!finalsUnlocked && !progress.finalAssessment.passed}
+								lockedNote={lockedNote}
 							/>
 						</section>
 					) : null}
 
-					{/* Projects */}
+					{/* Projects — same gate: summative work comes last */}
 					{progress.projects.length > 0 ? (
 						<section className="overflow-hidden rounded-card border border-border bg-card shadow-card">
 							<h2 className="bg-muted px-4 py-3 font-display text-foreground">
@@ -248,6 +277,8 @@ function CourseHub({ progress }: { progress: CourseProgress }) {
 										label={project.title}
 										passed={project.passed}
 										action={t("hub.open", { defaultValue: "Open" })}
+										locked={!finalsUnlocked && !project.passed}
+										lockedNote={lockedNote}
 									/>
 								))}
 							</div>
@@ -321,6 +352,11 @@ function Gate({ ok, label }: { ok: boolean; label: string }) {
 	);
 }
 
+/**
+ * A row for a final assessment / project. When `locked` (§4.3) it is not a link
+ * at all — the summative work only opens once the material is done — and it says
+ * *why* inline rather than failing silently on tap.
+ */
 function EntryRow({
 	icon: Icon,
 	to,
@@ -328,6 +364,8 @@ function EntryRow({
 	label,
 	passed,
 	action,
+	locked,
+	lockedNote,
 }: {
 	icon: ComponentType<{ className?: string }>;
 	to: string;
@@ -335,8 +373,36 @@ function EntryRow({
 	label: string;
 	passed: boolean;
 	action: string;
+	locked?: boolean;
+	lockedNote?: string;
 }) {
 	const { t } = useTranslation("authoring");
+
+	if (locked) {
+		return (
+			<div
+				aria-disabled="true"
+				className="flex items-start gap-3 px-4 py-3 opacity-80"
+			>
+				<Icon className="mt-0.5 size-5 shrink-0 text-muted-foreground" />
+				<span className="min-w-0 flex-1">
+					<span className="block font-medium text-muted-foreground text-sm">
+						{label}
+					</span>
+					{lockedNote ? (
+						<span className="mt-0.5 block text-muted-foreground text-xs">
+							{lockedNote}
+						</span>
+					) : null}
+				</span>
+				<span className="flex shrink-0 items-center gap-1 text-muted-foreground text-xs">
+					<Lock className="size-3.5" />
+					{t("hub.locked", { defaultValue: "Locked" })}
+				</span>
+			</div>
+		);
+	}
+
 	return (
 		<Link
 			// biome-ignore lint/suspicious/noExplicitAny: typed route paths vary by entry.

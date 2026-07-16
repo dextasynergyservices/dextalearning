@@ -459,6 +459,153 @@ describe("CompletionService (integration)", () => {
 			expect(progress.summary.isComplete).toBe(true);
 			expect(progress.courses).toHaveLength(2);
 		});
+
+		// ── The path's own summative work gates it too (§4.3.1) ──────────────
+		describe("path finals", () => {
+			/** A path with one required course whose only lesson is finished. */
+			async function pathWithFinishedCourse() {
+				const path = await createPath(prisma);
+				const course = await createCourse(prisma);
+				const mod = await createModule(prisma, course.id);
+				const lesson = await createLesson(prisma, mod.id, {
+					contentType: "video",
+				});
+				await createPathCourse(prisma, {
+					pathId: path.id,
+					courseId: course.id,
+					isRequired: true,
+				});
+				await service.recordLessonProgress(
+					asAuthenticatedUser(learnerId),
+					lesson.id,
+					{ videoWatchedPct: 100 },
+				);
+				return path;
+			}
+
+			it("surfaces the path's final assessment and projects", async () => {
+				const path = await pathWithFinishedCourse();
+				const final = await createAssessment(prisma, {
+					scope: "path_final",
+					pathId: path.id,
+				});
+				await createQuestion(prisma, final.id);
+				await prisma.project.create({
+					data: {
+						scope: "path",
+						title: "Path capstone",
+						orderIndex: 1,
+						pathId: path.id,
+					},
+				});
+
+				const progress = await service.getPathProgress(
+					asAuthenticatedUser(learnerId),
+					path.id,
+				);
+				expect(progress.finalAssessment?.id).toBe(final.id);
+				expect(progress.projects).toHaveLength(1);
+				expect(progress.projects[0].title).toBe("Path capstone");
+			});
+
+			it("is NOT complete while the path final is unpassed, even with every course done", async () => {
+				const path = await pathWithFinishedCourse();
+				const final = await createAssessment(prisma, {
+					scope: "path_final",
+					pathId: path.id,
+				});
+				await createQuestion(prisma, final.id);
+
+				const progress = await service.getPathProgress(
+					asAuthenticatedUser(learnerId),
+					path.id,
+				);
+				// This used to report complete — and would have fired the
+				// certificate + Earn-Back on an untaken final.
+				expect(progress.summary.allCoursesComplete).toBe(true);
+				expect(progress.summary.finalAssessmentPassed).toBe(false);
+				expect(progress.summary.isComplete).toBe(false);
+			});
+
+			it("is NOT complete while a path project is unpassed", async () => {
+				const path = await pathWithFinishedCourse();
+				await prisma.project.create({
+					data: {
+						scope: "path",
+						title: "Ungraded capstone",
+						orderIndex: 1,
+						pathId: path.id,
+					},
+				});
+
+				const progress = await service.getPathProgress(
+					asAuthenticatedUser(learnerId),
+					path.id,
+				);
+				expect(progress.summary.isComplete).toBe(false);
+			});
+
+			it("completes once the final is passed", async () => {
+				const path = await pathWithFinishedCourse();
+				const final = await createAssessment(prisma, {
+					scope: "path_final",
+					pathId: path.id,
+				});
+				await createQuestion(prisma, final.id);
+				const attempt = await createAssessmentAttempt(prisma, {
+					assessmentId: final.id,
+					userId: learnerId,
+					passed: true,
+				});
+				await prisma.assessmentAttempt.update({
+					where: { id: attempt.id },
+					data: { submittedAt: new Date() },
+				});
+
+				const progress = await service.getPathProgress(
+					asAuthenticatedUser(learnerId),
+					path.id,
+				);
+				expect(progress.summary.isComplete).toBe(true);
+			});
+
+			it("ignores a final with no questions — an empty one can't be passed", async () => {
+				const path = await pathWithFinishedCourse();
+				// No questions: requiring it would lock the path shut forever.
+				await createAssessment(prisma, {
+					scope: "path_final",
+					pathId: path.id,
+				});
+
+				const progress = await service.getPathProgress(
+					asAuthenticatedUser(learnerId),
+					path.id,
+				);
+				expect(progress.finalAssessment).toBeNull();
+				expect(progress.summary.isComplete).toBe(true);
+			});
+
+			it("keeps the path's finals locked until its courses are done", async () => {
+				const path = await createPath(prisma);
+				const course = await createCourse(prisma);
+				const mod = await createModule(prisma, course.id);
+				// Never watched — the course stays incomplete.
+				await createLesson(prisma, mod.id, { contentType: "video" });
+				await createPathCourse(prisma, {
+					pathId: path.id,
+					courseId: course.id,
+					isRequired: true,
+				});
+
+				await expect(
+					service.getFinalsGate(
+						asAuthenticatedUser(learnerId),
+						"path",
+						path.id,
+					),
+				).resolves.toEqual({ unlocked: false });
+			});
+		});
 	});
 
 	describe("getCohortProgress", () => {

@@ -1,12 +1,14 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Loader2, Save, ShieldCheck } from "lucide-react";
+import { Loader2, RotateCcw, Save, ShieldCheck } from "lucide-react";
 import { type ReactNode, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
+import { DurationInput } from "@/components/authoring/duration-input";
 import { Button } from "@/components/ui/button";
 import {
 	type AssessmentDetail,
 	type AssessmentGradingType,
+	type AssessmentScope,
 	updateAssessment,
 } from "@/lib/content-api";
 import { cn } from "@/lib/utils";
@@ -25,6 +27,17 @@ function optInt(value: string): number | null {
 }
 
 /**
+ * Only the summative finals carry a retry policy (§4.4.1). Lesson and module
+ * quizzes are formative practice — unlimited and immediate — so the block is
+ * hidden for them and its fields never reach the API (which rejects them).
+ */
+const FINAL_SCOPES: AssessmentScope[] = [
+	"course_final",
+	"path_final",
+	"cohort",
+];
+
+/**
  * Assessment configuration (§4.4): pass mark, timing, retakes, question pool +
  * shuffle, grading, and the per-assessment anti-cheat measures (§4.6).
  */
@@ -35,6 +48,7 @@ export function AssessmentSettingsPanel({
 }) {
 	const { t } = useTranslation("authoring");
 	const queryClient = useQueryClient();
+	const isFinal = FINAL_SCOPES.includes(assessment.scope);
 
 	const [title, setTitle] = useState(assessment.title ?? "");
 	const [passMark, setPassMark] = useState(String(assessment.passMark ?? 70));
@@ -50,6 +64,9 @@ export function AssessmentSettingsPanel({
 		assessment.retakeCooldownHours == null
 			? ""
 			: String(assessment.retakeCooldownHours),
+	);
+	const [lockoutDays, setLockoutDays] = useState<number | null>(
+		assessment.retakeLockoutDays ?? null,
 	);
 	const [pool, setPool] = useState(
 		assessment.questionPoolSize == null
@@ -85,8 +102,13 @@ export function AssessmentSettingsPanel({
 				title: title.trim() || undefined,
 				passMark: Number(passMark) || 70,
 				timeLimitMinutes: optInt(timeLimit),
-				maxRetakes: optInt(maxRetakes),
-				retakeCooldownHours: optInt(cooldown),
+				...(isFinal
+					? {
+							maxRetakes: optInt(maxRetakes),
+							retakeCooldownHours: optInt(cooldown),
+							retakeLockoutDays: lockoutDays,
+						}
+					: {}),
 				questionPoolSize: optInt(pool),
 				shuffleQuestions,
 				shuffleAnswers,
@@ -115,10 +137,15 @@ export function AssessmentSettingsPanel({
 					})}
 				</h2>
 				<p className="mt-0.5 text-muted-foreground text-sm">
-					{t("assessment.settings_subtitle", {
-						defaultValue:
-							"Pass mark, timing, retakes and the integrity rules learners take this under.",
-					})}
+					{isFinal
+						? t("assessment.settings_subtitle", {
+								defaultValue:
+									"Pass mark, timing, retakes and the integrity rules learners take this under.",
+							})
+						: t("assessment.settings_subtitle_formative", {
+								defaultValue:
+									"Pass mark, timing and the integrity rules learners take this under. This is practice — retakes are unlimited; only finals limit attempts.",
+							})}
 				</p>
 			</header>
 
@@ -135,7 +162,7 @@ export function AssessmentSettingsPanel({
 					/>
 				</Field>
 
-				<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+				<div className="grid gap-4 sm:grid-cols-2">
 					<Field
 						label={t("assessment.pass_mark", { defaultValue: "Pass mark %" })}
 					>
@@ -154,21 +181,56 @@ export function AssessmentSettingsPanel({
 					>
 						<NumInput value={timeLimit} onChange={setTimeLimit} min={1} />
 					</Field>
-					<Field
-						label={t("assessment.max_retakes", { defaultValue: "Max retakes" })}
-						hint={t("assessment.blank_unlimited", {
-							defaultValue: "Blank = unlimited",
-						})}
-					>
-						<NumInput value={maxRetakes} onChange={setMaxRetakes} min={0} />
-					</Field>
-					<Field
-						label={t("assessment.cooldown", { defaultValue: "Cooldown (hrs)" })}
-						hint={t("assessment.blank_none", { defaultValue: "Blank = none" })}
-					>
-						<NumInput value={cooldown} onChange={setCooldown} min={0} />
-					</Field>
 				</div>
+
+				{/* Retry policy (§4.4.1) — finals only; a formative lesson/module
+				    quiz is unlimited practice and shows no rules at all. */}
+				{!isFinal ? null : (
+					<div className="rounded-card border border-border bg-muted/30 p-4">
+						<div className="flex items-center gap-2 font-medium text-foreground text-sm">
+							<RotateCcw className="size-4 text-brand-primary" />
+							{t("assessment.retry_policy", { defaultValue: "Retry policy" })}
+						</div>
+						<p className="mt-1 text-muted-foreground text-xs">
+							{t("assessment.retry_policy_hint", {
+								defaultValue:
+									"What happens when a learner doesn't pass: how many tries they get, how long they wait between tries, and whether their tries reset after a break.",
+							})}
+						</p>
+						<div className="mt-4 grid gap-4 sm:grid-cols-3">
+							<Field
+								label={t("assessment.max_retakes", {
+									defaultValue: "Max retakes",
+								})}
+								hint={t("assessment.blank_unlimited", {
+									defaultValue: "Blank = unlimited",
+								})}
+							>
+								<NumInput value={maxRetakes} onChange={setMaxRetakes} min={0} />
+							</Field>
+							<Field
+								label={t("assessment.cooldown", {
+									defaultValue: "Wait between tries (hrs)",
+								})}
+								hint={t("assessment.blank_none", {
+									defaultValue: "Blank = none",
+								})}
+							>
+								<NumInput value={cooldown} onChange={setCooldown} min={0} />
+							</Field>
+							<Field
+								label={t("assessment.lockout", {
+									defaultValue: "Reset tries after",
+								})}
+								hint={t("assessment.lockout_hint", {
+									defaultValue: "Blank = tries never reset",
+								})}
+							>
+								<DurationInput days={lockoutDays} onChange={setLockoutDays} />
+							</Field>
+						</div>
+					</div>
+				)}
 
 				<div className="grid gap-4 sm:grid-cols-2">
 					<Field

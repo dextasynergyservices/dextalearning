@@ -37,6 +37,9 @@ function projectDetail(): ProjectDetail {
 		allowedFileTypes: [],
 		maxFileSizeMb: 50,
 		peerReviewCount: 2,
+		maxAttempts: null,
+		retryCooldownHours: null,
+		retryLockoutDays: null,
 	};
 }
 

@@ -3,6 +3,11 @@ import type { AuthenticatedUser } from "../../src/auth/types";
 import { EngagementEventsHandler } from "../../src/modules/engagement/engagement.events-handler";
 import { EngagementService } from "../../src/modules/engagement/engagement.service";
 import { EngagementQueryService } from "../../src/modules/engagement/engagement-query.service";
+import {
+	addDays,
+	DEFAULT_TIMEZONE,
+	localDateOf,
+} from "../../src/modules/engagement/streak.calculator";
 import { NotificationsService } from "../../src/modules/notifications/notifications.service";
 import { getTestPrisma } from "./support/db";
 import { createCourse, createUser } from "./support/factories";
@@ -10,6 +15,19 @@ import { FakeNotificationAdapter } from "./support/fakes/fake-notification.adapt
 
 function asAuthenticatedUser(id: string): AuthenticatedUser {
 	return { id, email: `${id}@example.com`, role: "learner" };
+}
+
+/**
+ * `lastActiveDate` is a DATE column, and the streak engine reads it as a *local*
+ * calendar day (§3.2, DEFAULT_TIMEZONE) — not as an instant.
+ *
+ * `new Date(Date.now() - n * 86_400_000)` truncates to a **UTC** date, which is
+ * `n + 1` local days back during the hour after local midnight (Lagos is UTC+1).
+ * These tests therefore failed for exactly one hour a day, and passed the other
+ * twenty-three. Build the date the way the code reads it instead.
+ */
+function localDaysAgo(days: number): Date {
+	return new Date(addDays(localDateOf(new Date(), DEFAULT_TIMEZONE), -days));
 }
 
 /**
@@ -106,7 +124,7 @@ describe("Engagement context (integration)", () => {
 				current: 5,
 				longest: 5,
 				freezes: 1,
-				lastActiveDate: new Date(Date.now() - 2 * 86_400_000),
+				lastActiveDate: localDaysAgo(2),
 			},
 		});
 		await completeLesson();
@@ -273,7 +291,7 @@ describe("Engagement context (integration)", () => {
 				userId: learnerId,
 				current: 4,
 				longest: 4,
-				lastActiveDate: new Date(Date.now() - 86_400_000),
+				lastActiveDate: localDaysAgo(1),
 			},
 		});
 		const atRisk = await query.listStreaksAtRisk();

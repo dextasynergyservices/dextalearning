@@ -4,9 +4,11 @@ import { EventEmitterModule } from "@nestjs/event-emitter";
 import { ScheduleModule } from "@nestjs/schedule";
 import { AuthModule } from "./auth/auth.module";
 import { RateLimitModule } from "./common/rate-limit.module";
+import { AdminUsersModule } from "./modules/admin-users/admin-users.module";
 import { AnalyticsModule } from "./modules/analytics/analytics.module";
 import { AssessmentsModule } from "./modules/assessments/assessments.module";
 import { CatalogModule } from "./modules/catalog/catalog.module";
+import { CertificatesModule } from "./modules/certificates/certificates.module";
 import { ChatModule } from "./modules/chat/chat.module";
 import { CoachModule } from "./modules/coach/coach.module";
 import { CompletionModule } from "./modules/completion/completion.module";
@@ -22,6 +24,7 @@ import { MediaModule } from "./modules/media/media.module";
 import { NotificationsModule } from "./modules/notifications/notifications.module";
 import { OnboardingModule } from "./modules/onboarding/onboarding.module";
 import { PacingModule } from "./modules/pacing/pacing.module";
+import { PaymentsModule } from "./modules/payments/payments.module";
 import { PhoneVerificationModule } from "./modules/phone-verification/phone-verification.module";
 import { ProjectsModule } from "./modules/projects/projects.module";
 import { RemindersModule } from "./modules/reminders/reminders.module";
@@ -35,6 +38,7 @@ import { CacheModule } from "./shared/cache/cache.module";
 import { EncodingModule } from "./shared/encoding/encoding.module";
 import { NotificationsPortModule } from "./shared/notifications/notifications-port.module";
 import { QueueModule } from "./shared/queue/queue.module";
+import { PlatformSettingsModule } from "./shared/settings/platform-settings.module";
 import { StorageModule } from "./shared/storage/storage.module";
 
 @Module({
@@ -52,10 +56,12 @@ import { StorageModule } from "./shared/storage/storage.module";
 		AiModule,
 		NotificationsPortModule,
 		CacheModule,
+		PlatformSettingsModule,
 		RateLimitModule,
 		AuthModule,
 		HealthModule,
 		CatalogModule,
+		CertificatesModule,
 		ContentModule,
 		MediaModule,
 		AssessmentsModule,
@@ -74,10 +80,12 @@ import { StorageModule } from "./shared/storage/storage.module";
 		PacingModule,
 		CompletionModule,
 		EnrollmentModule,
+		PaymentsModule,
 		TranslationModule,
 		EngagementModule,
 		NotificationsModule,
 		RemindersModule,
+		AdminUsersModule,
 		AnalyticsModule,
 	],
 })

@@ -1,6 +1,7 @@
 import { render } from "@react-email/render";
 import { CoachDigestEmail } from "./coach-digest";
 import { MagicLinkEmail } from "./magic-link";
+import { NotificationEmail } from "./notification";
 import { OtpEmail } from "./otp";
 import { PasswordResetEmail } from "./password-reset";
 import { ReminderDigestEmail } from "./reminder-digest";
@@ -45,3 +46,15 @@ export const renderCoachDigestEmail = (props: {
 	cta: string;
 	ctaUrl?: string;
 }) => render(<CoachDigestEmail {...props} />);
+
+/**
+ * The shared §8.6 notification email — used by every `NotificationsService`
+ * caller so none of them hand-roll raw HTML.
+ */
+export const renderNotificationEmail = (props: {
+	preview: string;
+	heading: string;
+	paragraphs: string[];
+	cta?: string;
+	ctaUrl?: string;
+}) => render(<NotificationEmail {...props} />);

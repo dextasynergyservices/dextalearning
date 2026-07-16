@@ -32,6 +32,12 @@ vi.mock("sonner", () => ({
 	toast: { success: vi.fn(), error: vi.fn() },
 }));
 
+vi.mock("@/lib/payments-api", () => ({
+	getPlatformFeePct: vi
+		.fn()
+		.mockResolvedValue({ pct: 5, instructorSharePct: 90 }),
+}));
+
 function path(overrides: Partial<PathDetail> = {}): PathDetail {
 	return {
 		id: "p1",
@@ -89,14 +95,17 @@ describe("PathSettingsPanel", () => {
 		expect(screen.queryByText("Earn-Back")).not.toBeInTheDocument();
 	});
 
-	it("shows the Earn-Back preview with the computed refundable amount", () => {
+	it("shows the Earn-Back preview computed on the post-fee remainder", async () => {
 		renderWithProviders(
 			<PathSettingsPanel
 				path={path({ isEarnBackEligible: true, earnBackPercentage: 20 })}
 			/>,
 		);
+		// 5% platform fee off ₦10,000 → remainder ₦9,500; 20% earn-back → ₦1,900.
 		expect(
-			screen.getByText("Learners can earn back 20% — ₦2,000 of ₦10,000."),
+			await screen.findByText(
+				"Learners can earn back up to ₦1,900 — 20% of ₦9,500 (the price minus the 5% platform fee).",
+			),
 		).toBeInTheDocument();
 	});
 

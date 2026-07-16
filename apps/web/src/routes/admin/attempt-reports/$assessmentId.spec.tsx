@@ -30,6 +30,7 @@ function attemptRow(): AttemptSummaryRow {
 		passed: true,
 		integrityScore: 92,
 		flagCount: 0,
+		cameraMonitored: true,
 		invalidated: false,
 		escalated: false,
 	};

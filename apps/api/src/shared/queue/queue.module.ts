@@ -3,9 +3,13 @@ import { type ConnectionOptions, Queue } from "bullmq";
 import {
 	AUDIO_QUEUE,
 	CAPTION_QUEUE,
+	EARN_BACK_QUEUE,
+	INSTRUCTOR_PAYOUT_QUEUE,
 	QUEUE_AUDIO,
 	QUEUE_CAPTION,
 	QUEUE_CONNECTION,
+	QUEUE_EARN_BACK,
+	QUEUE_INSTRUCTOR_PAYOUT,
 	QUEUE_VIDEO,
 	VIDEO_QUEUE,
 } from "./queue.constants";
@@ -55,7 +59,16 @@ function queueProvider(token: symbol, name: string): Provider {
 		queueProvider(VIDEO_QUEUE, QUEUE_VIDEO),
 		queueProvider(AUDIO_QUEUE, QUEUE_AUDIO),
 		queueProvider(CAPTION_QUEUE, QUEUE_CAPTION),
+		queueProvider(INSTRUCTOR_PAYOUT_QUEUE, QUEUE_INSTRUCTOR_PAYOUT),
+		queueProvider(EARN_BACK_QUEUE, QUEUE_EARN_BACK),
 	],
-	exports: [QUEUE_CONNECTION, VIDEO_QUEUE, AUDIO_QUEUE, CAPTION_QUEUE],
+	exports: [
+		QUEUE_CONNECTION,
+		VIDEO_QUEUE,
+		AUDIO_QUEUE,
+		CAPTION_QUEUE,
+		INSTRUCTOR_PAYOUT_QUEUE,
+		EARN_BACK_QUEUE,
+	],
 })
 export class QueueModule {}

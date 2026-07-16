@@ -1,8 +1,13 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useLocation } from "@tanstack/react-router";
 import { Loader2 } from "lucide-react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
+import {
+	type CheckoutCommercials,
+	CheckoutDialog,
+} from "@/components/catalog/checkout-dialog";
 import { buttonVariants } from "@/components/ui/button";
 import { useSession } from "@/lib/auth-client";
 import {
@@ -10,6 +15,7 @@ import {
 	type CourseProgress,
 	type EnrollableType,
 	enroll,
+	formatMoney,
 	getCohortProgress,
 	getCourseProgress,
 	getEnrollmentStatus,
@@ -42,11 +48,14 @@ export function EnrollCta({
 	id,
 	size = "lg",
 	className,
+	commercials,
 }: {
 	type: EnrollableType;
 	id: string;
 	size?: "lg" | "sm";
 	className?: string;
+	/** When the content is paid, supplies the checkout disclosure figures. */
+	commercials?: CheckoutCommercials;
 }) {
 	const { t } = useTranslation("academy");
 	const qc = useQueryClient();
@@ -54,6 +63,10 @@ export function EnrollCta({
 	const { data: session } = useSession();
 	const userId = session?.user?.id;
 	const isLearner = Boolean(userId);
+	const [checkoutOpen, setCheckoutOpen] = useState(false);
+	const isPaid = Boolean(
+		commercials && !commercials.isFree && commercials.price > 0,
+	);
 
 	const { data: status } = useQuery({
 		queryKey: ["enrollment", type, id, userId],
@@ -97,6 +110,31 @@ export function EnrollCta({
 	}
 
 	if (!enrolled) {
+		// Paid content routes through checkout (disclosure → gateway); free
+		// content enrols directly.
+		if (isPaid && commercials) {
+			return (
+				<>
+					<button
+						type="button"
+						onClick={() => setCheckoutOpen(true)}
+						className={cls}
+					>
+						{t("detail.enroll_paid", {
+							defaultValue: "Enroll — {{price}}",
+							price: formatMoney(commercials.currency, commercials.price),
+						})}
+					</button>
+					<CheckoutDialog
+						open={checkoutOpen}
+						onOpenChange={setCheckoutOpen}
+						type={type}
+						id={id}
+						commercials={commercials}
+					/>
+				</>
+			);
+		}
 		return (
 			<button
 				type="button"

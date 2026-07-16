@@ -152,6 +152,54 @@
 			"dropoff_alert": {
 				"title": "Algunos aprendices se están quedando atrás",
 				"body": "Algunos aprendices de tu cohorte parecen en riesgo — contáctalos."
+			},
+			"certificate_issued": {
+				"title": "Certificado listo 🎓",
+				"body": "Completaste {{title}}: ve o descarga tu certificado."
+			},
+			"project_graded": {
+				"title": "Tu proyecto fue calificado",
+				"body": "{{title}} fue revisado. Toca para ver tu resultado."
+			},
+			"assessment_invalidated": {
+				"title": "Se invalidó un intento",
+				"body": "Una revisión de integridad invalidó un intento; quizás debas repetirlo."
+			},
+			"final_failed": {
+				"title": "Aún no aprobado",
+				"body": "No aprobaste {{title}} esta vez. Revisa tus reintentos e inténtalo de nuevo."
+			},
+			"payout_processed": {
+				"title": "Te pagaron 💸",
+				"body": "{{amount}} por {{entityTitle}} va en camino a tu cuenta."
+			},
+			"payout_failed": {
+				"title": "Problema de pago",
+				"body": "Hubo un problema al pagar {{entityTitle}}. Nuestro equipo lo revisa."
+			},
+			"earn_back_processed": {
+				"title": "Earn-Back en camino 🎉",
+				"body": "{{amount}} se reembolsa a tu método de pago."
+			},
+			"earn_back_no_payout": {
+				"title": "Curso completado",
+				"body": "Sin Earn-Back restante en {{entityTitle}}, pero tu certificado está listo."
+			},
+			"earn_back_failed": {
+				"title": "Earn-Back en proceso",
+				"body": "Estamos procesando tu Earn-Back de {{entityTitle}} — nuestro equipo se pondrá en contacto."
+			},
+			"payout_failed_admin": {
+				"title": "Pago fallido (acción requerida)",
+				"body": "El pago al instructor falló: {{reason}}. Revisa y abre un ticket de soporte."
+			},
+			"earn_back_failed_admin": {
+				"title": "Reembolso de Earn-Back fallido (acción requerida)",
+				"body": "El reembolso de Earn-Back falló: {{reason}}. Revisa y abre un ticket de soporte."
+			},
+			"project_submission_received": {
+				"title": "Nueva entrega para calificar",
+				"body": "{{learnerName}} entregó {{projectTitle}}."
 			}
 		}
 	},

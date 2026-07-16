@@ -7,6 +7,12 @@ const PASSWORD = "TestPass123!";
 test("browse → enroll → view lesson → pass the assessment", async ({
 	page,
 }) => {
+	// The longest golden path here — register, verify, login, browse, enrol,
+	// read, then sit the final — on Playwright's default 30s budget. It runs in
+	// ~10s alone but exceeded 30s from inside the serial suite, where every spec
+	// shares one dev server and one DB. Nothing is wrong with the app; the
+	// budget was simply sized for the isolated case.
+	test.slow();
 	const { courseSlug, lessonId, assessmentId } = await seedLearnerCourse();
 	const email = `e2e-${randomUUID()}@example.com`;
 
@@ -48,8 +54,20 @@ test("browse → enroll → view lesson → pass the assessment", async ({
 	).toBeVisible();
 	await expect(page.getByText("Spacing beats cramming.")).toBeVisible();
 
+	// Wait for the completion to actually persist. The seeded lesson is short
+	// enough to auto-complete on load, but navigating away before the write
+	// lands leaves the course incomplete — which the §4.3.1 finals gate then
+	// (correctly) uses to lock the assessment below. Without this the test
+	// races and fails intermittently.
+	await expect(page.getByText("Completed", { exact: true })).toBeVisible();
+
 	await page.goto(`/learn/assessment/${assessmentId}`);
-	await expect(page.getByText("Module quiz")).toBeVisible();
+	// Scope to the heading: the fixture is titled "Module quiz" but is really a
+	// `course_final`, so the gate's "…module quizzes first." note would also
+	// substring-match a bare getByText.
+	await expect(
+		page.getByRole("heading", { name: "Module quiz" }),
+	).toBeVisible();
 	await page.getByRole("button", { name: "Start assessment" }).click();
 
 	await expect(

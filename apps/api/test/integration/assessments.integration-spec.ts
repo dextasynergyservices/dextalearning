@@ -1,5 +1,5 @@
 import { BadRequestException, ForbiddenException } from "@nestjs/common";
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { AuthenticatedUser } from "../../src/auth/types";
 import { AssessmentsService } from "../../src/modules/assessments/assessments.service";
 import { getTestPrisma } from "./support/db";
@@ -8,6 +8,7 @@ import {
 	createCohort,
 	createLesson,
 	createModule,
+	createPathCourse,
 	createUser,
 } from "./support/factories";
 import { FakeAiAdapter } from "./support/fakes/fake-ai.adapter";
@@ -23,11 +24,15 @@ function asAuthenticatedUser(
 
 describe("AssessmentsService (integration)", () => {
 	const prisma = getTestPrisma();
+	const notify = vi.fn().mockResolvedValue(undefined);
 	const service = new AssessmentsService(
 		prisma,
 		new FakeAiAdapter(),
 		new FakeStorageAdapter(),
 		new FakeMediaEncoderAdapter(),
+		{
+			notify,
+		} as unknown as import("../../src/modules/notifications/notifications.service").NotificationsService,
 	);
 
 	let ownerId: string;
@@ -132,6 +137,59 @@ describe("AssessmentsService (integration)", () => {
 		});
 	});
 
+	describe("updateAssessment — retry rules are finals-only (§4.4.1)", () => {
+		it("accepts retry rules on a course final", async () => {
+			const course = await prisma.course.create({
+				data: { title: "Course", slug: "retry-final", createdBy: ownerId },
+			});
+			const assessment = await service.createAssessment(
+				asAuthenticatedUser(ownerId),
+				{ scope: "course_final", courseId: course.id },
+			);
+			const updated = await service.updateAssessment(
+				asAuthenticatedUser(ownerId),
+				assessment.id,
+				{ maxRetakes: 2, retakeCooldownHours: 24, retakeLockoutDays: 14 },
+			);
+			expect(updated.maxRetakes).toBe(2);
+			expect(updated.retakeLockoutDays).toBe(14);
+		});
+
+		it("rejects retry rules on a module quiz", async () => {
+			const course = await prisma.course.create({
+				data: { title: "Course", slug: "retry-module", createdBy: ownerId },
+			});
+			const mod = await createModule(prisma, course.id);
+			const assessment = await service.createAssessment(
+				asAuthenticatedUser(ownerId),
+				{ scope: "module", moduleId: mod.id },
+			);
+			await expect(
+				service.updateAssessment(asAuthenticatedUser(ownerId), assessment.id, {
+					maxRetakes: 2,
+				}),
+			).rejects.toThrow(BadRequestException);
+		});
+
+		it("lets a formative quiz save its other settings, and clear retry fields", async () => {
+			const course = await prisma.course.create({
+				data: { title: "Course", slug: "retry-clear", createdBy: ownerId },
+			});
+			const mod = await createModule(prisma, course.id);
+			const assessment = await service.createAssessment(
+				asAuthenticatedUser(ownerId),
+				{ scope: "module", moduleId: mod.id },
+			);
+			// Nulls are always fine — the panel may send them harmlessly.
+			const updated = await service.updateAssessment(
+				asAuthenticatedUser(ownerId),
+				assessment.id,
+				{ passMark: 80, maxRetakes: null, retakeLockoutDays: null },
+			);
+			expect(Number(updated.passMark)).toBe(80);
+		});
+	});
+
 	describe("updateAssessment", () => {
 		it("converts scheduledAt/dueAt date strings", async () => {
 			const course = await prisma.course.create({
@@ -169,6 +227,126 @@ describe("AssessmentsService (integration)", () => {
 					assessment.id,
 					{},
 				),
+			).rejects.toThrow(BadRequestException);
+		});
+
+		// ── Multi-source generation (§4.4) ──────────────────────────────────
+		it("generates from several chosen lessons at once", async () => {
+			const course = await prisma.course.create({
+				data: { title: "Course", slug: "gen-multi", createdBy: ownerId },
+			});
+			const mod = await createModule(prisma, course.id);
+			const lessonA = await createLesson(prisma, mod.id, {
+				contentType: "video",
+			});
+			const lessonB = await createLesson(prisma, mod.id, {
+				contentType: "video",
+			});
+			for (const id of [lessonA.id, lessonB.id]) {
+				await prisma.lesson.update({
+					where: { id },
+					data: {
+						transcriptText:
+							"A long enough transcript to pass the forty-character minimum easily.",
+					},
+				});
+			}
+			const assessment = await service.createAssessment(
+				asAuthenticatedUser(ownerId),
+				{ scope: "module", moduleId: mod.id },
+			);
+			const questions = await service.generateQuestions(
+				asAuthenticatedUser(ownerId),
+				assessment.id,
+				{ lessonIds: [lessonA.id, lessonB.id], count: 4 },
+			);
+			expect(questions).toHaveLength(4);
+		});
+
+		it("offers a path-final assessment the lessons of every course in the path", async () => {
+			const path = await prisma.learningPath.create({
+				data: { title: "Path", slug: "gen-path", createdBy: ownerId },
+			});
+			const course = await prisma.course.create({
+				data: { title: "In path", slug: "gen-path-course", createdBy: ownerId },
+			});
+			const mod = await createModule(prisma, course.id);
+			const lesson = await createLesson(prisma, mod.id, {
+				contentType: "video",
+			});
+			await prisma.lesson.update({
+				where: { id: lesson.id },
+				data: {
+					transcriptText:
+						"A long enough transcript to pass the forty-character minimum easily.",
+				},
+			});
+			await createPathCourse(prisma, { pathId: path.id, courseId: course.id });
+
+			const assessment = await service.createAssessment(
+				asAuthenticatedUser(ownerId),
+				{ scope: "path_final", pathId: path.id },
+			);
+			// The picker must reach across the path — this used to resolve to [].
+			const forEdit = await service.getForEdit(
+				asAuthenticatedUser(ownerId),
+				assessment.id,
+			);
+			expect(forEdit.sourceLessons.map((l) => l.id)).toContain(lesson.id);
+			expect(forEdit.sourceLessons[0].courseTitle).toBe("In path");
+
+			const questions = await service.generateQuestions(
+				asAuthenticatedUser(ownerId),
+				assessment.id,
+				{ lessonIds: [lesson.id], count: 2 },
+			);
+			expect(questions).toHaveLength(2);
+		});
+
+		it("refuses lessons from outside the assessment's scope", async () => {
+			const course = await prisma.course.create({
+				data: { title: "Mine", slug: "gen-scope-mine", createdBy: ownerId },
+			});
+			const otherCourse = await prisma.course.create({
+				data: { title: "Theirs", slug: "gen-scope-other", createdBy: otherId },
+			});
+			const otherMod = await createModule(prisma, otherCourse.id);
+			const foreign = await createLesson(prisma, otherMod.id, {
+				contentType: "video",
+			});
+			await prisma.lesson.update({
+				where: { id: foreign.id },
+				data: {
+					transcriptText:
+						"A long enough transcript to pass the forty-character minimum easily.",
+				},
+			});
+			const assessment = await service.createAssessment(
+				asAuthenticatedUser(ownerId),
+				{ scope: "course_final", courseId: course.id },
+			);
+			await expect(
+				service.generateQuestions(asAuthenticatedUser(ownerId), assessment.id, {
+					lessonIds: [foreign.id],
+				}),
+			).rejects.toThrow();
+		});
+
+		it("rejects multi-lesson generation when none of them have text", async () => {
+			const course = await prisma.course.create({
+				data: { title: "Course", slug: "gen-multi-empty", createdBy: ownerId },
+			});
+			const mod = await createModule(prisma, course.id);
+			const a = await createLesson(prisma, mod.id, { contentType: "video" });
+			const b = await createLesson(prisma, mod.id, { contentType: "video" });
+			const assessment = await service.createAssessment(
+				asAuthenticatedUser(ownerId),
+				{ scope: "module", moduleId: mod.id },
+			);
+			await expect(
+				service.generateQuestions(asAuthenticatedUser(ownerId), assessment.id, {
+					lessonIds: [a.id, b.id],
+				}),
 			).rejects.toThrow(BadRequestException);
 		});
 
@@ -280,6 +458,51 @@ describe("AssessmentsService (integration)", () => {
 			await expect(
 				service.listAllIntegrityReports(asAuthenticatedUser(adminId, "admin")),
 			).resolves.toBeInstanceOf(Array);
+		});
+
+		it("lets an admin open an orphaned attempt (deleted assessment); instructor cannot", async () => {
+			const course = await prisma.course.create({
+				data: { title: "C", slug: "orphan-course", createdBy: ownerId },
+			});
+			const assessment = await service.createAssessment(
+				asAuthenticatedUser(ownerId),
+				{ scope: "course_final", courseId: course.id },
+			);
+			const learner = await createUser(prisma, { role: "learner" });
+			const attempt = await createAssessmentAttempt(prisma, {
+				assessmentId: assessment.id,
+				userId: learner.id,
+				passed: false,
+			});
+			await prisma.assessmentAttempt.update({
+				where: { id: attempt.id },
+				data: { submittedAt: new Date(), integrityScore: 40 },
+			});
+			// Deleting the assessment SetNulls the attempt's assessmentId (orphan).
+			await prisma.assessmentAttempt.update({
+				where: { id: attempt.id },
+				data: { assessmentId: null },
+			});
+
+			// Admin can still view the surviving integrity record (was "Attempt not found").
+			const report = await service.getAttemptReport(
+				asAuthenticatedUser(adminId, "admin"),
+				attempt.id,
+			);
+			expect(report.id).toBe(attempt.id);
+
+			// A non-admin can't claim a null-parent attempt.
+			await expect(
+				service.getAttemptReport(asAuthenticatedUser(ownerId), attempt.id),
+			).rejects.toThrow(ForbiddenException);
+
+			// A truly-missing attempt is still NotFound.
+			await expect(
+				service.getAttemptReport(
+					asAuthenticatedUser(adminId, "admin"),
+					"00000000-0000-0000-0000-000000000000",
+				),
+			).rejects.toThrow();
 		});
 	});
 });

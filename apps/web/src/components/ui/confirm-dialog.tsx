@@ -1,5 +1,5 @@
 import { AlertTriangle, Loader2, X } from "lucide-react";
-import { useEffect } from "react";
+import { type ReactNode, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 
 interface ConfirmDialogProps {
@@ -10,6 +10,8 @@ interface ConfirmDialogProps {
 	cancelLabel: string;
 	isPending?: boolean;
 	tone?: "danger" | "default";
+	/** Optional body between the description and the buttons (e.g. a reason field). */
+	children?: ReactNode;
 	onConfirm: () => void;
 	onOpenChange: (open: boolean) => void;
 }
@@ -22,6 +24,7 @@ export function ConfirmDialog({
 	cancelLabel,
 	isPending = false,
 	tone = "default",
+	children,
 	onConfirm,
 	onOpenChange,
 }: ConfirmDialogProps) {
@@ -83,6 +86,7 @@ export function ConfirmDialog({
 						<X className="size-4" />
 					</button>
 				</div>
+				{children ? <div className="mt-4">{children}</div> : null}
 				<div className="mt-5 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
 					<Button
 						variant="ghost"
