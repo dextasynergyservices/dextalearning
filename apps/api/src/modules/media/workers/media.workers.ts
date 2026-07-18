@@ -1,12 +1,5 @@
-import {
-	Inject,
-	Injectable,
-	Logger,
-	type OnModuleDestroy,
-	type OnModuleInit,
-} from "@nestjs/common";
+import { Inject, Injectable, Logger, type OnModuleInit } from "@nestjs/common";
 import { EventEmitter2 } from "@nestjs/event-emitter";
-import { type ConnectionOptions, type Job, Worker } from "bullmq";
 import { PrismaService } from "../../../prisma/prisma.service";
 import {
 	MEDIA_ENCODER_PORT,
@@ -23,10 +16,14 @@ import {
 	type CaptionJobData,
 	QUEUE_AUDIO,
 	QUEUE_CAPTION,
-	QUEUE_CONNECTION,
 	QUEUE_VIDEO,
 	type VideoJobData,
 } from "../../../shared/queue/queue.constants";
+import {
+	type JobContext,
+	QUEUE_PORT,
+	type QueuePort,
+} from "../../../shared/queue/queue.port";
 import {
 	STORAGE_PORT,
 	type StoragePort,
@@ -35,17 +32,17 @@ import { thumbnailSeekSeconds } from "../media.calculator";
 import { MediaService } from "../media.service";
 
 /**
- * BullMQ workers for the media pipeline (§12.2–12.4). Each downloads the staged
- * source from R2, runs the FFmpeg/Sharp encode, uploads the derived assets,
- * persists keys on the lesson, then emits a domain event for other contexts.
+ * Media pipeline processors (§12.2–12.4). Each downloads the staged source from
+ * R2, runs the FFmpeg/Sharp encode, uploads the derived assets, persists keys on
+ * the lesson, then emits a domain event. Registered on the QueuePort at init, so
+ * the SAME logic runs under BullMQ (durable) or in-process (free tier).
  */
 @Injectable()
-export class MediaWorkers implements OnModuleInit, OnModuleDestroy {
+export class MediaWorkers implements OnModuleInit {
 	private readonly logger = new Logger(MediaWorkers.name);
-	private workers: Worker[] = [];
 
 	constructor(
-		@Inject(QUEUE_CONNECTION) private readonly connection: ConnectionOptions,
+		@Inject(QUEUE_PORT) private readonly queue: QueuePort,
 		@Inject(STORAGE_PORT) private readonly storage: StoragePort,
 		@Inject(MEDIA_ENCODER_PORT) private readonly encoder: MediaEncoderPort,
 		private readonly prisma: PrismaService,
@@ -54,62 +51,44 @@ export class MediaWorkers implements OnModuleInit, OnModuleDestroy {
 	) {}
 
 	onModuleInit(): void {
-		// `drainDelay: 60` — when idle, block Redis for 60s per poll instead of the
-		// 5s default. Cuts idle Redis commands ~12× (matters on per-command billed
-		// serverless Redis); job pickup latency of ≤60s is irrelevant for encoding
-		// that takes minutes. Encoding stays on BullMQ for durable retry.
-		const opts = { connection: this.connection, drainDelay: 60 };
-		this.workers = [
-			new Worker<VideoJobData>(
-				QUEUE_VIDEO,
-				(job: Job<VideoJobData>) => this.processVideo(job),
-				{ ...opts, concurrency: 1 },
-			),
-			new Worker<AudioJobData>(
-				QUEUE_AUDIO,
-				(job: Job<AudioJobData>) => this.processAudio(job),
-				{ ...opts, concurrency: 1 },
-			),
-			new Worker<CaptionJobData>(
-				QUEUE_CAPTION,
-				(job: Job<CaptionJobData>) => this.processCaption(job),
-				opts,
-			),
-		];
-		for (const worker of this.workers) {
-			worker.on("failed", (job, err) =>
-				this.logger.error(
-					`Job ${job?.id} on "${worker.name}" failed: ${err.message}`,
-				),
-			);
-		}
+		this.queue.register<VideoJobData>(
+			QUEUE_VIDEO,
+			(data, ctx) => this.processVideo(data, ctx),
+			{ concurrency: 1 },
+		);
+		this.queue.register<AudioJobData>(
+			QUEUE_AUDIO,
+			(data, ctx) => this.processAudio(data, ctx),
+			{ concurrency: 1 },
+		);
+		this.queue.register<CaptionJobData>(QUEUE_CAPTION, (data, ctx) =>
+			this.processCaption(data, ctx),
+		);
 	}
 
-	async onModuleDestroy(): Promise<void> {
-		await Promise.all(this.workers.map((worker) => worker.close()));
-	}
-
-	private async processVideo(job: Job<VideoJobData>): Promise<void> {
-		const data = job.data;
-		await job.updateProgress(5);
+	private async processVideo(
+		data: VideoJobData,
+		ctx: JobContext,
+	): Promise<void> {
+		await ctx.updateProgress(5);
 		const source = await this.storage.getObject(data.sourceKey);
-		await job.updateProgress(10);
+		await ctx.updateProgress(10);
 		const renditions = await this.encoder.encodeVideoRenditions(
 			source,
 			data.sourceExt,
 		);
-		await job.updateProgress(70);
+		await ctx.updateProgress(70);
 		const videoKeys: Record<string, string> = {};
 		for (const [index, rendition] of renditions.entries()) {
 			const key = `videos/${data.lessonId}/${rendition.quality}.mp4`;
 			await this.storage.putObject(key, rendition.data, "video/mp4");
 			videoKeys[rendition.quality] = key;
-			await job.updateProgress(
+			await ctx.updateProgress(
 				70 + Math.round(((index + 1) / renditions.length) * 18),
 			);
 		}
 
-		await job.updateProgress(90);
+		await ctx.updateProgress(90);
 		const thumbnail = await this.encoder.extractThumbnailWebp(
 			source,
 			data.sourceExt,
@@ -117,7 +96,7 @@ export class MediaWorkers implements OnModuleInit, OnModuleDestroy {
 		);
 		const thumbnailKey = `videos/${data.lessonId}/thumbnail.webp`;
 		await this.storage.putObject(thumbnailKey, thumbnail, "image/webp");
-		await job.updateProgress(95);
+		await ctx.updateProgress(95);
 
 		const lesson = await this.prisma.lesson.update({
 			where: { id: data.lessonId },
@@ -125,7 +104,7 @@ export class MediaWorkers implements OnModuleInit, OnModuleDestroy {
 			select: { videoDurationSec: true },
 		});
 		await this.safeDelete(data.sourceKey);
-		await job.updateProgress(100);
+		await ctx.updateProgress(100);
 
 		this.events.emit(ContentEvents.VideoEncoded, {
 			lessonId: data.lessonId,
@@ -135,16 +114,18 @@ export class MediaWorkers implements OnModuleInit, OnModuleDestroy {
 		} satisfies VideoEncodedEvent);
 	}
 
-	private async processAudio(job: Job<AudioJobData>): Promise<void> {
-		const data = job.data;
-		await job.updateProgress(10);
+	private async processAudio(
+		data: AudioJobData,
+		ctx: JobContext,
+	): Promise<void> {
+		await ctx.updateProgress(10);
 		const source = await this.storage.getObject(data.sourceKey);
-		await job.updateProgress(25);
+		await ctx.updateProgress(25);
 		const encoded = await this.encoder.encodeAudioAac(source, data.sourceExt);
-		await job.updateProgress(75);
+		await ctx.updateProgress(75);
 		const audioKey = `audio/${data.lessonId}/primary.m4a`;
 		await this.storage.putObject(audioKey, encoded, "audio/mp4");
-		await job.updateProgress(90);
+		await ctx.updateProgress(90);
 
 		const lesson = await this.prisma.lesson.update({
 			where: { id: data.lessonId },
@@ -152,7 +133,7 @@ export class MediaWorkers implements OnModuleInit, OnModuleDestroy {
 			select: { audioDurationSec: true },
 		});
 		await this.safeDelete(data.sourceKey);
-		await job.updateProgress(100);
+		await ctx.updateProgress(100);
 
 		this.events.emit(ContentEvents.AudioEncoded, {
 			lessonId: data.lessonId,
@@ -162,16 +143,18 @@ export class MediaWorkers implements OnModuleInit, OnModuleDestroy {
 		} satisfies AudioEncodedEvent);
 	}
 
-	private async processCaption(job: Job<CaptionJobData>): Promise<void> {
-		const data = job.data;
-		await job.updateProgress(20);
+	private async processCaption(
+		data: CaptionJobData,
+		ctx: JobContext,
+	): Promise<void> {
+		await ctx.updateProgress(20);
 		const source = await this.storage.getObject(data.sourceKey);
-		await job.updateProgress(45);
+		await ctx.updateProgress(45);
 		const vtt = await this.encoder.convertSrtToVtt(source);
-		await job.updateProgress(70);
+		await ctx.updateProgress(70);
 		const vttKey = `captions/${data.lessonId}/${data.languageCode}.vtt`;
 		await this.storage.putObject(vttKey, vtt, "text/vtt");
-		await job.updateProgress(85);
+		await ctx.updateProgress(85);
 		await this.media.storeCaption(
 			data.lessonId,
 			data.languageCode,
@@ -179,7 +162,7 @@ export class MediaWorkers implements OnModuleInit, OnModuleDestroy {
 			data.uploadedBy,
 		);
 		await this.safeDelete(data.sourceKey);
-		await job.updateProgress(100);
+		await ctx.updateProgress(100);
 
 		this.events.emit(ContentEvents.CaptionReady, {
 			lessonId: data.lessonId,

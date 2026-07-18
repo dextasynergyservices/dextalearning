@@ -36,10 +36,10 @@ describe("FilterChips", () => {
 			/>,
 		);
 		expect(screen.getByRole("button", { name: "Beginner" })).toHaveClass(
-			"bg-brand-primary",
+			"bg-brand-solid",
 		);
 		expect(screen.getByRole("button", { name: "All" })).not.toHaveClass(
-			"bg-brand-primary",
+			"bg-brand-solid",
 		);
 	});
 

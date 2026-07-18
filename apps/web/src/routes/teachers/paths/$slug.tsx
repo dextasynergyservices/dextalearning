@@ -292,7 +292,7 @@ function PathDetailPage() {
 												<span className="mt-2 flex items-center gap-2">
 													<span className="flex h-1.5 max-w-[12rem] flex-1 overflow-hidden rounded-full bg-muted">
 														<span
-															className="h-full rounded-full bg-brand-primary"
+															className="h-full rounded-full bg-brand-solid"
 															style={{ width: `${cPct}%` }}
 														/>
 													</span>
@@ -359,7 +359,7 @@ function PathDetailPage() {
 								</div>
 								<div className="mt-1.5 h-2 overflow-hidden rounded-full bg-muted">
 									<div
-										className="h-full rounded-full bg-brand-primary"
+										className="h-full rounded-full bg-brand-solid"
 										style={{ width: `${pct}%` }}
 									/>
 								</div>

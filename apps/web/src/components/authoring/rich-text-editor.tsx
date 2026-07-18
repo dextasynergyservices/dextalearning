@@ -82,7 +82,7 @@ export function RichTextEditor({ value, onChange }: RichTextEditorProps) {
 						className={cn(
 							"flex size-8 items-center justify-center rounded-btn transition-colors",
 							isActive
-								? "bg-brand-primary text-white"
+								? "bg-brand-solid text-white"
 								: "text-muted-foreground hover:bg-muted",
 						)}
 					>

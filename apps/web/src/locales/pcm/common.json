@@ -1,6 +1,13 @@
 {
-	"app_name": "DextaLearning",
-	"tagline": "Learning wey dey stick — we build am so that people fit really learn.",
+	"account": {
+		"dashboard": "Dashboard",
+		"profile": "Profile",
+		"awards": "Awards",
+		"facilitator": "Facilitator portal",
+		"sign_out": "Comot",
+		"menu": "Account menu",
+		"greeting": "You don sign in"
+	},
 	"actions": {
 		"get_started": "Make we start",
 		"start_free": "Start to learn free",
@@ -10,41 +17,12 @@
 		"explore_courses": "Check di courses",
 		"coming_together": "We dey arrange am"
 	},
-	"nav": {
-		"courses": "Courses",
-		"paths": "Paths",
-		"cohorts": "Cohorts",
-		"about": "About",
-		"blog": "Blog",
-		"community": "Community",
-		"contact": "Contact"
-	},
-	"tabs": {
-		"home": "Home",
-		"courses": "Courses",
-		"paths": "Paths",
-		"cohorts": "Cohorts",
-		"explore": "Explore",
-		"search": "Search",
-		"account": "Account",
-		"more": "More"
-	},
-	"footer": {
-		"tagline": "Na Learning Operating System wey dey based on how people dey behave — to make deep learning wey go last the normal thing, no be exception.",
-		"learn": "Learn",
-		"company": "Company",
-		"account": "Account",
-		"learning_paths": "Learning Paths",
-		"rights": "All rights reserved."
-	},
-	"account": {
-		"dashboard": "Dashboard",
-		"profile": "Profile",
-		"awards": "Awards",
-		"facilitator": "Facilitator portal",
-		"sign_out": "Comot",
-		"menu": "Account menu",
-		"greeting": "You don sign in"
+	"app_name": "DextaLearning",
+	"crash": {
+		"title": "Something spoil",
+		"body": "We don report the error. Your progress dey safe for our servers — nothing lost.",
+		"retry": "Try again",
+		"home": "Go back home"
 	},
 	"errors": {
 		"media": {
@@ -58,11 +36,22 @@
 			"not_publishable": "Some lessons still need content or transcript before you fit publish."
 		}
 	},
-	"theme": {
-		"label": "Theme",
-		"light": "Light",
-		"dark": "Dark",
-		"system": "System"
+	"footer": {
+		"tagline": "Na Learning Operating System wey dey based on how people dey behave — to make deep learning wey go last the normal thing, no be exception.",
+		"learn": "Learn",
+		"company": "Company",
+		"account": "Account",
+		"learning_paths": "Learning Paths",
+		"rights": "All rights reserved."
+	},
+	"nav": {
+		"courses": "Courses",
+		"paths": "Paths",
+		"cohorts": "Cohorts",
+		"about": "About",
+		"blog": "Blog",
+		"community": "Community",
+		"contact": "Contact"
 	},
 	"phoneVerify": {
 		"verifyCta": "Verify am",
@@ -93,5 +82,26 @@
 		"denied": "Dem block notifications. Enable am for your browser settings.",
 		"enabled_toast": "Push notifications don on.",
 		"error": "We no fit turn on push notifications."
+	},
+	"pwa": {
+		"update_available": "New version don ready.",
+		"reload": "Reload"
+	},
+	"tabs": {
+		"home": "Home",
+		"courses": "Courses",
+		"paths": "Paths",
+		"cohorts": "Cohorts",
+		"explore": "Explore",
+		"search": "Search",
+		"account": "Account",
+		"more": "More"
+	},
+	"tagline": "Learning wey dey stick — we build am so that people fit really learn.",
+	"theme": {
+		"label": "Theme",
+		"light": "Light",
+		"dark": "Dark",
+		"system": "System"
 	}
 }

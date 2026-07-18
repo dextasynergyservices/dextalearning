@@ -15,7 +15,8 @@
 		"test": "vitest run",
 		"test:watch": "vitest",
 		"test:cov": "vitest run --coverage",
-		"test:e2e": "playwright test"
+		"test:e2e": "playwright test",
+		"perf:budget": "node scripts/check-chunk-sizes.mjs"
 	},
 	"dependencies": {
 		"@dnd-kit/core": "^6.3.1",
@@ -27,6 +28,7 @@
 		"@gsap/react": "^2.1.2",
 		"@hookform/resolvers": "^5.4.0",
 		"@radix-ui/react-popover": "^1.1.19",
+		"@sentry/react": "^10.65.0",
 		"@tanstack/react-query": "5",
 		"@tanstack/react-router": "^1.170.15",
 		"@tanstack/react-table": "8",
@@ -50,6 +52,8 @@
 		"meilisearch": "^0.58.0",
 		"next-themes": "^0.4.6",
 		"plyr": "^3.8.4",
+		"posthog-js": "^1.402.3",
+		"qrcode": "^1.5.4",
 		"radix-ui": "^1.5.0",
 		"react": "19",
 		"react-dom": "19",
@@ -65,6 +69,7 @@
 		"zustand": "5"
 	},
 	"devDependencies": {
+		"@axe-core/playwright": "^4.12.1",
 		"@axe-core/react": "^4.11.3",
 		"@biomejs/biome": "^2.5.0",
 		"@eslint/js": "^10.0.1",
@@ -79,6 +84,7 @@
 		"@testing-library/user-event": "^14.6.1",
 		"@types/node": "^25.9.3",
 		"@types/pg": "^8.20.0",
+		"@types/qrcode": "^1.5.6",
 		"@types/react": "^19.2.17",
 		"@types/react-dom": "^19.2.3",
 		"@vitejs/plugin-react": "^6.0.1",
@@ -90,6 +96,7 @@
 		"ffmpeg-static": "^5.3.0",
 		"globals": "^17.6.0",
 		"jsdom": "^29.1.1",
+		"lighthouse": "^13.4.0",
 		"pg": "^8.22.0",
 		"react-email": "^6.6.0",
 		"rollup-plugin-visualizer": "^7.0.1",

@@ -433,7 +433,7 @@ function Principles() {
 						data-reveal={i % 2 === 0 ? "left" : "right"}
 						className="group rounded-card border border-border bg-card p-7 shadow-card transition-all hover:-translate-y-1 hover:shadow-card-hover"
 					>
-						<span className="flex size-12 items-center justify-center rounded-btn bg-brand-primary-light text-brand-primary transition-colors group-hover:bg-brand-primary group-hover:text-white">
+						<span className="flex size-12 items-center justify-center rounded-btn bg-brand-primary-light text-brand-primary transition-colors group-hover:bg-brand-solid-hover group-hover:text-white">
 							<Icon className="size-6" />
 						</span>
 						<h3 className="mt-5 font-display text-xl text-foreground">
@@ -670,7 +670,7 @@ function CtaBand() {
 		<RevealSection className="mx-auto max-w-7xl px-6 py-14 lg:px-8">
 			<div
 				data-reveal="scale"
-				className="rounded-card bg-brand-primary px-8 py-16 text-center text-white shadow-card lg:py-20"
+				className="rounded-card bg-brand-solid px-8 py-16 text-center text-white shadow-card lg:py-20"
 			>
 				<h2 className="font-display text-3xl tracking-tight sm:text-4xl">
 					{t("cta.title")}

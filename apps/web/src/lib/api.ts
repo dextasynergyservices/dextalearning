@@ -79,9 +79,15 @@ export interface RegisterResult {
  *  Better Auth and triggers the verification email. */
 export function registerAccount(
 	payload: RegisterPayload,
+	turnstileToken?: string | null,
 ): Promise<RegisterResult> {
 	return apiFetch<RegisterResult>("/auth/register", {
 		method: "POST",
 		body: JSON.stringify(payload),
+		// §5.9 Layer 2 — the API's TurnstileGuard reads this header (no-op there
+		// when Turnstile is unconfigured, so an absent token is fine in dev).
+		...(turnstileToken
+			? { headers: { "x-turnstile-token": turnstileToken } }
+			: {}),
 	});
 }

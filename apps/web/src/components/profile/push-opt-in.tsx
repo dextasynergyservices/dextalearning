@@ -102,7 +102,7 @@ export function PushOptIn() {
 					onClick={toggle}
 					className={cn(
 						"relative h-6 w-11 shrink-0 rounded-full transition-colors",
-						enabled ? "bg-brand-primary" : "bg-slate-300 dark:bg-slate-600",
+						enabled ? "bg-brand-solid" : "bg-slate-300 dark:bg-slate-600",
 						(busy || denied) && "cursor-not-allowed opacity-50",
 					)}
 				>
@@ -119,7 +119,7 @@ export function PushOptIn() {
 				</button>
 			</div>
 			{denied ? (
-				<p className="mt-1.5 text-warning text-xs">
+				<p className="mt-1.5 text-amber-700 text-xs dark:text-amber-400">
 					{t("push.denied", {
 						defaultValue:
 							"Notifications are blocked. Enable them in your browser settings to turn this on.",

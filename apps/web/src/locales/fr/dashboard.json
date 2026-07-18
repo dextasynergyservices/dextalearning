@@ -115,7 +115,8 @@
 		"study_anchor": "Reliez-le à une habitude quotidienne (facultatif)",
 		"study_anchor_none": "Pas d'habitude associée",
 		"study_anchor_hint": "« Après le dîner » tient mieux que « 18 h » — les habitudes s'accrochent aux habitudes.",
-		"weekly_hours": "Temps d'apprentissage hebdomadaire"
+		"weekly_hours": "Temps d'apprentissage hebdomadaire",
+		"security": "Sécurité"
 	},
 	"my": {
 		"title": "Mon apprentissage",

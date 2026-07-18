@@ -38,7 +38,7 @@ export function OptionCard({
 					className={cn(
 						"flex size-10 shrink-0 items-center justify-center rounded-btn transition-colors",
 						selected
-							? "bg-brand-primary text-white"
+							? "bg-brand-solid text-white"
 							: "bg-muted text-muted-foreground",
 					)}
 				>
@@ -65,7 +65,7 @@ export function OptionCard({
 					"flex size-5 shrink-0 items-center justify-center border transition-colors",
 					control === "checkbox" ? "rounded-md" : "rounded-full",
 					selected
-						? "border-brand-primary bg-brand-primary text-white"
+						? "border-brand-primary bg-brand-solid text-white"
 						: "border-border",
 				)}
 			>

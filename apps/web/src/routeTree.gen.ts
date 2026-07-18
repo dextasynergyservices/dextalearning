@@ -23,6 +23,7 @@ import { Route as ContinueRouteImport } from './routes/continue'
 import { Route as CommunityRouteImport } from './routes/community'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AboutRouteImport } from './routes/about'
+import { Route as R2faRouteImport } from './routes/2fa'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as TeachersIndexRouteImport } from './routes/teachers/index'
 import { Route as InstructorIndexRouteImport } from './routes/instructor/index'
@@ -156,6 +157,11 @@ const AdminRoute = AdminRouteImport.update({
 const AboutRoute = AboutRouteImport.update({
   id: '/about',
   path: '/about',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const R2faRoute = R2faRouteImport.update({
+  id: '/2fa',
+  path: '/2fa',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -497,6 +503,7 @@ const AdminAnalyticsEntityTypeEntityIdRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/2fa': typeof R2faRoute
   '/about': typeof AboutRoute
   '/admin': typeof AdminRouteWithChildren
   '/community': typeof CommunityRoute
@@ -577,6 +584,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/2fa': typeof R2faRoute
   '/about': typeof AboutRoute
   '/community': typeof CommunityRoute
   '/continue': typeof ContinueRoute
@@ -657,6 +665,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/2fa': typeof R2faRoute
   '/about': typeof AboutRoute
   '/admin': typeof AdminRouteWithChildren
   '/community': typeof CommunityRoute
@@ -739,6 +748,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/2fa'
     | '/about'
     | '/admin'
     | '/community'
@@ -819,6 +829,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/2fa'
     | '/about'
     | '/community'
     | '/continue'
@@ -898,6 +909,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/2fa'
     | '/about'
     | '/admin'
     | '/community'
@@ -979,6 +991,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  R2faRoute: typeof R2faRoute
   AboutRoute: typeof AboutRoute
   AdminRoute: typeof AdminRouteWithChildren
   CommunityRoute: typeof CommunityRoute
@@ -1134,6 +1147,13 @@ declare module '@tanstack/react-router' {
       path: '/about'
       fullPath: '/about'
       preLoaderRoute: typeof AboutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/2fa': {
+      id: '/2fa'
+      path: '/2fa'
+      fullPath: '/2fa'
+      preLoaderRoute: typeof R2faRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -1641,6 +1661,7 @@ const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  R2faRoute: R2faRoute,
   AboutRoute: AboutRoute,
   AdminRoute: AdminRouteWithChildren,
   CommunityRoute: CommunityRoute,

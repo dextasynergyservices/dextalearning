@@ -158,7 +158,7 @@ export function BadgeCelebration() {
 						<button
 							type="button"
 							onClick={dismiss}
-							className="mt-6 w-full rounded-btn bg-brand-primary px-4 py-2.5 font-medium text-sm text-white transition-colors hover:bg-brand-primary/90"
+							className="mt-6 w-full rounded-btn bg-brand-solid px-4 py-2.5 font-medium text-sm text-white transition-colors hover:bg-brand-primary/90"
 						>
 							{pending.current.length > 0
 								? t("celebration.next")

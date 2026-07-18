@@ -49,7 +49,7 @@ export function AuthLayout({ title, subtitle, children }: AuthLayoutProps) {
 						))}
 					</ul>
 				</div>
-				<p className="text-muted-foreground text-sm">
+				<p className="text-sm text-white/70">
 					© {new Date().getFullYear()} DextaLearning
 				</p>
 			</aside>
@@ -60,19 +60,24 @@ export function AuthLayout({ title, subtitle, children }: AuthLayoutProps) {
 					className="flex items-center justify-between px-5 py-4"
 					style={{ paddingTop: "calc(1rem + env(safe-area-inset-top))" }}
 				>
+					{/* No aria-label: the Logo's visible text IS the accessible name.
+					    An "Home" aria-label tripped WCAG 2.5.3 (label-in-name) — the
+					    spoken name must contain the visible label. The chevron is
+					    decorative. */}
 					<Link
 						to="/"
-						aria-label="Home"
 						className="flex items-center gap-1 text-foreground transition-colors hover:text-brand-primary lg:hidden"
 					>
-						<ChevronLeft className="size-5" />
+						<ChevronLeft aria-hidden className="size-5" />
 						<Logo asLink={false} className="text-lg text-foreground" />
 					</Link>
 					<span className="hidden lg:block" />
 					<LanguageSwitcher compact />
 				</header>
 
-				<motion.div
+				{/* A page needs exactly one <main> landmark (§13.1 / WCAG 1.3.1);
+				    the auth pages had none. */}
+				<motion.main
 					initial={{ opacity: 0, y: 12 }}
 					animate={{ opacity: 1, y: 0 }}
 					transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
@@ -87,7 +92,7 @@ export function AuthLayout({ title, subtitle, children }: AuthLayoutProps) {
 						) : null}
 						<div className="mt-7">{children}</div>
 					</div>
-				</motion.div>
+				</motion.main>
 			</div>
 		</div>
 	);

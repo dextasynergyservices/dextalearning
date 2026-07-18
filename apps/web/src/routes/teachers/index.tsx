@@ -112,7 +112,7 @@ function TeacherAcademyPage() {
 							data-reveal={idx % 2 === 0 ? "left" : "right"}
 							className="group rounded-card border border-border bg-card p-6 shadow-card transition-all hover:-translate-y-1 hover:border-brand-primary/30 hover:shadow-card-hover active:scale-[0.99]"
 						>
-							<span className="flex size-12 items-center justify-center rounded-btn bg-brand-primary-light text-brand-primary transition-colors group-hover:bg-brand-primary group-hover:text-white">
+							<span className="flex size-12 items-center justify-center rounded-btn bg-brand-primary-light text-brand-primary transition-colors group-hover:bg-brand-solid-hover group-hover:text-white">
 								<Icon className="size-6" />
 							</span>
 							<h3 className="mt-4 font-display text-lg text-foreground">

@@ -1,6 +1,5 @@
 import { Inject, Injectable, Logger } from "@nestjs/common";
 import { EventEmitter2 } from "@nestjs/event-emitter";
-import type { Queue } from "bullmq";
 import type { Order } from "../../../generated/prisma/client";
 import { PrismaService } from "../../prisma/prisma.service";
 import {
@@ -8,11 +7,12 @@ import {
 	PaymentEvents,
 } from "../../shared/events/payment-events";
 import {
-	EARN_BACK_QUEUE,
 	type EarnBackJobData,
-	INSTRUCTOR_PAYOUT_QUEUE,
 	type InstructorPayoutJobData,
+	QUEUE_EARN_BACK,
+	QUEUE_INSTRUCTOR_PAYOUT,
 } from "../../shared/queue/queue.constants";
+import { QUEUE_PORT, type QueuePort } from "../../shared/queue/queue.port";
 import type { EnrollableType } from "../enrollment/enrollment.service";
 import { calculateEarnBack, daysLate } from "./earn-back.calculator";
 
@@ -40,8 +40,7 @@ export class EarnBackService {
 	constructor(
 		private readonly prisma: PrismaService,
 		private readonly events: EventEmitter2,
-		@Inject(EARN_BACK_QUEUE) private readonly earnBackQueue: Queue,
-		@Inject(INSTRUCTOR_PAYOUT_QUEUE) private readonly payoutQueue: Queue,
+		@Inject(QUEUE_PORT) private readonly queue: QueuePort,
 	) {}
 
 	/**
@@ -165,16 +164,10 @@ export class EarnBackService {
 		});
 
 		if (payoutId) {
-			await this.payoutQueue.add(
-				"payout",
-				{ payoutId } satisfies InstructorPayoutJobData,
-				{
-					jobId: `payout-${payoutId}`,
-					attempts: 5,
-					backoff: { type: "exponential", delay: 30_000 },
-					removeOnComplete: 1000,
-					removeOnFail: 5000,
-				},
+			await this.queue.enqueue<InstructorPayoutJobData>(
+				QUEUE_INSTRUCTOR_PAYOUT,
+				{ payoutId },
+				{ jobId: `payout-${payoutId}`, attempts: 5, backoffMs: 30_000 },
 			);
 		}
 
@@ -193,16 +186,10 @@ export class EarnBackService {
 				entityTitle: order.entityTitle ?? "",
 			} satisfies EarnBackNoPayoutEvent);
 		} else {
-			await this.earnBackQueue.add(
-				"refund",
-				{ transactionId: txRow.id } satisfies EarnBackJobData,
-				{
-					jobId: `earnback-${txRow.id}`,
-					attempts: 5,
-					backoff: { type: "exponential", delay: 60_000 },
-					removeOnComplete: 1000,
-					removeOnFail: 5000,
-				},
+			await this.queue.enqueue<EarnBackJobData>(
+				QUEUE_EARN_BACK,
+				{ transactionId: txRow.id },
+				{ jobId: `earnback-${txRow.id}`, attempts: 5, backoffMs: 60_000 },
 			);
 		}
 		this.logger.log(

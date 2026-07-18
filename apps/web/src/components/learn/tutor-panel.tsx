@@ -223,7 +223,7 @@ export function TutorPanel({
 								type="submit"
 								disabled={!input.trim() || pending}
 								aria-label={t("tutor.send", { defaultValue: "Send" })}
-								className="flex size-10 shrink-0 items-center justify-center rounded-btn bg-brand-primary text-white transition-all hover:bg-brand-primary-hover active:scale-95 disabled:opacity-40"
+								className="flex size-10 shrink-0 items-center justify-center rounded-btn bg-brand-solid text-white transition-all hover:bg-brand-solid-hover active:scale-95 disabled:opacity-40"
 							>
 								<Send className="size-4" />
 							</button>
@@ -261,7 +261,7 @@ function TutorBubble({ message }: { message: TutorMessage }) {
 				data-testid={isUser ? undefined : "tutor-answer"}
 				className={cn(
 					"max-w-[85%] whitespace-pre-wrap rounded-card px-3 py-2 text-sm",
-					isUser ? "bg-brand-primary text-white" : "bg-muted text-foreground",
+					isUser ? "bg-brand-solid text-white" : "bg-muted text-foreground",
 				)}
 			>
 				{message.content}

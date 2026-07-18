@@ -11,9 +11,20 @@
 	--font-sans: "DM Sans", "Geist Variable", system-ui, sans-serif;
 	--font-stats: "Space Grotesk", system-ui, sans-serif;
 	--font-mono: "JetBrains Mono", monospace;
-	--color-brand-primary: #1d4ed8;
-	--color-brand-primary-hover: #1e40af;
-	--color-brand-primary-light: #dbeafe;
+	/* Routed through intermediate vars (not literal hex) so the .dark overrides
+	   below actually reach the generated `text/bg-brand-primary` utilities —
+	   `@theme inline` bakes a literal value in, but bakes a var *reference* through
+	   verbatim, which is what lets these theme (WCAG 1.4.3, §13.1). */
+	/* brand-primary plays TWO roles that need opposite lightness in dark mode:
+	   as TEXT/links on dark surfaces it must be light (≥4.5:1 on near-black),
+	   but as a solid button FILL under white text it must be dark. One value
+	   can't do both — so `brand-primary` is the text/on-surface token (lightens
+	   in dark) and `brand-solid` is the white-text fill (stays dark). */
+	--color-brand-primary: var(--brand-primary);
+	--color-brand-primary-hover: var(--brand-primary-hover);
+	--color-brand-primary-light: var(--brand-primary-light);
+	--color-brand-solid: var(--brand-solid);
+	--color-brand-solid-hover: var(--brand-solid-hover);
 	--color-brand-accent: #f59e0b;
 	--color-brand-accent-hover: #d97706;
 	--color-brand-accent-light: #fef3c7;
@@ -21,7 +32,7 @@
 	--color-hero-surface: #111827;
 	--color-hero-card: #1f2937;
 	--color-success: #10b981;
-	--color-error: #ef4444;
+	--color-error: var(--error);
 	--color-warning: #f59e0b;
 	--color-info: #3b82f6;
 	--color-sidebar-ring: var(--sidebar-ring);
@@ -69,6 +80,14 @@
 }
 
 :root {
+	/* Brand blue + error red, light-mode. Both are darkened enough to pass AA as
+	   TEXT on white (§13.1); the .dark block lightens them for dark surfaces. */
+	--brand-primary: #1d4ed8;
+	--brand-primary-hover: #1e40af;
+	--brand-primary-light: #dbeafe;
+	--brand-solid: #1d4ed8; /* button fill (white text): 7.6:1 on white text */
+	--brand-solid-hover: #1e40af;
+	--error: #dc2626; /* #ef4444 was only 3.76:1 on white — red-600 clears 4.5:1 */
 	--background: oklch(1 0 0);
 	--foreground: oklch(0.145 0 0);
 	--card: oklch(1 0 0);
@@ -80,18 +99,23 @@
 	--secondary: oklch(0.97 0 0);
 	--secondary-foreground: oklch(0.205 0 0);
 	--muted: oklch(0.97 0 0);
-	--muted-foreground: oklch(0.556 0 0);
+	/* 0.556 was 4.34:1 on the muted (#f5f5f5) surface — just under AA. Darkened
+	   to clear 4.5:1 on both the muted surface and white (WCAG 2.2 §1.4.3). */
+	--muted-foreground: oklch(0.52 0 0);
 	--accent: oklch(0.97 0 0);
 	--accent-foreground: oklch(0.205 0 0);
 	--destructive: oklch(0.577 0.245 27.325);
 	--border: oklch(0.922 0 0);
 	--input: oklch(0.922 0 0);
 	--ring: oklch(0.708 0 0);
-	--chart-1: oklch(0.87 0 0);
-	--chart-2: oklch(0.556 0 0);
-	--chart-3: oklch(0.439 0 0);
-	--chart-4: oklch(0.371 0 0);
-	--chart-5: oklch(0.269 0 0);
+	/* Categorical chart palette (§15, dataviz-validated on #ffffff: lightness
+	   band, chroma, CVD ΔE, normal-vision floor, contrast — all PASS). Fixed
+	   assignment order 1→5; never cycle past 5, fold into "Other" instead. */
+	--chart-1: #2563eb; /* brand blue */
+	--chart-2: #0d9488; /* teal */
+	--chart-3: #7c3aed; /* violet */
+	--chart-4: #b45309; /* amber — brand accent family */
+	--chart-5: #c026d3; /* fuchsia */
 	--radius: 0.625rem;
 	--sidebar: oklch(0.985 0 0);
 	--sidebar-foreground: oklch(0.145 0 0);
@@ -122,11 +146,13 @@
 	--border: oklch(1 0 0 / 10%);
 	--input: oklch(1 0 0 / 15%);
 	--ring: oklch(0.556 0 0);
-	--chart-1: oklch(0.87 0 0);
-	--chart-2: oklch(0.556 0 0);
-	--chart-3: oklch(0.439 0 0);
-	--chart-4: oklch(0.371 0 0);
-	--chart-5: oklch(0.269 0 0);
+	/* Same hue order re-stepped for the dark card (#171717) and re-validated —
+	   dark mode is selected, not an automatic flip of the light values. */
+	--chart-1: #3b82f6;
+	--chart-2: #0d9488;
+	--chart-3: #8b5cf6;
+	--chart-4: #d97706;
+	--chart-5: #d946ef;
 	--sidebar: oklch(0.205 0 0);
 	--sidebar-foreground: oklch(0.985 0 0);
 	--sidebar-primary: oklch(0.488 0.243 264.376);
@@ -135,14 +161,21 @@
 	--sidebar-accent-foreground: oklch(0.985 0 0);
 	--sidebar-border: oklch(1 0 0 / 10%);
 	--sidebar-ring: oklch(0.556 0 0);
+	/* Brand blue split by role in dark mode (§13.1 WCAG AA). Overrides the
+	   INTERMEDIATE vars (see @theme note) so they reach the utilities.
+	   Text/link blue — light enough to clear 4.5:1 on dark cards (blue-400). */
+	--brand-primary: #60a5fa;
+	--brand-primary-hover: #93c5fd;
+	/* Solid button fill under WHITE text — kept dark (blue-600 = 5.1:1 on white
+	   text), a touch lighter than light-mode so it reads on near-black chrome. */
+	--brand-solid: #2563eb;
+	--brand-solid-hover: #1d4ed8;
+	/* error red also lightened for dark surfaces (red-400: ~6:1 on near-black). */
+	--error: #f87171;
 	/* Brand-tint surfaces (icon chips, soft badges) get darker fills in dark mode
-	   so the light blue/amber panels don't glare — the brand-primary/accent
-	   colours themselves stay vivid for buttons. */
-	--color-brand-primary-light: color-mix(
-		in oklab,
-		var(--color-brand-primary) 26%,
-		#0a0a0a
-	);
+	   so the light blue/amber panels don't glare — recomputed off the lighter
+	   brand blue above. */
+	--brand-primary-light: color-mix(in oklab, var(--brand-primary) 26%, #0a0a0a);
 	--color-brand-accent-light: color-mix(
 		in oklab,
 		var(--color-brand-accent) 26%,
@@ -276,10 +309,10 @@
 		@apply inline-flex items-center rounded-pill bg-brand-accent-light text-amber-700 dark:text-amber-300 text-xs font-stats font-semibold px-2.5 py-0.5 uppercase tracking-wide;
 	}
 	.btn-primary {
-		@apply bg-brand-primary hover:bg-brand-primary-hover text-white font-sans font-semibold rounded-btn transition-colors;
+		@apply bg-brand-solid hover:bg-brand-solid-hover text-white font-sans font-semibold rounded-btn transition-colors;
 	}
 	.btn-accent {
-		@apply bg-brand-accent hover:bg-brand-accent-hover text-white font-sans font-semibold rounded-btn transition-colors;
+		@apply bg-brand-accent hover:bg-brand-accent-hover text-neutral-900 font-sans font-semibold rounded-btn transition-colors;
 	}
 	.btn-outline {
 		@apply border border-brand-primary text-brand-primary hover:bg-brand-primary-light font-sans font-semibold rounded-btn transition-colors;

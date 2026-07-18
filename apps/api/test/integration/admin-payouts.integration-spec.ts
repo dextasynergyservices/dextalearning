@@ -1,20 +1,26 @@
-import type { Queue } from "bullmq";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import { AdminPayoutsService } from "../../src/modules/payments/admin-payouts.service";
+import {
+	QUEUE_EARN_BACK,
+	QUEUE_INSTRUCTOR_PAYOUT,
+} from "../../src/shared/queue/queue.constants";
 import { getTestPrisma } from "./support/db";
 import { createUser } from "./support/factories";
+import { FakeQueuePort } from "./support/fakes/fake-queue";
 
 describe("AdminPayoutsService (integration)", () => {
 	const prisma = getTestPrisma();
-	const queue = { add: vi.fn() } as unknown as Queue;
-	const earnBackQueue = { add: vi.fn() } as unknown as Queue;
-	const service = new AdminPayoutsService(prisma, queue, earnBackQueue);
+	const queue = new FakeQueuePort();
+	const service = new AdminPayoutsService(prisma, queue);
+	const payoutJobs = () =>
+		queue.enqueued.filter((e) => e.queue === QUEUE_INSTRUCTOR_PAYOUT);
+	const earnBackJobs = () =>
+		queue.enqueued.filter((e) => e.queue === QUEUE_EARN_BACK);
 
 	let payableId: string;
 	let unpayableId: string;
 	beforeEach(async () => {
-		(queue.add as ReturnType<typeof vi.fn>).mockClear();
-		(earnBackQueue.add as ReturnType<typeof vi.fn>).mockClear();
+		queue.enqueued.length = 0;
 		const withAccount = await createUser(prisma, { role: "instructor" });
 		const without = await createUser(prisma, { role: "instructor" });
 		payableId = withAccount.id;
@@ -69,10 +75,10 @@ describe("AdminPayoutsService (integration)", () => {
 		const { queued, skipped } = await service.runAll();
 		expect(queued).toBe(2); // the two for the instructor with an account
 		expect(skipped).toBe(1); // the one without an account stays pending
-		expect(queue.add).toHaveBeenCalledTimes(2);
+		expect(payoutJobs()).toHaveLength(2);
 		// Regression: BullMQ job ids never contain ":".
-		for (const call of (queue.add as ReturnType<typeof vi.fn>).mock.calls) {
-			expect((call[2] as { jobId: string }).jobId).not.toContain(":");
+		for (const job of payoutJobs()) {
+			expect(job.opts?.jobId).not.toContain(":");
 		}
 	});
 
@@ -94,7 +100,7 @@ describe("AdminPayoutsService (integration)", () => {
 		});
 		expect(row?.status).toBe("pending");
 		expect(row?.failedReason).toBeNull();
-		expect(queue.add).toHaveBeenCalledTimes(1);
+		expect(payoutJobs()).toHaveLength(1);
 	});
 
 	/**
@@ -153,7 +159,7 @@ describe("AdminPayoutsService (integration)", () => {
 			});
 			expect(row?.status).toBe("pending");
 			expect(row?.failedReason).toBeNull();
-			expect(earnBackQueue.add).toHaveBeenCalledTimes(1);
+			expect(earnBackJobs()).toHaveLength(1);
 		});
 
 		/**
@@ -165,24 +171,23 @@ describe("AdminPayoutsService (integration)", () => {
 			const txn = await failedRefund();
 			await service.retryRefund(txn.id);
 
-			const opts = (earnBackQueue.add as ReturnType<typeof vi.fn>).mock
-				.calls[0][2];
-			expect(opts.jobId).not.toBe(`earnback-${txn.id}`);
-			expect(opts.jobId).toContain(txn.id);
+			const opts = earnBackJobs()[0].opts;
+			expect(opts?.jobId).not.toBe(`earnback-${txn.id}`);
+			expect(opts?.jobId).toContain(txn.id);
 			// BullMQ rejects custom ids containing ":" — the Phase 7 live-drive bug.
-			expect(opts.jobId).not.toContain(":");
+			expect(opts?.jobId).not.toContain(":");
 		});
 
 		it("refuses a forfeited Earn-Back — there is nothing to send", async () => {
 			const txn = await failedRefund({ status: "no_payout", amount: 0 });
 			await expect(service.retryRefund(txn.id)).rejects.toThrow(/forfeited/i);
-			expect(earnBackQueue.add).not.toHaveBeenCalled();
+			expect(earnBackJobs()).toHaveLength(0);
 		});
 
 		it("refuses when the original charge reference is gone", async () => {
 			const txn = await failedRefund({ providerRef: null });
 			await expect(service.retryRefund(txn.id)).rejects.toThrow(/manual/i);
-			expect(earnBackQueue.add).not.toHaveBeenCalled();
+			expect(earnBackJobs()).toHaveLength(0);
 		});
 
 		it("is a no-op on an already-processed refund", async () => {
@@ -190,7 +195,7 @@ describe("AdminPayoutsService (integration)", () => {
 			await expect(service.retryRefund(txn.id)).resolves.toEqual({
 				queued: false,
 			});
-			expect(earnBackQueue.add).not.toHaveBeenCalled();
+			expect(earnBackJobs()).toHaveLength(0);
 		});
 	});
 });

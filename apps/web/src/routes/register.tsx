@@ -10,6 +10,10 @@ import { AuthLayout } from "@/components/auth/auth-layout";
 import { FormField } from "@/components/auth/form-field";
 import { GoogleButton } from "@/components/auth/google-button";
 import { PasswordField } from "@/components/auth/password-field";
+import {
+	TurnstileWidget,
+	turnstileEnabled,
+} from "@/components/auth/turnstile-widget";
 import { Button } from "@/components/ui/button";
 import { ApiError, registerAccount } from "@/lib/api";
 import { signInWithGoogle } from "@/lib/auth-client";
@@ -40,20 +44,32 @@ function RegisterPage() {
 	});
 	const role = watch("role");
 	const [existingEmail, setExistingEmail] = useState<string | null>(null);
+	const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
 
 	const onSubmit = async (values: RegisterValues) => {
 		setExistingEmail(null);
+		if (turnstileEnabled() && !turnstileToken) {
+			toast.error(
+				t("security.turnstile_wait", {
+					defaultValue: "Please complete the verification below.",
+				}),
+			);
+			return;
+		}
 		try {
-			await registerAccount({
-				firstName: values.firstName,
-				lastName: values.lastName,
-				otherNames: values.otherNames || undefined,
-				email: values.email,
-				phone: values.phone || undefined,
-				password: values.password,
-				confirmPassword: values.confirmPassword,
-				role: values.role,
-			});
+			await registerAccount(
+				{
+					firstName: values.firstName,
+					lastName: values.lastName,
+					otherNames: values.otherNames || undefined,
+					email: values.email,
+					phone: values.phone || undefined,
+					password: values.password,
+					confirmPassword: values.confirmPassword,
+					role: values.role,
+				},
+				turnstileToken,
+			);
 			toast.success(t("toasts.registered"));
 			navigate({ to: "/verify-email", search: { email: values.email } });
 		} catch (error) {
@@ -182,6 +198,7 @@ function RegisterPage() {
 					error={errors.confirmPassword?.message}
 					{...register("confirmPassword")}
 				/>
+				<TurnstileWidget onToken={setTurnstileToken} />
 				<Button
 					type="submit"
 					size="lg"

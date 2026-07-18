@@ -135,7 +135,7 @@ function CourseHub({ progress }: { progress: CourseProgress }) {
 									<Link
 										to="/learn/lesson/$lessonId"
 										params={{ lessonId: nextLesson.id }}
-										className="mt-2 inline-flex items-center gap-2 rounded-btn bg-brand-primary px-4 py-2 font-semibold text-sm text-white transition-colors hover:bg-brand-primary-hover active:scale-[0.98]"
+										className="mt-2 inline-flex items-center gap-2 rounded-btn bg-brand-solid px-4 py-2 font-semibold text-sm text-white transition-colors hover:bg-brand-solid-hover active:scale-[0.98]"
 									>
 										<PlayCircle className="size-4" />
 										{s.lessonsDone > 0
@@ -202,7 +202,7 @@ function CourseHub({ progress }: { progress: CourseProgress }) {
 												{!lesson.done && lesson.percent > 0 ? (
 													<span className="mt-1 flex h-1 w-full max-w-[12rem] overflow-hidden rounded-full bg-muted">
 														<span
-															className="h-full rounded-full bg-brand-primary"
+															className="h-full rounded-full bg-brand-solid"
 															style={{ width: `${lesson.percent}%` }}
 														/>
 													</span>

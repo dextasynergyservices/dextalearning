@@ -1,19 +1,30 @@
+// Sentry patches http/express/prisma at require-time — anything imported
+// before it escapes tracing. This line stays first (§15).
+import "./instrument";
+
+import { randomUUID } from "node:crypto";
 import { ValidationPipe } from "@nestjs/common";
 import { NestFactory } from "@nestjs/core";
 import type { NestExpressApplication } from "@nestjs/platform-express";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 import { toNodeHandler } from "better-auth/node";
 import type { NextFunction, Request, Response } from "express";
+import { pinoHttp } from "pino-http";
 import { RedisIoAdapter } from "./adapters/redis-io.adapter";
 import { AppModule } from "./app.module";
 import { auth } from "./auth/auth.config";
 import { AllExceptionsFilter } from "./common/filters/all-exceptions.filter";
 import { ResponseInterceptor } from "./common/interceptors/response.interceptor";
+import { logger, PinoLoggerService } from "./common/logger/pino-logger.service";
+import { turnstileMiddleware } from "./common/turnstile";
 
 async function bootstrap() {
 	// Disable Nest's body parser so Better Auth can read the raw request.
 	const app = await NestFactory.create<NestExpressApplication>(AppModule, {
 		bodyParser: false,
+		// Every existing `new Logger(X)` call now emits structured pino lines —
+		// same stream, same shape as the request logs below (§15).
+		logger: new PinoLoggerService(),
 	});
 	const frontendUrl = process.env.FRONTEND_URL ?? "http://localhost:5173";
 	const port = Number(process.env.PORT ?? 3000);
@@ -27,6 +38,34 @@ async function bootstrap() {
 		origin: frontendUrl.split(",").map((origin) => origin.trim()),
 		credentials: true,
 	});
+
+	// Request logging + the request id everything else reuses: the error
+	// envelope's `requestId` and Sentry's tag are THIS id, so one identifier
+	// follows a request through logs, error responses and Sentry (§15, §5.10).
+	app.use(
+		pinoHttp({
+			logger,
+			genReqId: (req) =>
+				(req.headers["x-request-id"] as string) ??
+				`req_${randomUUID().replace(/-/g, "").slice(0, 16)}`,
+			// Health checks and static noise stay out of the stream; everything
+			// else logs at info with method/url/status/latency.
+			autoLogging: {
+				ignore: (req) => req.url === "/api/v1/health",
+			},
+			customLogLevel: (_req, res, err) =>
+				err || res.statusCode >= 500
+					? "error"
+					: res.statusCode >= 400
+						? "warn"
+						: "info",
+		}),
+	);
+
+	// §5.9 Layer 2: Turnstile bot check on anonymous auth POSTs, BEFORE the auth
+	// handler. Reads only the `x-turnstile-token` header, so the raw body Better
+	// Auth needs is untouched. No-op without TURNSTILE_SECRET_KEY.
+	app.use(turnstileMiddleware());
 
 	// Better Auth handler (login, OAuth, OTP, magic link) — must run on the raw
 	// request, before the JSON body parser is applied to the rest of the app.

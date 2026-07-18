@@ -1,7 +1,6 @@
 import { HttpException } from "@nestjs/common";
 import { EventEmitter2 } from "@nestjs/event-emitter";
-import type { Queue } from "bullmq";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import type { AuthenticatedUser } from "../../src/auth/types";
 import { EnrollmentService } from "../../src/modules/enrollment/enrollment.service";
 import { AdminPayoutsService } from "../../src/modules/payments/admin-payouts.service";
@@ -11,9 +10,11 @@ import { PaymentsService } from "../../src/modules/payments/payments.service";
 import { PricingSnapshotService } from "../../src/modules/payments/pricing-snapshot.service";
 import type { CachePort } from "../../src/shared/cache/cache.port";
 import { PaymentEvents } from "../../src/shared/events/payment-events";
+import { QUEUE_INSTRUCTOR_PAYOUT } from "../../src/shared/queue/queue.constants";
 import { PlatformSettingsService } from "../../src/shared/settings/platform-settings.service";
 import { getTestPrisma } from "./support/db";
 import { createCohort, createCourse, createUser } from "./support/factories";
+import { FakeQueuePort } from "./support/fakes/fake-queue";
 
 function memoryCache(): CachePort {
 	const store = new Map<string, unknown>();
@@ -53,14 +54,16 @@ describe("PaymentsService (integration)", () => {
 	const snapshots = new PricingSnapshotService(prisma, settings);
 	const gateways = new PaymentGatewayRegistry(settings);
 	const enrollment = new EnrollmentService(prisma, events);
-	const payoutQueue = { add: vi.fn() } as unknown as Queue;
+	const queue = new FakeQueuePort();
+	const payoutJobs = () =>
+		queue.enqueued.filter((e) => e.queue === QUEUE_INSTRUCTOR_PAYOUT);
 	const service = new PaymentsService(
 		prisma,
 		snapshots,
 		gateways,
 		enrollment,
 		events,
-		payoutQueue,
+		queue,
 	);
 
 	let learnerId: string;
@@ -71,7 +74,7 @@ describe("PaymentsService (integration)", () => {
 
 	beforeEach(async () => {
 		emitted = [];
-		(payoutQueue.add as ReturnType<typeof vi.fn>).mockClear();
+		queue.enqueued.length = 0;
 		const l = await createUser(prisma, { role: "learner" });
 		const i = await createUser(prisma, { role: "instructor" });
 		learnerId = l.id;
@@ -147,11 +150,10 @@ describe("PaymentsService (integration)", () => {
 		});
 		expect(payout?.status).toBe("pending");
 		expect(Number(payout?.amount)).toBe(85.5); // 90% of the post-fee ₦95
-		expect(payoutQueue.add).toHaveBeenCalledTimes(1);
+		expect(payoutJobs()).toHaveLength(1);
 		// BullMQ rejects a custom job id containing ":" — a real gateway drive
 		// caught this where the fake queue can't. Lock the separator in.
-		const addOpts = (payoutQueue.add as ReturnType<typeof vi.fn>).mock
-			.calls[0][2] as { jobId: string };
+		const addOpts = payoutJobs()[0].opts as { jobId: string };
 		expect(addOpts.jobId).not.toContain(":");
 		expect(addOpts.jobId).toMatch(/^payout-/);
 
@@ -518,7 +520,7 @@ describe("PaymentsService (integration)", () => {
 		);
 
 		expect(await prisma.instructorPayout.count({ where: { orderId } })).toBe(1);
-		expect(payoutQueue.add).toHaveBeenCalledTimes(1);
+		expect(payoutJobs()).toHaveLength(1);
 	});
 
 	it("rejects an invalid webhook signature", async () => {
@@ -548,7 +550,7 @@ describe("PaymentsService (integration)", () => {
 			FAKE_SIG,
 		);
 		expect(await prisma.instructorPayout.count({ where: { orderId } })).toBe(0);
-		expect(payoutQueue.add).not.toHaveBeenCalled();
+		expect(payoutJobs()).toHaveLength(0);
 	});
 
 	it("free direct-enrol still works; paid content is gated behind checkout (§14)", async () => {
@@ -590,12 +592,7 @@ describe("PaymentsService (integration)", () => {
 	 * Admin oversight has to read `earn_back_transactions` to see it at all.
 	 */
 	describe("Earn-Back refund visibility (§4.11.5, §14.3)", () => {
-		const earnBackQueue = { add: vi.fn() } as unknown as Queue;
-		const adminPayouts = new AdminPayoutsService(
-			prisma,
-			payoutQueue,
-			earnBackQueue,
-		);
+		const adminPayouts = new AdminPayoutsService(prisma, queue);
 
 		async function refundedOrder() {
 			const course = await paidCourse({

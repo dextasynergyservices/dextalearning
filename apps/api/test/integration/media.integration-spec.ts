@@ -4,7 +4,6 @@ import {
 	UnprocessableEntityException,
 } from "@nestjs/common";
 import { EventEmitter2 } from "@nestjs/event-emitter";
-import type { Queue } from "bullmq";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { AuthenticatedUser } from "../../src/auth/types";
 import { MediaService } from "../../src/modules/media/media.service";
@@ -12,7 +11,7 @@ import { ContentEvents } from "../../src/shared/events/content-events";
 import { getTestPrisma } from "./support/db";
 import { createLesson, createModule, createUser } from "./support/factories";
 import { FakeMediaEncoderAdapter } from "./support/fakes/fake-media-encoder.adapter";
-import { FakeQueue } from "./support/fakes/fake-queue";
+import { FakeQueuePort } from "./support/fakes/fake-queue";
 import { FakeStorageAdapter } from "./support/fakes/fake-storage.adapter";
 
 function asAuthenticatedUser(
@@ -30,9 +29,7 @@ function buildService(durationSeconds = 120) {
 		events,
 		new FakeStorageAdapter(),
 		new FakeMediaEncoderAdapter(durationSeconds),
-		new FakeQueue() as unknown as Queue,
-		new FakeQueue() as unknown as Queue,
-		new FakeQueue() as unknown as Queue,
+		new FakeQueuePort(),
 	);
 	return { prisma, service, events };
 }

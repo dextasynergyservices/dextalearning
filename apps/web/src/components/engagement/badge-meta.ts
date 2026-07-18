@@ -34,7 +34,7 @@ export const BADGE_META: Record<string, BadgeMeta> = {
 	lessons_10: { icon: BookOpen, tint: "bg-sky-500" },
 	lessons_25: { icon: BookMarked, tint: "bg-cyan-600" },
 	lessons_50: { icon: Library, tint: "bg-indigo-500" },
-	first_course: { icon: GraduationCap, tint: "bg-brand-primary" },
+	first_course: { icon: GraduationCap, tint: "bg-brand-solid" },
 	courses_3: { icon: Layers, tint: "bg-violet-500" },
 	first_quiz_pass: { icon: Award, tint: "bg-teal-500" },
 	quizzes_10: { icon: Medal, tint: "bg-fuchsia-600" },
@@ -50,7 +50,7 @@ export const BADGE_META: Record<string, BadgeMeta> = {
 
 export const FALLBACK_BADGE_META: BadgeMeta = {
 	icon: Award,
-	tint: "bg-brand-primary",
+	tint: "bg-brand-solid",
 };
 
 export function badgeMetaOf(key: string): BadgeMeta {

@@ -5,14 +5,14 @@ import {
 	Logger,
 	NotFoundException,
 } from "@nestjs/common";
-import type { Queue } from "bullmq";
 import { PrismaService } from "../../prisma/prisma.service";
 import {
-	EARN_BACK_QUEUE,
 	type EarnBackJobData,
-	INSTRUCTOR_PAYOUT_QUEUE,
 	type InstructorPayoutJobData,
+	QUEUE_EARN_BACK,
+	QUEUE_INSTRUCTOR_PAYOUT,
 } from "../../shared/queue/queue.constants";
+import { QUEUE_PORT, type QueuePort } from "../../shared/queue/queue.port";
 
 /**
  * Admin payout oversight + bulk payout (§14.3). Instructors accumulate `pending`
@@ -70,8 +70,7 @@ export class AdminPayoutsService {
 
 	constructor(
 		private readonly prisma: PrismaService,
-		@Inject(INSTRUCTOR_PAYOUT_QUEUE) private readonly payoutQueue: Queue,
-		@Inject(EARN_BACK_QUEUE) private readonly earnBackQueue: Queue,
+		@Inject(QUEUE_PORT) private readonly queue: QueuePort,
 	) {}
 
 	/** Outstanding pending payouts grouped by instructor, with payability. */
@@ -161,16 +160,10 @@ export class AdminPayoutsService {
 				skipped += 1;
 				continue;
 			}
-			await this.payoutQueue.add(
-				"payout",
-				{ payoutId: p.id } satisfies InstructorPayoutJobData,
-				{
-					jobId: `payout-${p.id}`,
-					attempts: 5,
-					backoff: { type: "exponential", delay: 30_000 },
-					removeOnComplete: 1000,
-					removeOnFail: 5000,
-				},
+			await this.queue.enqueue<InstructorPayoutJobData>(
+				QUEUE_INSTRUCTOR_PAYOUT,
+				{ payoutId: p.id },
+				{ jobId: `payout-${p.id}`, attempts: 5, backoffMs: 30_000 },
 			);
 			queued += 1;
 		}
@@ -190,15 +183,13 @@ export class AdminPayoutsService {
 			where: { id: payoutId },
 			data: { status: "pending", failedReason: null },
 		});
-		await this.payoutQueue.add(
-			"payout",
-			{ payoutId } satisfies InstructorPayoutJobData,
+		await this.queue.enqueue<InstructorPayoutJobData>(
+			QUEUE_INSTRUCTOR_PAYOUT,
+			{ payoutId },
 			{
 				jobId: `payout-retry-${payoutId}-${Date.now()}`,
 				attempts: 5,
-				backoff: { type: "exponential", delay: 30_000 },
-				removeOnComplete: 1000,
-				removeOnFail: 5000,
+				backoffMs: 30_000,
 			},
 		);
 		return { queued: true };
@@ -243,18 +234,16 @@ export class AdminPayoutsService {
 			where: { id: transactionId },
 			data: { status: "pending", failedReason: null },
 		});
-		await this.earnBackQueue.add(
-			"refund",
-			{ transactionId } satisfies EarnBackJobData,
+		await this.queue.enqueue<EarnBackJobData>(
+			QUEUE_EARN_BACK,
+			{ transactionId },
 			{
 				// A UNIQUE jobId per retry. The original enqueue uses the stable
-				// `earnback-${id}`, which BullMQ would deduplicate — the retry would
+				// `earnback-${id}`, which the queue deduplicates — the retry would
 				// silently no-op while reporting success.
 				jobId: `earnback-retry-${transactionId}-${Date.now()}`,
 				attempts: 5,
-				backoff: { type: "exponential", delay: 60_000 },
-				removeOnComplete: 1000,
-				removeOnFail: 5000,
+				backoffMs: 60_000,
 			},
 		);
 		this.logger.log(`Admin re-queued Earn-Back refund ${transactionId}`);

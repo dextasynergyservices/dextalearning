@@ -67,7 +67,7 @@ export function CertificatesSection() {
 							type="button"
 							onClick={() => download.mutate(cert.id)}
 							disabled={download.isPending}
-							className="inline-flex h-9 items-center gap-1.5 rounded-btn bg-brand-primary px-3 font-medium text-sm text-white transition-colors hover:bg-brand-primary-hover disabled:opacity-50"
+							className="inline-flex h-9 items-center gap-1.5 rounded-btn bg-brand-solid px-3 font-medium text-sm text-white transition-colors hover:bg-brand-solid-hover disabled:opacity-50"
 						>
 							{download.isPending && download.variables === cert.id ? (
 								<Loader2 className="size-4 animate-spin" />

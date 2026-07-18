@@ -23,7 +23,7 @@ export function CompletionBar({
 				<span
 					className={cn(
 						"block h-full rounded-full",
-						tone === "success" ? "bg-success" : "bg-brand-primary",
+						tone === "success" ? "bg-success" : "bg-brand-solid",
 					)}
 					style={{ width: `${Math.min(100, Math.max(0, value))}%` }}
 				/>

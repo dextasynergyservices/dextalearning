@@ -50,7 +50,7 @@ export function InstructorAvatar({
 	) : (
 		<span
 			className={cn(
-				"flex items-center justify-center rounded-full bg-brand-primary font-display text-white",
+				"flex items-center justify-center rounded-full bg-brand-solid font-display text-white",
 				className,
 			)}
 		>

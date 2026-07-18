@@ -70,7 +70,7 @@ export function ContactSection({ className }: { className?: string }) {
 					{cards.map((card) => {
 						const inner = (
 							<>
-								<span className="flex size-11 items-center justify-center rounded-btn bg-brand-primary-light text-brand-primary transition-colors group-hover:bg-brand-primary group-hover:text-white">
+								<span className="flex size-11 items-center justify-center rounded-btn bg-brand-primary-light text-brand-primary transition-colors group-hover:bg-brand-solid-hover group-hover:text-white">
 									<card.icon className="size-5" />
 								</span>
 								<p className="mt-4 font-display text-foreground">

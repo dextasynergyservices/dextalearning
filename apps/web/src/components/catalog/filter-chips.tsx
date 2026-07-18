@@ -28,7 +28,7 @@ export function FilterChips({
 					className={cn(
 						"shrink-0 rounded-pill px-4 py-2 font-medium text-sm transition-all active:scale-95",
 						active === key
-							? "bg-brand-primary text-white shadow-sm"
+							? "bg-brand-solid text-white shadow-sm"
 							: "bg-muted text-muted-foreground hover:bg-accent",
 					)}
 				>

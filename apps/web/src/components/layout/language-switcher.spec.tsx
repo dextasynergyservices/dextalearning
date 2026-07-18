@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { screen } from "@testing-library/react";
+import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it } from "vitest";
 import i18n from "@/lib/i18n";
@@ -36,6 +36,8 @@ describe("LanguageSwitcher", () => {
 		renderWithProviders(<LanguageSwitcher />);
 
 		await user.selectOptions(screen.getByRole("combobox"), "fr");
-		expect(i18n.resolvedLanguage).toBe("fr");
+		// changeLanguage is async since locales became lazy chunks (§13.2) —
+		// the switch completes when fr's namespaces land, not synchronously.
+		await waitFor(() => expect(i18n.resolvedLanguage).toBe("fr"));
 	});
 });

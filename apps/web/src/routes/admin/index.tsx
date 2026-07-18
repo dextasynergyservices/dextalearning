@@ -87,7 +87,7 @@ function AdminDashboardPage() {
 						</div>
 						<Link
 							to="/admin/courses"
-							className="inline-flex h-11 items-center justify-center gap-2 rounded-btn bg-brand-primary px-5 font-semibold text-sm text-white transition-colors hover:bg-brand-primary-hover"
+							className="inline-flex h-11 items-center justify-center gap-2 rounded-btn bg-brand-solid px-5 font-semibold text-sm text-white transition-colors hover:bg-brand-solid-hover"
 						>
 							<BookOpen className="size-4" />
 							{t("admin.manage_content")}

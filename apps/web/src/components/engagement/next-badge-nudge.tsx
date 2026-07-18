@@ -64,7 +64,7 @@ export function NextBadgeNudge({
 				</span>
 				<span className="mt-1.5 block h-1.5 overflow-hidden rounded-full bg-muted">
 					<span
-						className="block h-full rounded-full bg-brand-primary transition-all"
+						className="block h-full rounded-full bg-brand-solid transition-all"
 						style={{ width: `${pct}%` }}
 					/>
 				</span>

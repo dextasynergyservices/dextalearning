@@ -81,6 +81,9 @@ function EarningsPage() {
 
 				<StatTileGrid tiles={tiles} />
 
+				{/* No charts here by design: this page is OPERATIONAL money (accounts,
+				    payouts, the ledger). Every chart lives on the one business
+				    dashboard — /instructor/analytics — so the picture is in one place. */}
 				<PayoutHistory
 					rows={earnings.data?.history}
 					pending={earnings.isPending}
