@@ -93,7 +93,12 @@ export function LearnerShell({
 									key={to}
 									to={to}
 									activeOptions={{ exact: Boolean(exact) }}
-									className="rounded-btn px-3.5 py-2 font-medium text-muted-foreground text-sm transition-colors hover:bg-accent"
+									// Muted colour lives in inactiveProps, not the base class —
+									// activeProps only APPENDS, so a base text-muted-foreground
+									// would beat text-brand-primary in the cascade (WCAG 1.4.3:
+									// muted on the light-blue active pill is only 2.1–4.5:1).
+									className="rounded-btn px-3.5 py-2 font-medium text-sm transition-colors hover:bg-accent"
+									inactiveProps={{ className: "text-muted-foreground" }}
 									activeProps={{
 										className: "bg-brand-primary-light text-brand-primary",
 									}}

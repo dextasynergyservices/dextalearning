@@ -1,9 +1,23 @@
-import { emailOTPClient, magicLinkClient } from "better-auth/client/plugins";
+import {
+	emailOTPClient,
+	magicLinkClient,
+	twoFactorClient,
+} from "better-auth/client/plugins";
 import { createAuthClient } from "better-auth/react";
 
 export const authClient = createAuthClient({
 	baseURL: import.meta.env.VITE_AUTH_URL,
-	plugins: [emailOTPClient(), magicLinkClient()],
+	plugins: [
+		emailOTPClient(),
+		magicLinkClient(),
+		// TOTP two-factor (§5.9). On a login that needs a second factor, Better
+		// Auth returns `twoFactorRedirect` and this sends the user to /2fa.
+		twoFactorClient({
+			onTwoFactorRedirect: () => {
+				window.location.href = "/2fa";
+			},
+		}),
+	],
 });
 
 export const { signUp, signIn, signOut, useSession } = authClient;

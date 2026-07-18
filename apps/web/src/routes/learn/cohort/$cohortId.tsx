@@ -84,7 +84,7 @@ function MyGroupCard({ cohortId }: { cohortId: string }) {
 			params={{ groupId: data.id }}
 			className="flex items-center gap-3 rounded-card border border-brand-primary/25 bg-brand-primary-light/30 p-4 shadow-card transition-colors hover:border-brand-primary"
 		>
-			<span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-brand-primary text-white">
+			<span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-brand-solid text-white">
 				<MessagesSquare className="size-5" />
 			</span>
 			<div className="min-w-0 flex-1">
@@ -168,7 +168,7 @@ function CohortBody({ data }: { data: CohortProgress }) {
 					<Link
 						to="/learn/course/$courseId"
 						params={{ courseId: nextCourse.id }}
-						className="mt-4 flex items-center justify-center gap-2 rounded-btn bg-brand-primary py-2.5 font-semibold text-sm text-white transition-colors hover:bg-brand-primary-hover"
+						className="mt-4 flex items-center justify-center gap-2 rounded-btn bg-brand-solid py-2.5 font-semibold text-sm text-white transition-colors hover:bg-brand-solid-hover"
 					>
 						<PlayCircle className="size-4" />
 						{t("hub.continue", { defaultValue: "Continue learning" })}
@@ -205,7 +205,7 @@ function CohortBody({ data }: { data: CohortProgress }) {
 											<span
 												className={cn(
 													"h-full rounded-full",
-													course.isComplete ? "bg-success" : "bg-brand-primary",
+													course.isComplete ? "bg-success" : "bg-brand-solid",
 												)}
 												style={{ width: `${course.percent}%` }}
 											/>
@@ -251,7 +251,7 @@ function CohortBody({ data }: { data: CohortProgress }) {
 											<span
 												className={cn(
 													"h-full rounded-full",
-													path.isComplete ? "bg-success" : "bg-brand-primary",
+													path.isComplete ? "bg-success" : "bg-brand-solid",
 												)}
 												style={{ width: `${path.percent}%` }}
 											/>

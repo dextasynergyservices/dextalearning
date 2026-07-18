@@ -117,7 +117,7 @@ export function UploadField({
 						</div>
 						<div className="h-2 w-full max-w-sm overflow-hidden rounded-full bg-muted">
 							<div
-								className="h-full rounded-full bg-brand-primary transition-all"
+								className="h-full rounded-full bg-brand-solid transition-all"
 								style={{ width: `${pct}%` }}
 							/>
 						</div>

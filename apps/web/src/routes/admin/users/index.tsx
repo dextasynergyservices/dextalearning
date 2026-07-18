@@ -332,7 +332,7 @@ function Chip({
 			className={cn(
 				"inline-flex h-9 shrink-0 items-center gap-1.5 rounded-pill border px-3.5 font-medium text-sm transition-colors",
 				active
-					? "border-brand-primary bg-brand-primary text-white"
+					? "border-brand-primary bg-brand-solid text-white"
 					: "border-border bg-card text-muted-foreground hover:bg-accent hover:text-foreground",
 			)}
 		>

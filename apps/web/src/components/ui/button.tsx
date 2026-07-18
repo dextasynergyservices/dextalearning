@@ -8,13 +8,17 @@ export const buttonVariants = cva(
 		variants: {
 			variant: {
 				primary:
-					"bg-brand-primary text-white shadow-sm hover:bg-brand-primary-hover hover:shadow-md active:scale-[0.98]",
+					"bg-brand-solid text-white shadow-sm hover:bg-brand-solid-hover hover:shadow-md active:scale-[0.98]",
 				accent:
-					"bg-brand-accent text-white shadow-sm hover:bg-brand-accent-hover hover:shadow-md active:scale-[0.98]",
+					// Dark ink on amber — white on #f59e0b is only 2.14:1 (WCAG fail);
+					// neutral-900 clears AA on both the base and the darker hover.
+					"bg-brand-accent text-neutral-900 shadow-sm hover:bg-brand-accent-hover hover:shadow-md active:scale-[0.98]",
 				outline:
 					"border border-brand-primary/30 text-brand-primary hover:border-brand-primary hover:bg-brand-primary-light",
 				white:
-					"bg-white text-brand-primary shadow-sm hover:bg-slate-100 active:scale-[0.98]",
+					// White fill is theme-invariant, so its text must be the dark solid
+					// blue in both themes (the light text token would fail on white).
+					"bg-white text-brand-solid shadow-sm hover:bg-slate-100 active:scale-[0.98]",
 				ghost: "text-foreground hover:bg-accent",
 				link: "text-brand-primary underline-offset-4 hover:underline",
 			},

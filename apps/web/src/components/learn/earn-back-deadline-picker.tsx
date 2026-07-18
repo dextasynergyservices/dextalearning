@@ -76,7 +76,7 @@ export function EarnBackDeadlinePicker({
 	return (
 		<section className="rounded-card border border-brand-primary/25 bg-brand-primary-light/20 p-4 shadow-card sm:p-5">
 			<div className="flex items-start gap-3">
-				<span className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-btn bg-brand-primary text-white">
+				<span className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-btn bg-brand-solid text-white">
 					<CalendarClock className="size-4.5" />
 				</span>
 				<div className="min-w-0 flex-1">
@@ -160,7 +160,7 @@ export function EarnBackDeadlinePicker({
 				type="button"
 				onClick={() => commit.mutate()}
 				disabled={commit.isPending}
-				className="mt-3 inline-flex h-11 w-full items-center justify-center gap-2 rounded-btn bg-brand-primary px-4 font-semibold text-sm text-white transition-colors hover:bg-brand-primary-hover active:scale-[0.99] disabled:opacity-50 sm:w-auto"
+				className="mt-3 inline-flex h-11 w-full items-center justify-center gap-2 rounded-btn bg-brand-solid px-4 font-semibold text-sm text-white transition-colors hover:bg-brand-solid-hover active:scale-[0.99] disabled:opacity-50 sm:w-auto"
 			>
 				{commit.isPending ? (
 					<Loader2 className="size-4 animate-spin" />

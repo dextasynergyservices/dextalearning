@@ -72,7 +72,7 @@ export function LearningScienceVisual() {
 				</p>
 				<div className="flex items-center gap-4 text-xs">
 					<span className="flex items-center gap-1.5 text-muted-foreground">
-						<span className="size-2.5 rounded-full bg-brand-primary" />
+						<span className="size-2.5 rounded-full bg-brand-solid" />
 						{t("principles.visual.spaced")}
 					</span>
 					<span className="flex items-center gap-1.5 text-muted-foreground">

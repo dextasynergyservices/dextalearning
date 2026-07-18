@@ -82,7 +82,7 @@ function InstructorOverviewPage() {
 						</div>
 						<Link
 							to="/instructor/courses"
-							className="inline-flex h-11 items-center justify-center gap-2 rounded-btn bg-brand-primary px-5 font-semibold text-sm text-white transition-colors hover:bg-brand-primary-hover"
+							className="inline-flex h-11 items-center justify-center gap-2 rounded-btn bg-brand-solid px-5 font-semibold text-sm text-white transition-colors hover:bg-brand-solid-hover"
 						>
 							<Plus className="size-4" />
 							{t("instructor.build_cta")}

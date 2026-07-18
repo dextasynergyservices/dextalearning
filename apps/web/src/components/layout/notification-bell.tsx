@@ -260,7 +260,7 @@ export function NotificationBell() {
 						</span>
 					</span>
 					{!item.readAt ? (
-						<span className="mt-2 size-2 shrink-0 rounded-full bg-brand-primary" />
+						<span className="mt-2 size-2 shrink-0 rounded-full bg-brand-solid" />
 					) : null}
 				</Link>
 			</li>
@@ -309,7 +309,7 @@ export function NotificationBell() {
 				{unread > 0 ? (
 					<span
 						data-testid="notification-dot"
-						className="absolute top-1 right-1 flex size-4 items-center justify-center rounded-full bg-brand-primary font-stats font-bold text-[0.6rem] text-white"
+						className="absolute top-1 right-1 flex size-4 items-center justify-center rounded-full bg-brand-solid font-stats font-bold text-[0.6rem] text-white"
 					>
 						{unread > 9 ? "9+" : unread}
 					</span>

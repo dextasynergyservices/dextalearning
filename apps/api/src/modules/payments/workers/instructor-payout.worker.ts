@@ -1,12 +1,5 @@
-import {
-	Inject,
-	Injectable,
-	Logger,
-	type OnModuleDestroy,
-	type OnModuleInit,
-} from "@nestjs/common";
+import { Inject, Injectable, Logger, type OnModuleInit } from "@nestjs/common";
 import { EventEmitter2 } from "@nestjs/event-emitter";
-import { type ConnectionOptions, type Job, Worker } from "bullmq";
 import { PrismaService } from "../../../prisma/prisma.service";
 import {
 	PaymentEvents,
@@ -15,47 +8,37 @@ import {
 } from "../../../shared/events/payment-events";
 import {
 	type InstructorPayoutJobData,
-	QUEUE_CONNECTION,
 	QUEUE_INSTRUCTOR_PAYOUT,
 } from "../../../shared/queue/queue.constants";
+import { QUEUE_PORT, type QueuePort } from "../../../shared/queue/queue.port";
 import { PaymentGatewayRegistry } from "../payment-gateway.registry";
 
 /**
- * Durable instructor-payout worker (§8.5, §14.2). Reads the pending payout row,
- * and if the instructor has a VERIFIED payout account attempts the gateway
- * transfer; otherwise the payout stays `pending` and accumulates until Admin
- * triggers a bulk payout (§14.3). Success/failure emit domain events that
- * Notifications turns into email/WhatsApp/in-app (§8.6). Serves both
- * guaranteed-revenue settlement and earn-back forfeiture payouts.
+ * Instructor-payout processor (§8.5, §14.2). Reads the pending payout row, and
+ * if the instructor has a VERIFIED payout account attempts the gateway transfer;
+ * otherwise the payout stays `pending` and accumulates until Admin triggers a
+ * bulk payout (§14.3). Success/failure emit domain events that Notifications
+ * turns into email/WhatsApp/in-app (§8.6). Serves both guaranteed-revenue
+ * settlement and earn-back forfeiture payouts. Registered on the QueuePort —
+ * durable under BullMQ, in-process on the free tier (idempotent on the row state).
  */
 @Injectable()
-export class InstructorPayoutWorker implements OnModuleInit, OnModuleDestroy {
+export class InstructorPayoutWorker implements OnModuleInit {
 	private readonly logger = new Logger(InstructorPayoutWorker.name);
-	private worker?: Worker;
 
 	constructor(
-		@Inject(QUEUE_CONNECTION) private readonly connection: ConnectionOptions,
+		@Inject(QUEUE_PORT) private readonly queue: QueuePort,
 		private readonly prisma: PrismaService,
 		private readonly gateways: PaymentGatewayRegistry,
 		private readonly events: EventEmitter2,
 	) {}
 
 	onModuleInit(): void {
-		// drainDelay: 60 — payouts are low-volume and event-driven; a ≤60s pickup
-		// latency is irrelevant, and the long idle block spares serverless Redis
-		// (same posture as the media workers).
-		this.worker = new Worker<InstructorPayoutJobData>(
+		this.queue.register<InstructorPayoutJobData>(
 			QUEUE_INSTRUCTOR_PAYOUT,
-			(job: Job<InstructorPayoutJobData>) => this.process(job.data.payoutId),
-			{ connection: this.connection, drainDelay: 60, concurrency: 2 },
+			(data) => this.process(data.payoutId),
+			{ concurrency: 2 },
 		);
-		this.worker.on("failed", (job, err) => {
-			this.logger.error(`Payout job ${job?.id} failed: ${err.message}`);
-		});
-	}
-
-	async onModuleDestroy(): Promise<void> {
-		await this.worker?.close();
 	}
 
 	private async process(payoutId: string): Promise<void> {

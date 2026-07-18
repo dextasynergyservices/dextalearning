@@ -95,7 +95,7 @@ export function OnboardingShell({
 					)}
 					<div className="h-1.5 flex-1 overflow-hidden rounded-full bg-muted lg:hidden">
 						<motion.div
-							className="h-full rounded-full bg-brand-primary"
+							className="h-full rounded-full bg-brand-solid"
 							initial={false}
 							animate={{ width: `${pct}%` }}
 							transition={{ duration: 0.3 }}

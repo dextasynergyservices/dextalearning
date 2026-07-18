@@ -5,8 +5,12 @@ import {
 	Controller,
 	HttpCode,
 	Post,
+	UseGuards,
 } from "@nestjs/common";
 import { ApiOperation, ApiTags } from "@nestjs/swagger";
+import { Throttle } from "@nestjs/throttler";
+import { UserThrottlerGuard } from "../common/guards/user-throttler.guard";
+import { TurnstileGuard } from "../common/turnstile";
 import { PrismaService } from "../prisma/prisma.service";
 import { auth } from "./auth.config";
 import { RegisterDto } from "./dto/register.dto";
@@ -22,8 +26,13 @@ export class AuthController {
 	 * the additional profile fields. Login, Google OAuth, OTP and magic-link flows
 	 * are served by the mounted Better Auth handler at /api/auth/*.
 	 */
+	// §5.9: registration is a Nest route, so its bot-check (Turnstile) and its
+	// strict per-IP limit (5/60s, matching the Better Auth auth routes) live
+	// here rather than in Better Auth's own rate limiter.
 	@Post("register")
 	@HttpCode(201)
+	@UseGuards(TurnstileGuard, UserThrottlerGuard)
+	@Throttle({ global: { ttl: 60_000, limit: 5 } })
 	@ApiOperation({ summary: "Register with email + password" })
 	async register(@Body() dto: RegisterDto) {
 		// Better Auth's signUpEmail has built-in enumeration protection: it

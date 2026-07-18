@@ -1,6 +1,13 @@
 {
-	"app_name": "DextaLearning",
-	"tagline": "Learning that sticks — built for how people actually learn.",
+	"account": {
+		"dashboard": "Dashboard",
+		"profile": "Profile",
+		"awards": "Awards",
+		"facilitator": "Facilitator portal",
+		"sign_out": "Sign out",
+		"menu": "Account menu",
+		"greeting": "Signed in"
+	},
 	"actions": {
 		"get_started": "Get started",
 		"start_free": "Start learning free",
@@ -10,41 +17,12 @@
 		"explore_courses": "Explore courses",
 		"coming_together": "Coming together"
 	},
-	"nav": {
-		"courses": "Courses",
-		"paths": "Paths",
-		"cohorts": "Cohorts",
-		"about": "About",
-		"blog": "Blog",
-		"community": "Community",
-		"contact": "Contact"
-	},
-	"tabs": {
-		"home": "Home",
-		"courses": "Courses",
-		"paths": "Paths",
-		"cohorts": "Cohorts",
-		"explore": "Explore",
-		"search": "Search",
-		"account": "Account",
-		"more": "More"
-	},
-	"footer": {
-		"tagline": "A behavior-driven Learning Operating System — making deep, lasting learning the default, not the exception.",
-		"learn": "Learn",
-		"company": "Company",
-		"account": "Account",
-		"learning_paths": "Learning Paths",
-		"rights": "All rights reserved."
-	},
-	"account": {
-		"dashboard": "Dashboard",
-		"profile": "Profile",
-		"awards": "Awards",
-		"facilitator": "Facilitator portal",
-		"sign_out": "Sign out",
-		"menu": "Account menu",
-		"greeting": "Signed in"
+	"app_name": "DextaLearning",
+	"crash": {
+		"title": "Something went wrong",
+		"body": "The error has been reported. Your progress is saved on our servers — nothing is lost.",
+		"retry": "Try again",
+		"home": "Go to the home page"
 	},
 	"errors": {
 		"media": {
@@ -58,11 +36,22 @@
 			"not_publishable": "Some lessons still need content or a transcript before you can publish."
 		}
 	},
-	"theme": {
-		"label": "Theme",
-		"light": "Light",
-		"dark": "Dark",
-		"system": "System"
+	"footer": {
+		"tagline": "A behavior-driven Learning Operating System — making deep, lasting learning the default, not the exception.",
+		"learn": "Learn",
+		"company": "Company",
+		"account": "Account",
+		"learning_paths": "Learning Paths",
+		"rights": "All rights reserved."
+	},
+	"nav": {
+		"courses": "Courses",
+		"paths": "Paths",
+		"cohorts": "Cohorts",
+		"about": "About",
+		"blog": "Blog",
+		"community": "Community",
+		"contact": "Contact"
 	},
 	"phoneVerify": {
 		"verifyCta": "Verify",
@@ -93,5 +82,26 @@
 		"denied": "Notifications are blocked. Enable them in your browser settings to turn this on.",
 		"enabled_toast": "Push notifications enabled.",
 		"error": "Couldn't enable push notifications."
+	},
+	"pwa": {
+		"update_available": "A new version is ready.",
+		"reload": "Reload"
+	},
+	"tabs": {
+		"home": "Home",
+		"courses": "Courses",
+		"paths": "Paths",
+		"cohorts": "Cohorts",
+		"explore": "Explore",
+		"search": "Search",
+		"account": "Account",
+		"more": "More"
+	},
+	"tagline": "Learning that sticks — built for how people actually learn.",
+	"theme": {
+		"label": "Theme",
+		"light": "Light",
+		"dark": "Dark",
+		"system": "System"
 	}
 }

@@ -94,7 +94,7 @@ export function StreakPanel({
 								data-active={day.active || undefined}
 								className={cn(
 									"size-2.5 rounded-full",
-									day.active ? "bg-brand-primary" : "bg-muted",
+									day.active ? "bg-brand-solid" : "bg-muted",
 								)}
 							/>
 							<span className="text-[0.6rem] text-muted-foreground uppercase">
@@ -110,7 +110,9 @@ export function StreakPanel({
 					"mt-4 rounded-btn px-3 py-2 text-sm",
 					streak.atRisk
 						? "bg-warning/10 text-amber-700 dark:text-amber-300"
-						: "bg-brand-primary-light/50 text-foreground",
+						: // Full-strength tint in dark: the 50% blend lands mid-grey and
+							// drops foreground text to 3.8:1 (WCAG 1.4.3).
+							"bg-brand-primary-light/50 text-foreground dark:bg-brand-primary-light",
 				)}
 			>
 				{t(`streak.${lossAversionKey(streak)}`, { days: streak.current })}

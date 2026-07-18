@@ -1,6 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Loader2, Sparkles } from "lucide-react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
@@ -9,6 +10,10 @@ import { AuthLayout } from "@/components/auth/auth-layout";
 import { FormField } from "@/components/auth/form-field";
 import { GoogleButton } from "@/components/auth/google-button";
 import { PasswordField } from "@/components/auth/password-field";
+import {
+	TurnstileWidget,
+	turnstileEnabled,
+} from "@/components/auth/turnstile-widget";
 import { Button } from "@/components/ui/button";
 import {
 	authClient,
@@ -29,6 +34,7 @@ export const Route = createFileRoute("/login")({
 function LoginPage() {
 	const { t } = useTranslation("auth");
 	const { redirect } = Route.useSearch();
+	const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
 	const {
 		register,
 		handleSubmit,
@@ -40,12 +46,23 @@ function LoginPage() {
 	});
 
 	const onSubmit = async (values: LoginValues) => {
+		if (turnstileEnabled() && !turnstileToken) {
+			toast.error(
+				t("security.turnstile_wait", {
+					defaultValue: "Please complete the verification below.",
+				}),
+			);
+			return;
+		}
 		// No `callbackURL` — Better Auth would auto-redirect there, overriding our
-		// role-based landing.
-		const { data, error } = await signIn.email({
-			email: values.email,
-			password: values.password,
-		});
+		// role-based landing. The Turnstile token rides as a header the API's
+		// pre-auth middleware verifies (§5.9).
+		const { data, error } = await signIn.email(
+			{ email: values.email, password: values.password },
+			turnstileToken
+				? { headers: { "x-turnstile-token": turnstileToken } }
+				: undefined,
+		);
 
 		if (error) {
 			toast.error(error.message || t("toasts.error"));
@@ -139,6 +156,7 @@ function LoginPage() {
 						</Link>
 					</div>
 				</div>
+				<TurnstileWidget onToken={setTurnstileToken} />
 				<Button
 					type="submit"
 					size="lg"

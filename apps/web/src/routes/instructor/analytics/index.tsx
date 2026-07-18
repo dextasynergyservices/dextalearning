@@ -17,6 +17,18 @@ import {
 	StatTileGrid,
 } from "@/components/analytics/stat-tile";
 import { StudioShell } from "@/components/authoring/studio-shell";
+import { ActivityHeatmap } from "@/components/charts/activity-heatmap";
+import { AntiCheatSummaryCard } from "@/components/charts/anti-cheat-summary";
+import {
+	LazyEarnBackOutcomesCard,
+	LazyEarningsTrendChart,
+	LazyEnrolmentTrendChart,
+	LazyLearnerGrowthChart,
+	LazyOutcomeDonutCard,
+	LazyPlatformRevenueChart,
+	LazyRevenueByTypeCard,
+} from "@/components/charts/lazy";
+import { TopContentBars } from "@/components/charts/top-content-bars";
 import {
 	type AdminAnalytics,
 	type AnalyticsEntityType,
@@ -178,6 +190,45 @@ export function AnalyticsOverviewPage({
 				</div>
 
 				<StatTileGrid tiles={tiles} />
+
+				{/* THE business dashboard (§15.2): every chart lives here, never
+				    scattered across pages. Reading order = the questions in order:
+				    is it growing → where's the money → how do learners split →
+				    which content carries me → when do they study → (admin) is it
+				    honest. All recharts pieces ride the lazy seam (§13.2). */}
+				<div className="grid gap-6 xl:grid-cols-2">
+					<LazyEnrolmentTrendChart />
+					{area === "instructor" ? (
+						<LazyEarningsTrendChart />
+					) : (
+						<LazyPlatformRevenueChart />
+					)}
+				</div>
+
+				<div className="grid gap-6 lg:grid-cols-2 xl:grid-cols-3">
+					<LazyOutcomeDonutCard />
+					{area === "instructor" ? (
+						<LazyEarnBackOutcomesCard />
+					) : (
+						<LazyRevenueByTypeCard />
+					)}
+					<TopContentBars
+						rows={(data?.courses ?? []).map((row) => ({
+							id: row.id,
+							title: row.title,
+							enrollments: row.enrolled,
+						}))}
+					/>
+				</div>
+
+				{area === "admin" ? (
+					<div className="grid gap-6 xl:grid-cols-2">
+						<LazyLearnerGrowthChart />
+						<AntiCheatSummaryCard />
+					</div>
+				) : null}
+
+				<ActivityHeatmap />
 
 				<section className="rounded-card border border-border bg-card shadow-card">
 					<div className="flex flex-col gap-3 border-border border-b px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-5">

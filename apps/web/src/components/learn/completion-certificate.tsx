@@ -109,7 +109,7 @@ export function CompletionCertificate({
 	return (
 		<section className="overflow-hidden rounded-card border border-brand-primary/25 bg-gradient-to-br from-brand-primary-light/50 to-brand-accent/10 shadow-card">
 			<div className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:gap-5">
-				<span className="flex size-14 shrink-0 items-center justify-center rounded-2xl bg-brand-primary text-white shadow-card">
+				<span className="flex size-14 shrink-0 items-center justify-center rounded-2xl bg-brand-solid text-white shadow-card">
 					<Award className="size-7" />
 				</span>
 				<div className="min-w-0 flex-1">
@@ -135,7 +135,7 @@ export function CompletionCertificate({
 					type="button"
 					onClick={() => download.mutate(cert.id)}
 					disabled={download.isPending}
-					className="inline-flex h-10 items-center gap-2 rounded-btn bg-brand-primary px-4 font-semibold text-sm text-white transition-colors hover:bg-brand-primary-hover active:scale-[0.98] disabled:opacity-50"
+					className="inline-flex h-10 items-center gap-2 rounded-btn bg-brand-solid px-4 font-semibold text-sm text-white transition-colors hover:bg-brand-solid-hover active:scale-[0.98] disabled:opacity-50"
 				>
 					{download.isPending ? (
 						<Loader2 className="size-4 animate-spin" />

@@ -184,7 +184,7 @@ function Box({ checked, partial }: { checked: boolean; partial?: boolean }) {
 			className={cn(
 				"flex size-4 shrink-0 items-center justify-center rounded border transition-colors",
 				checked || partial
-					? "border-brand-primary bg-brand-primary text-white"
+					? "border-brand-primary bg-brand-solid text-white"
 					: "border-border",
 			)}
 		>

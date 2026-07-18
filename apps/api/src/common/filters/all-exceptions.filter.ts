@@ -7,6 +7,7 @@ import {
 	HttpStatus,
 	Logger,
 } from "@nestjs/common";
+import * as Sentry from "@sentry/nestjs";
 import type { Request, Response } from "express";
 
 interface ErrorEnvelope {
@@ -31,7 +32,12 @@ export class AllExceptionsFilter implements ExceptionFilter {
 		const ctx = host.switchToHttp();
 		const response = ctx.getResponse<Response>();
 		const request = ctx.getRequest<Request>();
-		const requestId = `req_${randomUUID().replace(/-/g, "").slice(0, 16)}`;
+		// One id per request, everywhere: pino-http minted it at ingress, so the
+		// envelope's requestId, the log line and the Sentry tag all match. The
+		// fallback only fires for errors thrown before the logger middleware.
+		const requestId =
+			(request as Request & { id?: string }).id ??
+			`req_${randomUUID().replace(/-/g, "").slice(0, 16)}`;
 
 		let status = HttpStatus.INTERNAL_SERVER_ERROR;
 		let message = "An unexpected error occurred";
@@ -69,6 +75,13 @@ export class AllExceptionsFilter implements ExceptionFilter {
 				`[${requestId}] ${request.method} ${request.originalUrl} -> ${status}`,
 				exception instanceof Error ? exception.stack : String(exception),
 			);
+			// Only 5xx reaches Sentry — 404s and validation failures are user
+			// behaviour, not defects, and would drown the signal (§15). No-op
+			// without SENTRY_DSN (init is gated in instrument.ts).
+			Sentry.captureException(exception, {
+				tags: { requestId },
+				extra: { method: request.method, url: request.originalUrl },
+			});
 		}
 
 		const envelope: ErrorEnvelope = {

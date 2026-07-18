@@ -36,7 +36,7 @@ const TYPES: {
 const PERIODS: LeaderboardPeriod[] = ["all_time", "weekly"];
 
 const TINTS = [
-	"bg-brand-primary",
+	"bg-brand-solid",
 	"bg-indigo-600",
 	"bg-emerald-600",
 	"bg-amber-600",
@@ -210,7 +210,7 @@ function AwardsPage() {
 								{active ? (
 									<motion.span
 										layoutId="lb-tab"
-										className="absolute inset-0 rounded-pill bg-brand-primary"
+										className="absolute inset-0 rounded-pill bg-brand-solid"
 										transition={{ type: "spring", stiffness: 380, damping: 30 }}
 									/>
 								) : null}
@@ -233,7 +233,7 @@ function AwardsPage() {
 							className={cn(
 								"rounded-pill px-3.5 py-1.5 font-medium text-sm transition-colors",
 								period === p
-									? "bg-brand-primary text-white"
+									? "bg-brand-solid text-white"
 									: "text-muted-foreground hover:text-foreground",
 							)}
 						>

@@ -140,7 +140,7 @@ function InstructorCohortDetailPage() {
 															"block h-full rounded-full",
 															learner.completed
 																? "bg-success"
-																: "bg-brand-primary",
+																: "bg-brand-solid",
 														)}
 														style={{ width: `${learner.progressPercent}%` }}
 													/>

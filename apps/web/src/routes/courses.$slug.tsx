@@ -272,7 +272,7 @@ function CoursePage() {
 									onClick={() => setPreview(firstPreview)}
 									className="group flex w-full items-center gap-4 rounded-card border border-brand-primary/30 bg-brand-primary-light/50 p-5 text-left transition-colors hover:bg-brand-primary-light"
 								>
-									<span className="flex size-12 shrink-0 items-center justify-center rounded-full bg-brand-primary text-white shadow-sm transition-transform group-hover:scale-105">
+									<span className="flex size-12 shrink-0 items-center justify-center rounded-full bg-brand-solid text-white shadow-sm transition-transform group-hover:scale-105">
 										<Play className="size-5 translate-x-0.5 fill-current" />
 									</span>
 									<span className="min-w-0 flex-1">
@@ -282,7 +282,7 @@ function CoursePage() {
 													defaultValue: "Watch free preview",
 												})}
 											</span>
-											<span className="rounded-pill bg-brand-primary px-2 py-0.5 font-stats font-semibold text-[0.6rem] text-white uppercase">
+											<span className="rounded-pill bg-brand-solid px-2 py-0.5 font-stats font-semibold text-[0.6rem] text-white uppercase">
 												{t("detail.free", { defaultValue: "Free" })}
 											</span>
 										</span>
@@ -363,7 +363,7 @@ function CoursePage() {
 																	<button
 																		type="button"
 																		onClick={() => setPreview(lesson)}
-																		className="flex shrink-0 items-center gap-1 rounded-pill bg-brand-primary px-2.5 py-1 font-stats font-semibold text-[0.62rem] text-white uppercase transition-colors hover:bg-brand-primary-hover"
+																		className="flex shrink-0 items-center gap-1 rounded-pill bg-brand-solid px-2.5 py-1 font-stats font-semibold text-[0.62rem] text-white uppercase transition-colors hover:bg-brand-solid-hover"
 																	>
 																		<Play className="size-3" />
 																		{t("detail.preview")}

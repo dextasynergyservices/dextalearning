@@ -147,7 +147,7 @@ function DashboardPage() {
 						</div>
 						<a
 							href="#explore"
-							className="inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-btn bg-brand-primary px-5 font-semibold text-sm text-white transition-colors hover:bg-brand-primary-hover active:scale-[0.98]"
+							className="inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-btn bg-brand-solid px-5 font-semibold text-sm text-white transition-colors hover:bg-brand-solid-hover active:scale-[0.98]"
 						>
 							<Compass className="size-4" />
 							{t("home.browse_cta")}

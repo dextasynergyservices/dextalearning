@@ -669,7 +669,7 @@ function SelectableChip({
 					className={cn(
 						"flex size-5 shrink-0 items-center justify-center rounded border transition-colors",
 						selected
-							? "border-brand-primary bg-brand-primary text-white"
+							? "border-brand-primary bg-brand-solid text-white"
 							: "border-border",
 					)}
 				>

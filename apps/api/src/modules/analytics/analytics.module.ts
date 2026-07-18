@@ -1,6 +1,7 @@
 import { Module } from "@nestjs/common";
 import { AnalyticsController } from "./analytics.controller";
 import { AnalyticsService } from "./analytics.service";
+import { AnalyticsTrendsService } from "./analytics-trends.service";
 
 /**
  * Reporting read model (blueprint AnalyticsModule): aggregates enrolment,
@@ -9,6 +10,6 @@ import { AnalyticsService } from "./analytics.service";
  */
 @Module({
 	controllers: [AnalyticsController],
-	providers: [AnalyticsService],
+	providers: [AnalyticsService, AnalyticsTrendsService],
 })
 export class AnalyticsModule {}

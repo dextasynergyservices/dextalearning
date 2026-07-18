@@ -21,7 +21,11 @@ export class RedisCacheAdapter implements CachePort, OnModuleDestroy {
 		const url = process.env.REDIS_URL;
 		this.redis = url
 			? new Redis(url, {
-					lazyConnect: false,
+					// Connect on first cache op, not at boot: on the free serverless
+					// tier the instance is idle (scaled toward zero) much of the time,
+					// so we don't hold/keep-alive a Redis socket until something
+					// actually reads or writes the cache (infra budget).
+					lazyConnect: true,
 					maxRetriesPerRequest: 2,
 					// Don't spam reconnects forever if Redis is unreachable in dev.
 					retryStrategy: (times) =>

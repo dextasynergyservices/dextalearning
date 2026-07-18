@@ -104,6 +104,9 @@ export function createCohort(
 		title: string;
 		slug: string;
 		status: CohortStatus | null;
+		/** Cohorts are admin-created (§4.11.2); tests asserting ownership rules
+		 *  must be able to say WHOSE admin. */
+		createdBy: string;
 	}> = {},
 ): Promise<Cohort> {
 	const id = randomUUID().slice(0, 8);
@@ -112,6 +115,7 @@ export function createCohort(
 			title: overrides.title ?? `Test Cohort ${id}`,
 			slug: overrides.slug ?? `test-cohort-${id}`,
 			status: overrides.status ?? "open",
+			...(overrides.createdBy ? { createdBy: overrides.createdBy } : {}),
 		},
 	});
 }

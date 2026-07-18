@@ -115,7 +115,8 @@
 		"study_anchor": "Únelo a un hábito diario (opcional)",
 		"study_anchor_none": "Sin hábito asociado",
 		"study_anchor_hint": "«Después de cenar» funciona mejor que «las 18:00» — los hábitos se pegan a los hábitos.",
-		"weekly_hours": "Tiempo de estudio semanal"
+		"weekly_hours": "Tiempo de estudio semanal",
+		"security": "Seguridad"
 	},
 	"my": {
 		"title": "Mi aprendizaje",

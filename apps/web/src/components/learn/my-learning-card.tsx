@@ -62,7 +62,7 @@ export function MyLearningCard({ item }: { item: MyLearningItem }) {
 						<div
 							className={cn(
 								"h-full rounded-full",
-								item.isComplete ? "bg-success" : "bg-brand-primary",
+								item.isComplete ? "bg-success" : "bg-brand-solid",
 							)}
 							style={{ width: `${item.percent}%` }}
 						/>

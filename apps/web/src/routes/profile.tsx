@@ -17,6 +17,7 @@ import { LearnerShell } from "@/components/layout/learner-shell";
 import { FadeIn } from "@/components/marketing/fade-in";
 import { PhoneVerifyDialog } from "@/components/profile/phone-verify-dialog";
 import { PushOptIn } from "@/components/profile/push-opt-in";
+import { TwoFactorSection } from "@/components/profile/two-factor-section";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { homeForRole, signOut, useSession } from "@/lib/auth-client";
 import { getMyProfile, updateMyProfile } from "@/lib/content-api";
@@ -114,8 +115,11 @@ const ANCHORS = [
 function ProfilePage() {
 	const { t, i18n } = useTranslation(["dashboard", "common", "onboarding"]);
 	const navigate = useNavigate();
-	const { data: session } = useSession();
-	const role = (session?.user as { role?: string } | undefined)?.role;
+	const { data: session, refetch: refetchSession } = useSession();
+	const sessionUser = session?.user as
+		| { role?: string; twoFactorEnabled?: boolean }
+		| undefined;
+	const role = sessionUser?.role;
 	const queryClient = useQueryClient();
 	const { data } = useQuery({
 		queryKey: ["my-profile"],
@@ -277,7 +281,7 @@ function ProfilePage() {
 												</span>
 											) : (
 												<div className="flex items-center gap-2">
-													<span className="inline-flex items-center gap-1 rounded-pill bg-warning/10 px-2 py-0.5 font-stats font-semibold text-[0.6rem] text-warning uppercase tracking-wide">
+													<span className="inline-flex items-center gap-1 rounded-pill bg-warning/10 px-2 py-0.5 font-stats font-semibold text-[0.6rem] text-amber-700 uppercase tracking-wide dark:text-amber-400">
 														<ShieldAlert className="size-3" />
 														{t("profile.not_verified", {
 															defaultValue: "Not verified",
@@ -386,7 +390,7 @@ function ProfilePage() {
 										className={cn(
 											"relative h-6 w-11 shrink-0 rounded-full transition-colors",
 											whatsappOptIn && phoneTrimmed
-												? "bg-brand-primary"
+												? "bg-brand-solid"
 												: "bg-muted-foreground/30",
 											!phoneTrimmed && "cursor-not-allowed opacity-50",
 										)}
@@ -499,6 +503,13 @@ function ProfilePage() {
 									{t("profile.save", { defaultValue: "Save changes" })}
 								</Button>
 							</div>
+						</Group>
+
+						<Group label={t("profile.security", { defaultValue: "Security" })}>
+							<TwoFactorSection
+								enabled={sessionUser?.twoFactorEnabled ?? false}
+								onChanged={() => refetchSession()}
+							/>
 						</Group>
 
 						<Group label={t("profile.more")}>

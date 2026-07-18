@@ -115,7 +115,8 @@
 		"study_anchor": "Tie it to a daily habit (optional)",
 		"study_anchor_none": "No habit anchor",
 		"study_anchor_hint": "“After dinner” beats “6pm” — habits stick to habits.",
-		"weekly_hours": "Weekly learning time"
+		"weekly_hours": "Weekly learning time",
+		"security": "Security"
 	},
 	"my": {
 		"title": "My Learning",

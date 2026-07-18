@@ -95,7 +95,7 @@ function BlogPostPage() {
 		<PublicShell mobileTitle={post.title} mobileShowBack hideFooterOnMobile>
 			{/* Reading progress */}
 			<motion.div
-				className="fixed inset-x-0 top-0 z-50 h-0.5 origin-left bg-brand-primary"
+				className="fixed inset-x-0 top-0 z-50 h-0.5 origin-left bg-brand-solid"
 				style={{ scaleX: scrollYProgress }}
 			/>
 
@@ -120,7 +120,7 @@ function BlogPostPage() {
 
 					{/* Author byline */}
 					<div className="mt-5 flex items-center gap-3">
-						<span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-brand-primary font-display text-sm text-white">
+						<span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-brand-solid font-display text-sm text-white">
 							{initialsOf(post.authorName)}
 						</span>
 						<div className="min-w-0">
@@ -171,7 +171,7 @@ function BlogPostPage() {
 				<footer className="mt-12 border-border border-t pt-8">
 					{/* Author card */}
 					<div className="flex items-center gap-4 rounded-card border border-border bg-muted p-5">
-						<span className="flex size-12 shrink-0 items-center justify-center rounded-full bg-brand-primary font-display text-white">
+						<span className="flex size-12 shrink-0 items-center justify-center rounded-full bg-brand-solid font-display text-white">
 							{initialsOf(post.authorName)}
 						</span>
 						<div className="min-w-0">
@@ -206,7 +206,7 @@ function BlogPostPage() {
 						</div>
 						<Link
 							to="/teachers/courses"
-							className="inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-btn bg-brand-accent px-5 font-semibold text-sm text-white transition-colors hover:bg-brand-accent-hover"
+							className="inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-btn bg-brand-accent px-5 font-semibold text-neutral-900 text-sm transition-colors hover:bg-brand-accent-hover"
 						>
 							{t("landing.browse_courses", {
 								ns: "academy",

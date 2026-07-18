@@ -205,7 +205,7 @@ function PaymentMethodsCard({
 							<span
 								className={cn(
 									"relative h-6 w-11 shrink-0 rounded-full transition-colors",
-									on ? "bg-brand-primary" : "bg-slate-300 dark:bg-slate-600",
+									on ? "bg-brand-solid" : "bg-slate-300 dark:bg-slate-600",
 									isLast && "opacity-60",
 								)}
 							>
@@ -286,7 +286,7 @@ function SettingCard({ setting }: { setting: SettingBound }) {
 					type="button"
 					onClick={() => save.mutate()}
 					disabled={!valid || !dirty || save.isPending}
-					className="flex h-11 items-center gap-1.5 rounded-btn bg-brand-primary px-4 font-semibold text-sm text-white transition-colors hover:bg-brand-primary-hover disabled:opacity-50"
+					className="flex h-11 items-center gap-1.5 rounded-btn bg-brand-solid px-4 font-semibold text-sm text-white transition-colors hover:bg-brand-solid-hover disabled:opacity-50"
 				>
 					{save.isPending ? (
 						<Loader2 className="size-4 animate-spin" />

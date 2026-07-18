@@ -954,7 +954,7 @@ function Toggle({
 			<span
 				className={cn(
 					"relative h-6 w-11 shrink-0 rounded-full transition-colors",
-					checked ? "bg-brand-primary" : "bg-slate-300",
+					checked ? "bg-brand-solid" : "bg-slate-300",
 				)}
 			>
 				<span

@@ -141,7 +141,7 @@ function AdminPayoutsPage() {
 						type="button"
 						onClick={() => runAll.mutate()}
 						disabled={runAll.isPending || payableCount === 0}
-						className="inline-flex h-11 items-center justify-center gap-2 rounded-btn bg-brand-primary px-4 font-semibold text-sm text-white transition-colors hover:bg-brand-primary-hover disabled:opacity-50"
+						className="inline-flex h-11 items-center justify-center gap-2 rounded-btn bg-brand-solid px-4 font-semibold text-sm text-white transition-colors hover:bg-brand-solid-hover disabled:opacity-50"
 					>
 						{runAll.isPending ? (
 							<Loader2 className="size-4 animate-spin" />

@@ -115,7 +115,8 @@
 		"study_anchor": "Join am with one daily habit (optional)",
 		"study_anchor_none": "No habit anchor",
 		"study_anchor_hint": "“After dinner” dey work pass “6pm” — habit dey stick to habit.",
-		"weekly_hours": "Time wey you get every week"
+		"weekly_hours": "Time wey you get every week",
+		"security": "Security"
 	},
 	"my": {
 		"title": "My Learning",

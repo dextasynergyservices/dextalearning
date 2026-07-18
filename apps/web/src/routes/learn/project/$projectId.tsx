@@ -22,6 +22,7 @@ import { ReadingLanguageToggle } from "@/components/learn/reading-language-toggl
 import { RetryPolicyNotice } from "@/components/learn/retry-policy-notice";
 import { Button } from "@/components/ui/button";
 import { useReadingTranslation } from "@/hooks/use-reading-translation";
+import { ApiError } from "@/lib/api";
 import {
 	getProjectInfo,
 	type ProjectInfo,
@@ -114,8 +115,34 @@ function ProjectBody({
 		// The material comes first (§4.3) — the server refuses too.
 		!info.prerequisitesMet ||
 		(startsNewAttempt && !info.retry.canRetry);
-	const [text, setText] = useState(mine?.textContent ?? "");
-	const [url, setUrl] = useState(mine?.urlSubmission ?? "");
+	// Drafts survive anything (§ D4 resilience): an essay typed during an
+	// outage — or lost to a crash — restores from the local mirror. The local
+	// copy wins over the server's only when it exists (it's strictly newer:
+	// it is cleared on every successful submit).
+	const draftKey = `dexta-project-draft-${projectId}`;
+	const [text, setText] = useState(() => {
+		try {
+			const draft = localStorage.getItem(`${draftKey}-text`);
+			return draft ?? mine?.textContent ?? "";
+		} catch {
+			return mine?.textContent ?? "";
+		}
+	});
+	const [url, setUrl] = useState(() => {
+		try {
+			const draft = localStorage.getItem(`${draftKey}-url`);
+			return draft ?? mine?.urlSubmission ?? "";
+		} catch {
+			return mine?.urlSubmission ?? "";
+		}
+	});
+	const persistDraft = (field: "text" | "url", value: string) => {
+		try {
+			localStorage.setItem(`${draftKey}-${field}`, value);
+		} catch {
+			// Storage unavailable — in-memory state still holds it.
+		}
+	};
 	const [files, setFiles] = useState<{ key: string; name: string }[]>(
 		mine?.files.map((f) => ({ key: f.name, name: f.name })) ?? [],
 	);
@@ -135,10 +162,24 @@ function ProjectBody({
 				files: files.length ? files : undefined,
 			}),
 		onSuccess: () => {
+			try {
+				localStorage.removeItem(`${draftKey}-text`);
+				localStorage.removeItem(`${draftKey}-url`);
+			} catch {
+				// Storage unavailable — nothing to clear.
+			}
 			queryClient.invalidateQueries({ queryKey: ["project-info", projectId] });
 			toast.success(t("submit.sent", { defaultValue: "Submission sent" }));
 		},
-		onError: (e) => toast.error(e.message),
+		onError: (e) =>
+			toast.error(
+				e instanceof ApiError
+					? e.message
+					: t("submit.offline", {
+							defaultValue:
+								"You seem to be offline. Your draft is saved on this device — try again once you're connected.",
+						}),
+			),
 	});
 
 	const accepts = (typ: string) => info.submissionTypes.includes(typ);
@@ -311,7 +352,10 @@ function ProjectBody({
 							</span>
 							<textarea
 								value={text}
-								onChange={(e) => setText(e.target.value)}
+								onChange={(e) => {
+									setText(e.target.value);
+									persistDraft("text", e.target.value);
+								}}
 								rows={5}
 								className="w-full resize-none rounded-input border border-border px-3.5 py-2.5 text-foreground text-sm outline-none focus:border-brand-primary"
 							/>
@@ -327,7 +371,10 @@ function ProjectBody({
 								<Link2 className="size-4 text-muted-foreground" />
 								<input
 									value={url}
-									onChange={(e) => setUrl(e.target.value)}
+									onChange={(e) => {
+										setUrl(e.target.value);
+										persistDraft("url", e.target.value);
+									}}
 									placeholder="https://github.com/…"
 									className="h-11 flex-1 bg-transparent text-foreground text-sm outline-none"
 								/>

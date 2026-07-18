@@ -7,7 +7,6 @@ import {
 	UnprocessableEntityException,
 } from "@nestjs/common";
 import { EventEmitter2 } from "@nestjs/event-emitter";
-import type { Job, JobType, Queue } from "bullmq";
 import { Prisma } from "../../../generated/prisma/client";
 import type { AuthenticatedUser } from "../../auth/types";
 import { PrismaService } from "../../prisma/prisma.service";
@@ -20,10 +19,14 @@ import {
 	type TranscriptUpdatedEvent,
 } from "../../shared/events/content-events";
 import {
-	AUDIO_QUEUE,
-	CAPTION_QUEUE,
-	VIDEO_QUEUE,
+	type AudioJobData,
+	type CaptionJobData,
+	QUEUE_AUDIO,
+	QUEUE_CAPTION,
+	QUEUE_VIDEO,
+	type VideoJobData,
 } from "../../shared/queue/queue.constants";
+import { QUEUE_PORT, type QueuePort } from "../../shared/queue/queue.port";
 import {
 	STORAGE_PORT,
 	type StoragePort,
@@ -40,16 +43,13 @@ import {
 } from "./media.constants";
 
 const PRESIGN_2H = { expiresInSeconds: 2 * 60 * 60 };
-const JOB_STATUS_TYPES: JobType[] = [
-	"active",
-	"waiting",
-	"delayed",
-	"prioritized",
-	"completed",
-	"failed",
-];
 
 type MediaJobKind = "video" | "audio" | "caption";
+const QUEUE_FOR_KIND: Record<MediaJobKind, string> = {
+	video: QUEUE_VIDEO,
+	audio: QUEUE_AUDIO,
+	caption: QUEUE_CAPTION,
+};
 
 const CAPTION_CUE_TIMING =
 	/(?:^|\n)\d{2}:\d{2}:\d{2}\.\d{3}\s+-->\s+\d{2}:\d{2}:\d{2}\.\d{3}/;
@@ -61,9 +61,7 @@ export class MediaService {
 		private readonly events: EventEmitter2,
 		@Inject(STORAGE_PORT) private readonly storage: StoragePort,
 		@Inject(MEDIA_ENCODER_PORT) private readonly encoder: MediaEncoderPort,
-		@Inject(VIDEO_QUEUE) private readonly videoQueue: Queue,
-		@Inject(AUDIO_QUEUE) private readonly audioQueue: Queue,
-		@Inject(CAPTION_QUEUE) private readonly captionQueue: Queue,
+		@Inject(QUEUE_PORT) private readonly queue: QueuePort,
 	) {}
 
 	/**
@@ -136,21 +134,13 @@ export class MediaService {
 			where: { id: lessonId },
 			data: { contentType: "video", videoDurationSec: durationSec },
 		});
-		const job = await this.videoQueue.add(
-			"encode",
-			{
-				lessonId,
-				sourceKey,
-				sourceExt: ext,
-				durationSec,
-			},
-			{
-				removeOnComplete: 50,
-				removeOnFail: 50,
-			},
+		const jobId = await this.queue.enqueue<VideoJobData>(
+			QUEUE_VIDEO,
+			{ lessonId, sourceKey, sourceExt: ext, durationSec },
+			{ groupKey: lessonId },
 		);
 
-		return { status: "processing" as const, durationSec, jobId: job.id };
+		return { status: "processing" as const, durationSec, jobId };
 	}
 
 	async uploadAudio(
@@ -182,20 +172,13 @@ export class MediaService {
 			where: { id: lessonId },
 			data: { contentType: "audio", audioDurationSec: durationSec },
 		});
-		const job = await this.audioQueue.add(
-			"encode",
-			{
-				lessonId,
-				sourceKey,
-				sourceExt: ext,
-			},
-			{
-				removeOnComplete: 50,
-				removeOnFail: 50,
-			},
+		const jobId = await this.queue.enqueue<AudioJobData>(
+			QUEUE_AUDIO,
+			{ lessonId, sourceKey, sourceExt: ext },
+			{ groupKey: lessonId },
 		);
 
-		return { status: "processing" as const, durationSec, jobId: job.id };
+		return { status: "processing" as const, durationSec, jobId };
 	}
 
 	async uploadPdf(lessonId: string, user: AuthenticatedUser, file: UploadFile) {
@@ -260,8 +243,8 @@ export class MediaService {
 			file.buffer,
 			"application/x-subrip",
 		);
-		const job = await this.captionQueue.add(
-			"convert",
+		const jobId = await this.queue.enqueue<CaptionJobData>(
+			QUEUE_CAPTION,
 			{
 				lessonId,
 				languageCode: language,
@@ -269,12 +252,9 @@ export class MediaService {
 				isSrt: true,
 				uploadedBy: user.id,
 			},
-			{
-				removeOnComplete: 50,
-				removeOnFail: 50,
-			},
+			{ groupKey: lessonId },
 		);
-		return { status: "processing" as const, language, jobId: job.id };
+		return { status: "processing" as const, language, jobId };
 	}
 
 	private normaliseWebVtt(input: Buffer): Buffer {
@@ -310,53 +290,18 @@ export class MediaService {
 			(kind === "video" && Boolean(lesson.videoKeysJson)) ||
 			(kind === "audio" && Boolean(lesson.audioKey)) ||
 			(kind === "caption" && Boolean(lesson.captionKeysJson));
-		const queue = this.queueForKind(kind);
-		const job = await this.findLatestJob(queue, lessonId);
-		if (!job) {
-			return {
-				kind,
-				state: ready ? "completed" : "not_found",
-				progress: ready ? 100 : 0,
-				jobId: null,
-				failedReason: null,
-			};
-		}
-		const state = await job.getState();
+		const status = await this.queue.progressForGroup(
+			QUEUE_FOR_KIND[kind],
+			lessonId,
+			ready,
+		);
 		return {
 			kind,
-			state,
-			progress: this.normaliseProgress(job.progress, ready),
-			jobId: job.id,
-			failedReason: job.failedReason || null,
-			processedOn: job.processedOn ?? null,
-			finishedOn: job.finishedOn ?? null,
+			state: status.state,
+			progress: status.progress,
+			jobId: status.jobId,
+			failedReason: status.failedReason ?? null,
 		};
-	}
-
-	private queueForKind(kind: MediaJobKind): Queue {
-		if (kind === "video") return this.videoQueue;
-		if (kind === "audio") return this.audioQueue;
-		return this.captionQueue;
-	}
-
-	private async findLatestJob(
-		queue: Queue,
-		lessonId: string,
-	): Promise<Job | null> {
-		const jobs = await queue.getJobs(JOB_STATUS_TYPES, 0, 50, false);
-		const matches = jobs.filter((job) => {
-			const data = job.data as { lessonId?: string };
-			return data.lessonId === lessonId;
-		});
-		matches.sort((a, b) => (b.timestamp ?? 0) - (a.timestamp ?? 0));
-		return matches[0] ?? null;
-	}
-
-	private normaliseProgress(progress: Job["progress"], ready: boolean): number {
-		if (typeof progress === "number")
-			return Math.max(0, Math.min(100, progress));
-		if (ready) return 100;
-		return 0;
 	}
 
 	/** Upserts a caption record + the lesson's caption map. Called by the worker too. */
