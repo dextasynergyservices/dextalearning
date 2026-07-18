@@ -1,6 +1,13 @@
 {
-	"app_name": "DextaLearning",
-	"tagline": "Aprendizaje que perdura, diseñado para cómo aprenden las personas de verdad.",
+	"account": {
+		"dashboard": "Panel",
+		"profile": "Perfil",
+		"awards": "Logros",
+		"facilitator": "Portal de facilitador",
+		"sign_out": "Cerrar sesión",
+		"menu": "Menú de cuenta",
+		"greeting": "Sesión iniciada"
+	},
 	"actions": {
 		"get_started": "Comenzar",
 		"start_free": "Empieza gratis",
@@ -10,41 +17,12 @@
 		"explore_courses": "Explorar cursos",
 		"coming_together": "En construcción"
 	},
-	"nav": {
-		"courses": "Cursos",
-		"paths": "Rutas",
-		"cohorts": "Cohortes",
-		"about": "Acerca de",
-		"blog": "Blog",
-		"community": "Comunidad",
-		"contact": "Contacto"
-	},
-	"tabs": {
-		"home": "Inicio",
-		"courses": "Cursos",
-		"paths": "Rutas",
-		"cohorts": "Cohortes",
-		"explore": "Explorar",
-		"search": "Buscar",
-		"account": "Cuenta",
-		"more": "Más"
-	},
-	"footer": {
-		"tagline": "Un sistema operativo de aprendizaje basado en el comportamiento — para que el aprendizaje profundo y duradero sea la norma, no la excepción.",
-		"learn": "Aprender",
-		"company": "Empresa",
-		"account": "Cuenta",
-		"learning_paths": "Rutas de aprendizaje",
-		"rights": "Todos los derechos reservados."
-	},
-	"account": {
-		"dashboard": "Panel",
-		"profile": "Perfil",
-		"awards": "Logros",
-		"facilitator": "Portal de facilitador",
-		"sign_out": "Cerrar sesión",
-		"menu": "Menú de cuenta",
-		"greeting": "Sesión iniciada"
+	"app_name": "DextaLearning",
+	"crash": {
+		"title": "Algo salió mal",
+		"body": "El error ha sido reportado. Tu progreso está guardado en nuestros servidores — no se ha perdido nada.",
+		"retry": "Intentar de nuevo",
+		"home": "Ir a la página de inicio"
 	},
 	"errors": {
 		"media": {
@@ -58,11 +36,22 @@
 			"not_publishable": "Algunas lecciones aún necesitan contenido o transcripción antes de publicar."
 		}
 	},
-	"theme": {
-		"label": "Tema",
-		"light": "Claro",
-		"dark": "Oscuro",
-		"system": "Sistema"
+	"footer": {
+		"tagline": "Un sistema operativo de aprendizaje basado en el comportamiento — para que el aprendizaje profundo y duradero sea la norma, no la excepción.",
+		"learn": "Aprender",
+		"company": "Empresa",
+		"account": "Cuenta",
+		"learning_paths": "Rutas de aprendizaje",
+		"rights": "Todos los derechos reservados."
+	},
+	"nav": {
+		"courses": "Cursos",
+		"paths": "Rutas",
+		"cohorts": "Cohortes",
+		"about": "Acerca de",
+		"blog": "Blog",
+		"community": "Comunidad",
+		"contact": "Contacto"
 	},
 	"phoneVerify": {
 		"verifyCta": "Verificar",
@@ -93,5 +82,26 @@
 		"denied": "Las notificaciones están bloqueadas. Actívalas en los ajustes de tu navegador.",
 		"enabled_toast": "Notificaciones push activadas.",
 		"error": "No se pudieron activar las notificaciones push."
+	},
+	"pwa": {
+		"update_available": "Hay una nueva versión lista.",
+		"reload": "Recargar"
+	},
+	"tabs": {
+		"home": "Inicio",
+		"courses": "Cursos",
+		"paths": "Rutas",
+		"cohorts": "Cohortes",
+		"explore": "Explorar",
+		"search": "Buscar",
+		"account": "Cuenta",
+		"more": "Más"
+	},
+	"tagline": "Aprendizaje que perdura, diseñado para cómo aprenden las personas de verdad.",
+	"theme": {
+		"label": "Tema",
+		"light": "Claro",
+		"dark": "Oscuro",
+		"system": "Sistema"
 	}
 }

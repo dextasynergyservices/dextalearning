@@ -935,7 +935,7 @@ function Switch({
 			onClick={() => onChange(!checked)}
 			className={cn(
 				"relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors",
-				checked ? "bg-brand-primary" : "bg-muted",
+				checked ? "bg-brand-solid" : "bg-muted",
 			)}
 		>
 			<span

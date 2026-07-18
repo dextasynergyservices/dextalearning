@@ -139,7 +139,7 @@ function CheckoutCallbackPage() {
 								className={
 									needsDeadline
 										? "mt-3 inline-flex h-11 w-full items-center justify-center rounded-btn border border-border font-medium text-muted-foreground text-sm transition-colors hover:bg-accent"
-										: "mt-6 inline-flex h-11 w-full items-center justify-center rounded-btn bg-brand-primary font-semibold text-sm text-white transition-colors hover:bg-brand-primary-hover"
+										: "mt-6 inline-flex h-11 w-full items-center justify-center rounded-btn bg-brand-solid font-semibold text-sm text-white transition-colors hover:bg-brand-solid-hover"
 								}
 							>
 								{needsDeadline

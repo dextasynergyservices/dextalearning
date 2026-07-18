@@ -153,7 +153,7 @@ function AboutPage() {
 			<section ref={ctaRef} className="mx-auto max-w-7xl px-6 py-14 lg:px-8">
 				<div
 					data-reveal="scale"
-					className="rounded-card bg-brand-primary px-8 py-16 text-center text-white shadow-card lg:py-20"
+					className="rounded-card bg-brand-solid px-8 py-16 text-center text-white shadow-card lg:py-20"
 				>
 					<h2 className="font-display text-3xl tracking-tight sm:text-4xl">
 						{t("about.cta_title")}

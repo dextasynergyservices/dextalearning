@@ -1,24 +1,26 @@
 import { EventEmitter2 } from "@nestjs/event-emitter";
-import type { Queue } from "bullmq";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import { EarnBackService } from "../../src/modules/payments/earn-back.service";
 import { PaymentEvents } from "../../src/shared/events/payment-events";
+import {
+	QUEUE_EARN_BACK,
+	QUEUE_INSTRUCTOR_PAYOUT,
+} from "../../src/shared/queue/queue.constants";
 import { getTestPrisma } from "./support/db";
 import { createCourse, createUser } from "./support/factories";
+import { FakeQueuePort } from "./support/fakes/fake-queue";
 
 const DAY = 24 * 60 * 60 * 1000;
 
 describe("EarnBackService (integration)", () => {
 	const prisma = getTestPrisma();
 	const events = new EventEmitter2();
-	const earnBackQueue = { add: vi.fn() } as unknown as Queue;
-	const payoutQueue = { add: vi.fn() } as unknown as Queue;
-	const service = new EarnBackService(
-		prisma,
-		events,
-		earnBackQueue,
-		payoutQueue,
-	);
+	const queue = new FakeQueuePort();
+	const service = new EarnBackService(prisma, events, queue);
+	const earnBackJobs = () =>
+		queue.enqueued.filter((e) => e.queue === QUEUE_EARN_BACK);
+	const payoutJobs = () =>
+		queue.enqueued.filter((e) => e.queue === QUEUE_INSTRUCTOR_PAYOUT);
 
 	let learnerId: string;
 	let instructorId: string;
@@ -28,8 +30,7 @@ describe("EarnBackService (integration)", () => {
 
 	beforeEach(async () => {
 		emitted = [];
-		(earnBackQueue.add as ReturnType<typeof vi.fn>).mockClear();
-		(payoutQueue.add as ReturnType<typeof vi.fn>).mockClear();
+		queue.enqueued.length = 0;
 		const l = await createUser(prisma, { role: "learner" });
 		const i = await createUser(prisma, { role: "instructor" });
 		const c = await createCourse(prisma, { createdBy: i.id });
@@ -81,8 +82,8 @@ describe("EarnBackService (integration)", () => {
 		expect(Number(txn?.earnBackAmount)).toBe(100);
 		expect(Number(txn?.forfeitedAmount)).toBe(0);
 		expect(txn?.status).toBe("pending");
-		expect(earnBackQueue.add).toHaveBeenCalledTimes(1);
-		expect(payoutQueue.add).not.toHaveBeenCalled();
+		expect(earnBackJobs()).toHaveLength(1);
+		expect(payoutJobs()).toHaveLength(0);
 
 		const order = await prisma.order.findFirst({
 			where: { userId: learnerId },
@@ -108,8 +109,8 @@ describe("EarnBackService (integration)", () => {
 		expect(Number(txn?.earnBackAmount)).toBe(80);
 		expect(Number(txn?.forfeitedAmount)).toBe(20);
 		expect(Number(txn?.forfeitedInstructorCut)).toBe(18);
-		expect(earnBackQueue.add).toHaveBeenCalledTimes(1);
-		expect(payoutQueue.add).toHaveBeenCalledTimes(1);
+		expect(earnBackJobs()).toHaveLength(1);
+		expect(payoutJobs()).toHaveLength(1);
 
 		const payout = await prisma.instructorPayout.findFirst({
 			where: { instructorId },
@@ -130,8 +131,8 @@ describe("EarnBackService (integration)", () => {
 		expect(txn?.status).toBe("no_payout");
 		expect(Number(txn?.earnBackAmount)).toBe(0);
 		expect(Number(txn?.forfeitedAmount)).toBe(100);
-		expect(earnBackQueue.add).not.toHaveBeenCalled();
-		expect(payoutQueue.add).toHaveBeenCalledTimes(1); // forfeit to instructor
+		expect(earnBackJobs()).toHaveLength(0);
+		expect(payoutJobs()).toHaveLength(1); // forfeit to instructor
 		expect(emitted).toContain(PaymentEvents.EarnBackNoPayout);
 	});
 
@@ -171,6 +172,6 @@ describe("EarnBackService (integration)", () => {
 		});
 		expect(Number(txn?.forfeitedPlatformCut)).toBe(20);
 		expect(Number(txn?.forfeitedInstructorCut)).toBe(0);
-		expect(payoutQueue.add).not.toHaveBeenCalled();
+		expect(payoutJobs()).toHaveLength(0);
 	});
 });

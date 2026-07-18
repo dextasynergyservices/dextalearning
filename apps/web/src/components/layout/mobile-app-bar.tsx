@@ -123,7 +123,7 @@ export function MobileAppBar({
 									className="size-7 rounded-full object-cover"
 								/>
 							) : (
-								<span className="flex size-7 items-center justify-center rounded-full bg-brand-primary font-semibold text-[11px] text-white">
+								<span className="flex size-7 items-center justify-center rounded-full bg-brand-solid font-semibold text-[11px] text-white">
 									{session.user.name?.trim().charAt(0).toUpperCase() || "U"}
 								</span>
 							)}

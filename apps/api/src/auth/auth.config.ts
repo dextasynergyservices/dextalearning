@@ -4,6 +4,8 @@ import { prismaAdapter } from "better-auth/adapters/prisma";
 import { openAPI } from "better-auth/plugins";
 import { emailOTP } from "better-auth/plugins/email-otp";
 import { magicLink } from "better-auth/plugins/magic-link";
+import { twoFactor } from "better-auth/plugins/two-factor";
+import Redis from "ioredis";
 import { PrismaClient } from "../../generated/prisma/client";
 import {
 	sendMagicLinkEmail,
@@ -12,6 +14,7 @@ import {
 	sendVerificationEmail,
 	sendWelcomeEmail,
 } from "../common/email";
+import { isDistributedRuntime } from "../common/runtime";
 import { sendWhatsappOtp } from "../common/termii";
 
 // Better Auth manages its own Prisma client (it is configured outside Nest's DI
@@ -19,6 +22,40 @@ import { sendWhatsappOtp } from "../common/termii";
 const prisma = new PrismaClient({
 	adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL }),
 });
+
+/**
+ * Better Auth's `secondaryStorage` — MULTI-INSTANCE only. When set, Better Auth
+ * keeps not just rate-limit counters there but SESSIONS too, so every
+ * authenticated request would read the session from Redis. On the single
+ * free-tier instance that would spend a Redis command on every request and blow
+ * the 500k/month cap (see runtime.ts) — so it is gated on `REDIS_DISTRIBUTED`,
+ * NOT on `REDIS_URL`. Single instance: sessions live in the DB and the auth
+ * rate limiter uses Better Auth's own in-memory store, both correct here.
+ */
+const authRedis = isDistributedRuntime()
+	? new Redis(process.env.REDIS_URL as string, {
+			maxRetriesPerRequest: 2,
+			retryStrategy: (times) =>
+				times > 5 ? null : Math.min(times * 200, 1000),
+		})
+	: null;
+authRedis?.on("error", () => {
+	// Best-effort: a Redis blip must not take auth down. Better Auth falls back
+	// to allowing the request; the global IP guard still applies.
+});
+
+const secondaryStorage = authRedis
+	? {
+			get: (key: string) => authRedis.get(key),
+			set: async (key: string, value: string, ttl?: number) => {
+				if (ttl) await authRedis.set(key, value, "EX", ttl);
+				else await authRedis.set(key, value);
+			},
+			delete: async (key: string) => {
+				await authRedis.del(key);
+			},
+		}
+	: undefined;
 
 const frontendUrl = process.env.FRONTEND_URL ?? "http://localhost:5173";
 const baseURL = process.env.BETTER_AUTH_URL ?? "http://localhost:3000";
@@ -41,6 +78,7 @@ export const auth = betterAuth({
 	baseURL,
 	trustedOrigins: frontendUrl.split(",").map((origin) => origin.trim()),
 	database: prismaAdapter(prisma, { provider: "postgresql" }),
+	...(secondaryStorage ? { secondaryStorage } : {}),
 	advanced: {
 		// Our PK columns are UUID with a `gen_random_uuid()` default — let the
 		// database generate the ids instead of Better Auth's string ids.
@@ -63,6 +101,26 @@ export const auth = betterAuth({
 					},
 				}
 			: {}),
+	},
+	// §5.9 Layer 1 (auth): Better Auth's own limiter, since these routes never
+	// reach Nest's guard. A loose 100/60s window overall, tightened to 5/60s on
+	// the credential + reset paths that brute-force actually targets. Counted in
+	// memory on the single free-tier instance; shared across replicas only when
+	// `secondaryStorage` (Redis) is enabled under REDIS_DISTRIBUTED (see above).
+	rateLimit: {
+		enabled: process.env.NODE_ENV !== "test",
+		window: 60,
+		max: 100,
+		// Paths are matched exactly (no prefixing) against the route relative to
+		// the auth base — so these list the email-OTP variants the client uses.
+		customRules: {
+			"/sign-in/email": { window: 60, max: 5 },
+			"/sign-up/email": { window: 60, max: 5 },
+			"/forget-password/email-otp": { window: 60, max: 5 },
+			"/email-otp/reset-password": { window: 60, max: 5 },
+			"/two-factor/verify-totp": { window: 60, max: 5 },
+			"/two-factor/verify-backup-code": { window: 60, max: 5 },
+		},
 	},
 	emailAndPassword: {
 		enabled: true,
@@ -179,6 +237,13 @@ export const auth = betterAuth({
 			sendMagicLink: async ({ email, url }) => {
 				await sendMagicLinkEmail(email, url);
 			},
+		}),
+		// §5.9 Layer 6: opt-in TOTP two-factor (authenticator app) + backup
+		// codes. `issuer` is what shows in the authenticator app. The plugin adds
+		// its own tables (twoFactor secret + backup codes) — applied via raw SQL
+		// ALTER, never `db push` (would drop content_embeddings, see memory).
+		twoFactor({
+			issuer: process.env.PLATFORM_NAME ?? "DextaLearning",
 		}),
 		openAPI(),
 	],

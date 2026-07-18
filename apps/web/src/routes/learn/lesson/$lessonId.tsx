@@ -380,7 +380,7 @@ function LessonBody({
 										</div>
 										<div className="mt-2 h-2 overflow-hidden rounded-full bg-muted">
 											<div
-												className="h-full rounded-full bg-brand-primary transition-all"
+												className="h-full rounded-full bg-brand-solid transition-all"
 												style={{ width: `${Math.min(100, watchedPct)}%` }}
 											/>
 										</div>

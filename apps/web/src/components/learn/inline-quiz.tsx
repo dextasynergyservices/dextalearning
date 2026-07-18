@@ -334,7 +334,7 @@ function Choice({
 			<span
 				className={cn(
 					"flex size-4 shrink-0 items-center justify-center rounded-full border",
-					selected ? "border-brand-primary bg-brand-primary" : "border-border",
+					selected ? "border-brand-primary bg-brand-solid" : "border-border",
 				)}
 			>
 				{selected ? <span className="size-1.5 rounded-full bg-card" /> : null}

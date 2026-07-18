@@ -1,5 +1,3 @@
-import { ScrollTrigger } from "gsap/ScrollTrigger";
-
 /**
  * Forces GSAP ScrollTrigger to recompute its cached trigger positions some
  * time after they were created. Needed because:
@@ -17,7 +15,14 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
  * unmounted by the time it runs.
  */
 export function scheduleScrollTriggerRefresh(): void {
-	const refresh = () => ScrollTrigger.refresh();
+	// Dynamic import (§13.2): this helper is reachable from the root route, and
+	// a static import would drag the whole gsap stack into the entry chunk.
+	// The module resolves from cache once anything animated has loaded it, and
+	// refresh() with no registered triggers is a harmless no-op.
+	const refresh = () =>
+		import("gsap/ScrollTrigger").then(({ ScrollTrigger }) =>
+			ScrollTrigger.refresh(),
+		);
 	// Fast path: next paint, for plain navigations with no view transition.
 	requestAnimationFrame(() => requestAnimationFrame(refresh));
 	// Past the view-transition cross-fade (~220ms, see index.css `vt-fade-in`).

@@ -10,6 +10,7 @@ import {
 	StatTileGrid,
 } from "@/components/analytics/stat-tile";
 import { StudioShell } from "@/components/authoring/studio-shell";
+import { CompletionFunnel } from "@/components/charts/completion-funnel";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
 	type AnalyticsEntityType,
@@ -124,6 +125,12 @@ export function EntityAnalyticsDetailPage({
 						</div>
 
 						<StatTileGrid tiles={tiles} />
+
+						{/* Where learners drop off, before the who: funnel above roster. */}
+						<CompletionFunnel
+							entityType={entityType as AnalyticsEntityType}
+							entityId={entityId}
+						/>
 
 						<section className="rounded-card border border-border bg-card shadow-card">
 							<div className="flex items-center gap-2 border-border border-b px-4 py-4 sm:px-5">

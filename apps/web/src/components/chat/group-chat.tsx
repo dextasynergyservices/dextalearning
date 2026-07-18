@@ -19,7 +19,7 @@ function initials(name: string): string {
 }
 
 const TINTS = [
-	"bg-brand-primary",
+	"bg-brand-solid",
 	"bg-indigo-600",
 	"bg-emerald-600",
 	"bg-amber-600",
@@ -134,7 +134,7 @@ export function GroupChat({ groupId }: { groupId: string }) {
 									className={cn(
 										"max-w-[78%] rounded-card px-3 py-2 text-sm",
 										mine
-											? "rounded-br-sm bg-brand-primary text-white"
+											? "rounded-br-sm bg-brand-solid text-white"
 											: "rounded-bl-sm border border-border bg-card text-foreground",
 									)}
 								>
@@ -179,7 +179,7 @@ export function GroupChat({ groupId }: { groupId: string }) {
 					type="submit"
 					disabled={!draft.trim()}
 					aria-label={t("send", { defaultValue: "Send" })}
-					className="flex size-11 shrink-0 items-center justify-center rounded-full bg-brand-primary text-white transition-colors hover:bg-brand-primary-hover disabled:opacity-40"
+					className="flex size-11 shrink-0 items-center justify-center rounded-full bg-brand-solid text-white transition-colors hover:bg-brand-solid-hover disabled:opacity-40"
 				>
 					<Send className="size-4" />
 				</button>

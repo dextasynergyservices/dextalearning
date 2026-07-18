@@ -1,45 +1,73 @@
 import { useLocation } from "@tanstack/react-router";
-import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
-import Lenis from "lenis";
 import { useEffect, useRef } from "react";
 import { scheduleScrollTriggerRefresh } from "@/lib/scroll-trigger-refresh";
 
-gsap.registerPlugin(ScrollTrigger);
+/** The pieces the effect needs once the libraries have loaded. */
+interface SmoothScrollHandle {
+	scrollTo: (
+		el: HTMLElement,
+		opts: { offset: number; duration: number },
+	) => void;
+	destroy: () => void;
+}
 
 /**
  * App-wide momentum smooth scrolling (premium feel) via Lenis, kept in sync with
  * GSAP ScrollTrigger so the existing scroll reveals stay perfectly aligned. Also
  * glides to in-page `#anchor` targets (e.g. the More menu → Contact deep-link).
  *
+ * - gsap + lenis load DYNAMICALLY (§13.2): this hook lives on the root route,
+ *   which is in the entry chunk — a static import here shipped the whole
+ *   animation stack to every user before first paint. The dynamic import moves
+ *   it to its own chunk fetched after hydration; until it lands, native scroll
+ *   works — which is also the exact behaviour reduced-motion users keep.
  * - Native on touch devices (Lenis `syncTouch` off by default) → mobile keeps
  *   its native scroll, per the mobile-first spec.
  * - Disabled entirely under `prefers-reduced-motion` (blueprint §13.1).
  */
 export function useSmoothScroll() {
-	const lenisRef = useRef<Lenis | null>(null);
+	const lenisRef = useRef<SmoothScrollHandle | null>(null);
 	const { hash, pathname } = useLocation();
 
 	useEffect(() => {
 		if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
-		const lenis = new Lenis({
-			lerp: 0.09,
-			smoothWheel: true,
-			wheelMultiplier: 1,
-		});
-		lenisRef.current = lenis;
+		let cancelled = false;
+		let cleanup: (() => void) | undefined;
 
-		lenis.on("scroll", ScrollTrigger.update);
+		void (async () => {
+			const [{ default: gsap }, { ScrollTrigger }, { default: Lenis }] =
+				await Promise.all([
+					import("gsap"),
+					import("gsap/ScrollTrigger"),
+					import("lenis"),
+				]);
+			if (cancelled) return;
+			gsap.registerPlugin(ScrollTrigger);
 
-		const onRaf = (time: number) => lenis.raf(time * 1000);
-		gsap.ticker.add(onRaf);
-		gsap.ticker.lagSmoothing(0);
+			const lenis = new Lenis({
+				lerp: 0.09,
+				smoothWheel: true,
+				wheelMultiplier: 1,
+			});
+			lenisRef.current = lenis;
+
+			lenis.on("scroll", ScrollTrigger.update);
+
+			const onRaf = (time: number) => lenis.raf(time * 1000);
+			gsap.ticker.add(onRaf);
+			gsap.ticker.lagSmoothing(0);
+
+			cleanup = () => {
+				gsap.ticker.remove(onRaf);
+				lenis.destroy();
+				lenisRef.current = null;
+			};
+		})();
 
 		return () => {
-			gsap.ticker.remove(onRaf);
-			lenis.destroy();
-			lenisRef.current = null;
+			cancelled = true;
+			cleanup?.();
 		};
 	}, []);
 

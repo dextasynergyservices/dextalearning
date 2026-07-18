@@ -26,6 +26,7 @@ import { OnboardingModule } from "./modules/onboarding/onboarding.module";
 import { PacingModule } from "./modules/pacing/pacing.module";
 import { PaymentsModule } from "./modules/payments/payments.module";
 import { PhoneVerificationModule } from "./modules/phone-verification/phone-verification.module";
+import { ProductAnalyticsModule } from "./modules/product-analytics/product-analytics.module";
 import { ProjectsModule } from "./modules/projects/projects.module";
 import { RemindersModule } from "./modules/reminders/reminders.module";
 import { SimplifierModule } from "./modules/simplifier/simplifier.module";
@@ -34,6 +35,7 @@ import { TranslationModule } from "./modules/translation/translation.module";
 import { TutorModule } from "./modules/tutor/tutor.module";
 import { PrismaModule } from "./prisma/prisma.module";
 import { AiModule } from "./shared/ai/ai.module";
+import { AnalyticsPortModule } from "./shared/analytics/analytics.module";
 import { CacheModule } from "./shared/cache/cache.module";
 import { EncodingModule } from "./shared/encoding/encoding.module";
 import { NotificationsPortModule } from "./shared/notifications/notifications-port.module";
@@ -41,13 +43,19 @@ import { QueueModule } from "./shared/queue/queue.module";
 import { PlatformSettingsModule } from "./shared/settings/platform-settings.module";
 import { StorageModule } from "./shared/storage/storage.module";
 
+// In-process cron for the scheduled sweeps (reminders/coach/dropoff/earn-back).
+// On the free scale-to-zero tier the container is asleep most of the time, so
+// these fire only when it happens to be awake anyway — set SCHEDULERS_ENABLED
+// =false to switch them off entirely (and drive the sweeps from an external
+// scheduler instead) when you don't want any background wake-compute.
+const schedulerImports =
+	process.env.SCHEDULERS_ENABLED === "false" ? [] : [ScheduleModule.forRoot()];
+
 @Module({
 	imports: [
 		ConfigModule.forRoot({ isGlobal: true }),
 		EventEmitterModule.forRoot(),
-		// In-process cron for the scheduled sweeps (reminders/coach/dropoff) —
-		// replaces always-blocking BullMQ workers to spare serverless Redis.
-		ScheduleModule.forRoot(),
+		...schedulerImports,
 		PrismaModule,
 		// Loose-coupling foundation: storage/encoder/notification ports + queue bus.
 		StorageModule,
@@ -86,6 +94,8 @@ import { StorageModule } from "./shared/storage/storage.module";
 		NotificationsModule,
 		RemindersModule,
 		AdminUsersModule,
+		AnalyticsPortModule,
+		ProductAnalyticsModule,
 		AnalyticsModule,
 	],
 })

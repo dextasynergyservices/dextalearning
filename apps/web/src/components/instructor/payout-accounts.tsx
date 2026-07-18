@@ -282,7 +282,7 @@ function AddAccountForm({
 				<button
 					type="submit"
 					disabled={!canSubmit || save.isPending}
-					className="flex h-11 flex-1 items-center justify-center gap-2 rounded-btn bg-brand-primary font-semibold text-sm text-white transition-colors hover:bg-brand-primary-hover disabled:opacity-50"
+					className="flex h-11 flex-1 items-center justify-center gap-2 rounded-btn bg-brand-solid font-semibold text-sm text-white transition-colors hover:bg-brand-solid-hover disabled:opacity-50"
 				>
 					{save.isPending ? (
 						<Loader2 className="size-4 animate-spin" />

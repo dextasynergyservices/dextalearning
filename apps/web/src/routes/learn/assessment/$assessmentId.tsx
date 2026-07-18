@@ -10,6 +10,7 @@ import {
 	ShieldCheck,
 	Sparkles,
 	Timer,
+	WifiOff,
 	XCircle,
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -20,6 +21,12 @@ import { CameraMonitor } from "@/components/learn/camera-monitor";
 import { ReadingLanguageToggle } from "@/components/learn/reading-language-toggle";
 import { Button } from "@/components/ui/button";
 import { useAntiCheat } from "@/hooks/use-anti-cheat";
+import {
+	clearLocalAnswers,
+	loadLocalAnswers,
+	useAttemptResilience,
+} from "@/hooks/use-attempt-resilience";
+import { useOnline } from "@/hooks/use-online";
 import { useReadingTranslation } from "@/hooks/use-reading-translation";
 import { ApiError } from "@/lib/api";
 import {
@@ -29,7 +36,6 @@ import {
 	getAssessmentInfo,
 	getAttempt,
 	getAttemptResult,
-	saveAttemptAnswer,
 	startAttempt,
 	submitAttempt,
 } from "@/lib/content-api";
@@ -403,33 +409,74 @@ function TakingView({
 	onFinished: (r: AttemptResult) => void;
 }) {
 	const { t } = useTranslation("authoring");
-	const [answers, setAnswers] = useState<Record<string, string>>(
-		attempt.answers ?? {},
-	);
+	const [answers, setAnswers] = useState<Record<string, string>>(() => ({
+		// Server first, local mirror on top: the mirror includes answers whose
+		// saves were lost to an outage, so after a crash+resume the learner
+		// gets back exactly what they had chosen (§ D4 resilience).
+		...(attempt.answers ?? {}),
+		...loadLocalAnswers(attempt.attemptId),
+	}));
 	const [remaining, setRemaining] = useState<number | null>(
 		attempt.remainingSeconds,
 	);
 	const submittedRef = useRef(false);
+	const online = useOnline();
+	const { persistAnswer, flushPending } = useAttemptResilience(
+		attempt.attemptId,
+	);
 
 	const submit = useMutation({
 		mutationFn: () => submitAttempt(attempt.attemptId, answers),
-		onSuccess: (r) => onFinished(r),
+		onSuccess: (r) => {
+			clearLocalAnswers(attempt.attemptId);
+			onFinished(r);
+		},
 		onError: (e) => {
 			// Server auto-submitted on expiry — surface the result if present.
 			if (e instanceof ApiError && e.code === "TIME_UP") {
 				const res = (e.details as { result?: AttemptResult } | undefined)
 					?.result;
-				if (res) return onFinished(res);
+				if (res) {
+					clearLocalAnswers(attempt.attemptId);
+					return onFinished(res);
+				}
 			}
-			toast.error(e.message);
+			// A failed submit is NOT a submitted attempt: reopen the guard so the
+			// learner (or the reconnect listener below) can try again. Before this,
+			// an offline submit left submittedRef=true and a permanently dead
+			// button — the attempt looked lost when nothing was lost at all.
+			submittedRef.current = false;
+			if (e instanceof ApiError) {
+				toast.error(e.message);
+			} else {
+				toast.error(
+					t("take.offline_submit", {
+						defaultValue:
+							"You seem to be offline. Your answers are safe on this device — we'll submit as soon as you're back.",
+					}),
+				);
+			}
 		},
 	});
 
 	const doSubmit = useCallback(() => {
 		if (submittedRef.current) return;
 		submittedRef.current = true;
+		wantsSubmitRef.current = true;
 		submit.mutate();
 	}, [submit]);
+
+	// Reconnect: finish what the outage interrupted — flush queued answer
+	// saves, and re-fire a submit the learner already asked for.
+	const wantsSubmitRef = useRef(false);
+	useEffect(() => {
+		const onOnline = () => {
+			void flushPending();
+			if (wantsSubmitRef.current && !submittedRef.current) doSubmit();
+		};
+		window.addEventListener("online", onOnline);
+		return () => window.removeEventListener("online", onOnline);
+	}, [doSubmit, flushPending]);
 
 	// Server-authoritative countdown; auto-submit at zero.
 	useEffect(() => {
@@ -472,9 +519,13 @@ function TakingView({
 	});
 
 	const setAnswer = (questionId: string, value: string) => {
-		setAnswers((prev) => ({ ...prev, [questionId]: value }));
-		// Persist for resume + per-question timing (fire-and-forget).
-		saveAttemptAnswer(attempt.attemptId, questionId, value).catch(() => {});
+		setAnswers((prev) => {
+			const next = { ...prev, [questionId]: value };
+			// Mirror locally + save with an offline queue: an outage can no
+			// longer eat an answer (§ D4 resilience).
+			persistAnswer(next, questionId, value);
+			return next;
+		});
 	};
 
 	const answeredCount = attempt.questions.filter(
@@ -529,6 +580,23 @@ function TakingView({
 		>
 			{stream && attempt.anticheat.cameraRequired ? (
 				<CameraMonitor stream={stream} attemptId={attempt.attemptId} />
+			) : null}
+			{/* A dropped connection never closes or fails the attempt — but the
+			    clock keeps running (§4.6.3): pausing it would make airplane mode
+			    the cheapest cheat. Say both truths out loud. */}
+			{!online ? (
+				<div
+					role="status"
+					className="mb-4 flex items-start gap-2.5 rounded-card border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm"
+				>
+					<WifiOff className="mt-0.5 size-4 shrink-0 text-amber-600 dark:text-amber-400" />
+					<p className="text-foreground">
+						{t("take.offline_banner", {
+							defaultValue:
+								"You're offline — keep going. Your answers are saved on this device and will sync when you're back. The timer keeps running.",
+						})}
+					</p>
+				</div>
 			) : null}
 			<div className="space-y-4">
 				{attempt.questions.map((q, index) => (
@@ -626,7 +694,7 @@ function OptionButton({
 			<span
 				className={cn(
 					"size-4 shrink-0 rounded-full border-2",
-					selected ? "border-brand-primary bg-brand-primary" : "border-border",
+					selected ? "border-brand-primary bg-brand-solid" : "border-border",
 				)}
 			/>
 			<span className="break-words">{label}</span>

@@ -1,35 +1,43 @@
 import { randomUUID } from "node:crypto";
+import type {
+	EnqueueOptions,
+	JobHandler,
+	JobProgress,
+	QueuePort,
+} from "../../../../src/shared/queue/queue.port";
 
 /**
- * Minimal in-memory stand-in for a BullMQ `Queue` — implements only the
- * subset `MediaService` actually calls (`add`, `getJobs`). Avoids requiring a
- * real Redis instance for integration tests; cast with `as unknown as Queue`
- * at the injection site since this doesn't implement bullmq's full surface.
+ * In-memory `QueuePort` for tests — records enqueued jobs WITHOUT running the
+ * handlers (producers are tested in isolation; the work itself is covered by
+ * unit tests). Mirrors the old FakeQueue behaviour where `.add` just recorded.
  */
-export class FakeQueue {
-	private jobs: {
-		id: string;
+export class FakeQueuePort implements QueuePort {
+	readonly enqueued: {
+		queue: string;
 		data: unknown;
-		timestamp: number;
-		progress: number;
+		opts?: EnqueueOptions;
 	}[] = [];
 
-	async add(_name: string, data: unknown): Promise<{ id: string }> {
-		const job = { id: randomUUID(), data, timestamp: Date.now(), progress: 0 };
-		this.jobs.push(job);
-		return { id: job.id };
+	register<T>(_queue: string, _handler: JobHandler<T>): void {}
+
+	async enqueue<T>(
+		queue: string,
+		data: T,
+		opts?: EnqueueOptions,
+	): Promise<string> {
+		this.enqueued.push({ queue, data, opts });
+		return opts?.jobId ?? randomUUID();
 	}
 
-	async getJobs() {
-		return this.jobs.map((j) => ({
-			id: j.id,
-			data: j.data,
-			timestamp: j.timestamp,
-			progress: j.progress,
-			failedReason: null,
-			processedOn: null,
-			finishedOn: null,
-			getState: async () => "waiting" as const,
-		}));
+	async progressForGroup(
+		_queue: string,
+		_groupKey: string,
+		ready: boolean,
+	): Promise<JobProgress> {
+		return {
+			state: ready ? "completed" : "not_found",
+			progress: ready ? 100 : 0,
+			jobId: null,
+		};
 	}
 }

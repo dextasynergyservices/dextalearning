@@ -146,11 +146,11 @@ export function AvatarEditor({ image, name, onChange }: AvatarEditorProps) {
 						className="size-24 rounded-full object-cover"
 					/>
 				) : (
-					<span className="flex size-24 items-center justify-center rounded-full bg-brand-primary font-display text-2xl text-white">
+					<span className="flex size-24 items-center justify-center rounded-full bg-brand-solid font-display text-2xl text-white">
 						{initials(name)}
 					</span>
 				)}
-				<span className="absolute right-0 bottom-0 flex size-8 items-center justify-center rounded-full border-2 border-card bg-brand-primary text-white shadow-sm transition-transform group-hover:scale-105 group-active:scale-95">
+				<span className="absolute right-0 bottom-0 flex size-8 items-center justify-center rounded-full border-2 border-card bg-brand-solid text-white shadow-sm transition-transform group-hover:scale-105 group-active:scale-95">
 					{busy ? (
 						<Loader2 className="size-4 animate-spin" />
 					) : (

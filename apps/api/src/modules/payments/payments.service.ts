@@ -7,7 +7,6 @@ import {
 	NotFoundException,
 } from "@nestjs/common";
 import { EventEmitter2 } from "@nestjs/event-emitter";
-import { type Queue } from "bullmq";
 import type { AuthenticatedUser } from "../../auth/types";
 import { PrismaService } from "../../prisma/prisma.service";
 import {
@@ -15,9 +14,10 @@ import {
 	PaymentEvents,
 } from "../../shared/events/payment-events";
 import {
-	INSTRUCTOR_PAYOUT_QUEUE,
 	type InstructorPayoutJobData,
+	QUEUE_INSTRUCTOR_PAYOUT,
 } from "../../shared/queue/queue.constants";
+import { QUEUE_PORT, type QueuePort } from "../../shared/queue/queue.port";
 import type { EnrollableType } from "../enrollment/enrollment.service";
 import { EnrollmentService } from "../enrollment/enrollment.service";
 import { canLearnerSetDeadline } from "./earn-back-deadline.calculator";
@@ -48,7 +48,7 @@ export class PaymentsService {
 		private readonly gateways: PaymentGatewayRegistry,
 		private readonly enrollment: EnrollmentService,
 		private readonly events: EventEmitter2,
-		@Inject(INSTRUCTOR_PAYOUT_QUEUE) private readonly payoutQueue: Queue,
+		@Inject(QUEUE_PORT) private readonly queue: QueuePort,
 	) {}
 
 	/**
@@ -392,16 +392,10 @@ export class PaymentsService {
 		});
 
 		if (payoutId) {
-			await this.payoutQueue.add(
-				"payout",
-				{ payoutId } satisfies InstructorPayoutJobData,
-				{
-					jobId: `payout-${payoutId}`,
-					attempts: 5,
-					backoff: { type: "exponential", delay: 30_000 },
-					removeOnComplete: 1000,
-					removeOnFail: 5000,
-				},
+			await this.queue.enqueue<InstructorPayoutJobData>(
+				QUEUE_INSTRUCTOR_PAYOUT,
+				{ payoutId },
+				{ jobId: `payout-${payoutId}`, attempts: 5, backoffMs: 30_000 },
 			);
 		}
 

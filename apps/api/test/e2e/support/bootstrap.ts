@@ -3,7 +3,6 @@ import { ValidationPipe } from "@nestjs/common";
 import type { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
 import { toNodeHandler } from "better-auth/node";
-import type { Queue } from "bullmq";
 import type { NextFunction, Request, Response } from "express";
 import { AppModule } from "../../../src/app.module";
 import { auth } from "../../../src/auth/auth.config";
@@ -12,15 +11,11 @@ import { ResponseInterceptor } from "../../../src/common/interceptors/response.i
 import { PrismaService } from "../../../src/prisma/prisma.service";
 import { AI_PORT } from "../../../src/shared/ai/ai.port";
 import { MEDIA_ENCODER_PORT } from "../../../src/shared/encoding/media-encoder.port";
-import {
-	AUDIO_QUEUE,
-	CAPTION_QUEUE,
-	VIDEO_QUEUE,
-} from "../../../src/shared/queue/queue.constants";
+import { QUEUE_PORT } from "../../../src/shared/queue/queue.port";
 import { STORAGE_PORT } from "../../../src/shared/storage/storage.port";
 import { FakeAiAdapter } from "../../integration/support/fakes/fake-ai.adapter";
 import { FakeMediaEncoderAdapter } from "../../integration/support/fakes/fake-media-encoder.adapter";
-import { FakeQueue } from "../../integration/support/fakes/fake-queue";
+import { FakeQueuePort } from "../../integration/support/fakes/fake-queue";
 import { FakeStorageAdapter } from "../../integration/support/fakes/fake-storage.adapter";
 
 /**
@@ -43,12 +38,8 @@ export async function buildE2eApp(): Promise<{
 		.useClass(FakeMediaEncoderAdapter)
 		.overrideProvider(AI_PORT)
 		.useClass(FakeAiAdapter)
-		.overrideProvider(VIDEO_QUEUE)
-		.useValue(new FakeQueue() as unknown as Queue)
-		.overrideProvider(AUDIO_QUEUE)
-		.useValue(new FakeQueue() as unknown as Queue)
-		.overrideProvider(CAPTION_QUEUE)
-		.useValue(new FakeQueue() as unknown as Queue)
+		.overrideProvider(QUEUE_PORT)
+		.useValue(new FakeQueuePort())
 		.compile();
 
 	const app = moduleFixture.createNestApplication<NestExpressApplication>({

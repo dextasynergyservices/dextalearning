@@ -177,7 +177,7 @@ function ContinueHero({ item }: { item: MyLearningItem }) {
 				<div className="mt-4 flex items-center gap-3">
 					<div className="h-2 flex-1 overflow-hidden rounded-full bg-muted">
 						<div
-							className="h-full rounded-full bg-brand-primary transition-all"
+							className="h-full rounded-full bg-brand-solid transition-all"
 							style={{ width: `${item.percent}%` }}
 						/>
 					</div>
@@ -185,7 +185,7 @@ function ContinueHero({ item }: { item: MyLearningItem }) {
 						{item.percent}%
 					</span>
 				</div>
-				<span className="mt-4 inline-flex w-fit items-center gap-2 rounded-btn bg-brand-primary px-4 py-2 font-semibold text-sm text-white transition-colors group-hover:bg-brand-primary-hover">
+				<span className="mt-4 inline-flex w-fit items-center gap-2 rounded-btn bg-brand-solid px-4 py-2 font-semibold text-sm text-white transition-colors group-hover:bg-brand-solid-hover">
 					<PlayCircle className="size-4" />
 					{t("my.continue", { defaultValue: "Continue" })}
 				</span>

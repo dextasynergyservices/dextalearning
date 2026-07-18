@@ -335,8 +335,10 @@ model User {
   updatedAt             DateTime      @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   tenant                         Tenant?                     @relation(fields: [tenantId], references: [id])
+  twoFactorEnabled      Boolean       @default(false) @map("two_factor_enabled")
   sessions                       Session[]
   accounts                       Account[]
+  twoFactors                     TwoFactor[]
   createdCourses                 Course[]                    @relation("CourseCreator")
   lessonCompletions              LessonCompletion[]
   uploadedCaptions               LessonCaption[]             @relation("CaptionUploader")
@@ -411,6 +413,23 @@ model Account {
 
   @@unique([providerId, accountId])
   @@map("accounts")
+}
+
+// Better Auth twoFactor plugin (§5.9). One row per user with 2FA set up: the
+// TOTP `secret` and the encrypted `backupCodes`. `returned: false` in the
+// plugin means these never leave the server.
+model TwoFactor {
+  id          String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId      String @map("user_id") @db.Uuid
+  secret      String
+  backupCodes String @map("backup_codes")
+  verified    Boolean @default(true)
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId], map: "idx_two_factor_user")
+  @@map("two_factor")
 }
 
 model Verification {

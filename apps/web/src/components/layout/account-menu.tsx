@@ -123,7 +123,7 @@ export function AccountMenu({ onDark = false }: { onDark?: boolean }) {
 						className="size-8 rounded-full object-cover"
 					/>
 				) : (
-					<span className="flex size-8 items-center justify-center rounded-full bg-brand-primary font-semibold text-[11px] text-white">
+					<span className="flex size-8 items-center justify-center rounded-full bg-brand-solid font-semibold text-[11px] text-white">
 						{initialsOf(user.name)}
 					</span>
 				)}

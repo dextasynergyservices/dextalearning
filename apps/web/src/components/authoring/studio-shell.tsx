@@ -306,7 +306,7 @@ function StudioGate({
 				>
 					{!collapsed ? (
 						<div className="flex min-w-0 items-center gap-3">
-							<span className="flex size-10 shrink-0 items-center justify-center rounded-btn bg-brand-primary text-white">
+							<span className="flex size-10 shrink-0 items-center justify-center rounded-btn bg-brand-solid text-white">
 								{area === "admin" ? (
 									<ShieldCheck className="size-5" />
 								) : (
@@ -407,7 +407,7 @@ function StudioGate({
 								className="size-10 shrink-0 rounded-full object-cover"
 							/>
 						) : (
-							<span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-brand-primary font-semibold text-sm text-white">
+							<span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-brand-solid font-semibold text-sm text-white">
 								{initials(session?.user.name)}
 							</span>
 						)}
@@ -632,7 +632,7 @@ function StudioGate({
 											className="size-9 shrink-0 rounded-full object-cover"
 										/>
 									) : (
-										<span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-brand-primary font-semibold text-sm text-white">
+										<span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-brand-solid font-semibold text-sm text-white">
 											{initials(session?.user.name)}
 										</span>
 									)}

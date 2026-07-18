@@ -109,7 +109,7 @@ function PathBody({ data }: { data: PathProgress }) {
 					<Link
 						to="/learn/course/$courseId"
 						params={{ courseId: nextCourse.id }}
-						className="mt-4 flex items-center justify-center gap-2 rounded-btn bg-brand-primary py-2.5 font-semibold text-sm text-white transition-colors hover:bg-brand-primary-hover"
+						className="mt-4 flex items-center justify-center gap-2 rounded-btn bg-brand-solid py-2.5 font-semibold text-sm text-white transition-colors hover:bg-brand-solid-hover"
 					>
 						<PlayCircle className="size-4" />
 						{t("hub.continue", { defaultValue: "Continue learning" })}
@@ -160,7 +160,7 @@ function PathBody({ data }: { data: PathProgress }) {
 										<span
 											className={cn(
 												"h-full rounded-full",
-												course.isComplete ? "bg-success" : "bg-brand-primary",
+												course.isComplete ? "bg-success" : "bg-brand-solid",
 											)}
 											style={{ width: `${course.percent}%` }}
 										/>

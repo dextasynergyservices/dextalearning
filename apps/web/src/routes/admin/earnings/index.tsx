@@ -273,7 +273,7 @@ function EntityBreakdown({
 										{/* Share of the top seller — a bar reads faster than a % */}
 										<span className="h-1 w-24 overflow-hidden rounded-full bg-muted">
 											<span
-												className="block h-full rounded-full bg-brand-primary"
+												className="block h-full rounded-full bg-brand-solid"
 												style={{
 													width: `${top > 0 ? Math.max(2, (row.grossVolume / top) * 100) : 0}%`,
 												}}

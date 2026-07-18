@@ -1,6 +1,5 @@
 import { EventEmitter2 } from "@nestjs/event-emitter";
-import type { Queue } from "bullmq";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import type { AuthenticatedUser } from "../../src/auth/types";
 import { EnrollmentService } from "../../src/modules/enrollment/enrollment.service";
 import { EarningsService } from "../../src/modules/payments/earnings.service";
@@ -11,6 +10,7 @@ import type { CachePort } from "../../src/shared/cache/cache.port";
 import { PlatformSettingsService } from "../../src/shared/settings/platform-settings.service";
 import { getTestPrisma } from "./support/db";
 import { createCourse, createUser } from "./support/factories";
+import { FakeQueuePort } from "./support/fakes/fake-queue";
 
 function memoryCache(): CachePort {
 	const store = new Map<string, unknown>();
@@ -54,14 +54,13 @@ describe("EarningsService.ledger (integration)", () => {
 	const snapshots = new PricingSnapshotService(prisma, settings);
 	const gateways = new PaymentGatewayRegistry(settings);
 	const enrollment = new EnrollmentService(prisma, events);
-	const payoutQueue = { add: vi.fn() } as unknown as Queue;
 	const payments = new PaymentsService(
 		prisma,
 		snapshots,
 		gateways,
 		enrollment,
 		events,
-		payoutQueue,
+		new FakeQueuePort(),
 	);
 	const earnings = new EarningsService(prisma);
 
