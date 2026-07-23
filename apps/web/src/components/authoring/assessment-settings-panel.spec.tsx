@@ -132,18 +132,17 @@ describe("AssessmentSettingsPanel", () => {
 			expect(screen.getByText("Max retakes")).toBeInTheDocument();
 		});
 
-		it.each([
-			"lesson_pre",
-			"lesson_post",
-			"module",
-		] as const)("hides the retry rules on a %s quiz — it's unlimited practice", (scope) => {
-			renderWithProviders(
-				<AssessmentSettingsPanel assessment={assessment({ scope })} />,
-			);
-			expect(screen.queryByText("Retry policy")).not.toBeInTheDocument();
-			expect(screen.queryByText("Max retakes")).not.toBeInTheDocument();
-			expect(screen.getByText(/retakes are unlimited/i)).toBeInTheDocument();
-		});
+		it.each(["lesson_pre", "lesson_post", "module"] as const)(
+			"hides the retry rules on a %s quiz — it's unlimited practice",
+			(scope) => {
+				renderWithProviders(
+					<AssessmentSettingsPanel assessment={assessment({ scope })} />,
+				);
+				expect(screen.queryByText("Retry policy")).not.toBeInTheDocument();
+				expect(screen.queryByText("Max retakes")).not.toBeInTheDocument();
+				expect(screen.getByText(/retakes are unlimited/i)).toBeInTheDocument();
+			},
+		);
 
 		it("never sends retry fields when saving a formative quiz", async () => {
 			updateAssessmentMock.mockResolvedValue({});
