@@ -8,7 +8,7 @@ import {
 	Sparkles,
 	X,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -18,6 +18,13 @@ import {
 	gradeSubmission,
 } from "@/lib/content-api";
 import { cn } from "@/lib/utils";
+
+// Monaco is heavy + CDN-loaded — only pull it in for code submissions.
+const CodeWorkspace = lazy(() =>
+	import("@/components/player/code-workspace").then((m) => ({
+		default: m.CodeWorkspace,
+	})),
+);
 
 export function GradeSubmissionDialog({
 	submissionId,
@@ -167,7 +174,29 @@ export function GradeSubmissionDialog({
 							</div>
 
 							{/* Submission content */}
-							{sub.textContent ? (
+							{sub.textContent && sub.codeConfig ? (
+								<div className="rounded-card border border-border p-3">
+									<p className="mb-2 flex items-center gap-1.5 font-medium text-muted-foreground text-xs uppercase">
+										<FileText className="size-3.5" />
+										{t("grade.code", { defaultValue: "Code" })} ·{" "}
+										{sub.codeConfig.language}
+									</p>
+									<Suspense
+										fallback={
+											<div className="flex h-[300px] items-center justify-center rounded-card border border-border bg-card">
+												<Loader2 className="size-5 animate-spin text-muted-foreground" />
+											</div>
+										}
+									>
+										<CodeWorkspace
+											language={sub.codeConfig.language}
+											value={sub.textContent}
+											readOnly
+											height="300px"
+										/>
+									</Suspense>
+								</div>
+							) : sub.textContent ? (
 								<div className="rounded-card border border-border p-3">
 									<p className="mb-1 flex items-center gap-1.5 font-medium text-muted-foreground text-xs uppercase">
 										<FileText className="size-3.5" />

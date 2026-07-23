@@ -98,6 +98,15 @@
 			"stripe": "Cartes et portefeuilles. Par défaut pour toutes les autres devises."
 		}
 	},
+	"instructors": {
+		"queue_title": "Candidatures de formateurs",
+		"queue_hint": "Ils ne peuvent rien créer ni publier tant que vous ne les avez pas approuvés.",
+		"queue_empty": "Personne n'attend. Les nouvelles candidatures apparaîtront ici.",
+		"approve": "Approuver",
+		"reject": "Refuser",
+		"approved": "Formateur approuvé",
+		"rejected": "Candidature refusée"
+	},
 	"admin_users": {
 		"title": "Utilisateurs",
 		"subtitle": "Toutes les personnes sur la plateforme. Modifiez leurs droits ou suspendez leur accès.",
@@ -251,6 +260,7 @@
 		"type_mcq": "Choix multiple",
 		"type_tf": "Vrai / Faux",
 		"type_short": "Réponse courte",
+		"type_code": "Code",
 		"answer": "Réponse",
 		"edit": "Modifier",
 		"ai_added": "{{count}} questions ajoutées",
@@ -264,6 +274,17 @@
 		"true": "Vrai",
 		"false": "Faux",
 		"expected_answer": "Réponse attendue",
+		"code_language": "Langage de code",
+		"code_starter": "Code de départ (facultatif)",
+		"code_grading": "Notation",
+		"code_grading_ai": "Notée par IA",
+		"code_grading_manual": "Manuelle",
+		"code_grading_ai_hint": "Notée automatiquement par rapport à votre solution de référence à l'envoi de l'apprenant.",
+		"code_grading_manual_hint": "Vous examinez chaque soumission et la notez vous-même. La tentative est retenue jusque-là.",
+		"code_notes": "Notes de notation (facultatif)",
+		"code_notes_ph": "Notes facultatives pour guider votre notation ultérieure.",
+		"code_reference": "Solution de référence / comportement attendu",
+		"code_reference_ph": "Décrivez ce que le code correct doit faire, ou collez une solution modèle. L'IA évalue le code de l'apprenant par rapport à cela.",
 		"save_question": "Enregistrer la question",
 		"ai_title": "Générer des questions avec l'IA",
 		"ai_blurb": "L'IA rédige des questions à partir des transcriptions de chaque leçon choisie — sélectionnez un module ou un cours entier pour répartir les questions. Relisez-les et modifiez-les avant que les apprenants ne passent l'évaluation.",
@@ -629,6 +650,7 @@
 		"learner": "Apprenant",
 		"attempt": "Tentative {{n}}",
 		"writeup": "Texte",
+		"code": "Code",
 		"ai_draft": "Pré-noter avec l'IA",
 		"score": "Score",
 		"pass": "Réussi",
@@ -637,6 +659,13 @@
 		"feedback": "Retour",
 		"cancel": "Annuler",
 		"submit": "Enregistrer la note",
+		"code_queue_title": "En attente de votre notation",
+		"code_queue_hint": "Ces apprenants ont soumis du code que vous avez choisi de noter manuellement. Leur résultat est retenu jusqu'à votre notation.",
+		"code_reference_notes": "Référence / notes de notation",
+		"code_correct": "Correct",
+		"code_incorrect": "Incorrect",
+		"code_graded": "Tentative notée",
+		"code_submit": "Envoyer la note",
 		"queue_title": "Soumissions",
 		"no_subs": "Aucune soumission pour l'instant.",
 		"graded_score": "Notée · {{n}} %",
@@ -866,7 +895,12 @@
 		"timed_import": "Importer la synchro",
 		"timed_parse_error": "Aucun segment synchronisé trouvé. Collez une transcription .vtt ou .srt valide.",
 		"timed_saved": "Transcription synchronisée enregistrée",
-		"timed_removed": "Synchronisation supprimée"
+		"timed_removed": "Synchronisation supprimée",
+		"code_language": "Langage",
+		"code_editor_only_hint": "Seul JavaScript s’exécute dans le navigateur aujourd’hui ; les autres langages sont en éditeur seulement.",
+		"code_instructions": "Consignes de l’exercice",
+		"code_instructions_ph": "Décrivez la tâche que l’apprenant doit réaliser…",
+		"code_starter": "Code de départ"
 	},
 	"paths": {
 		"title": "Parcours",
@@ -1005,6 +1039,10 @@
 		"type_file_upload": "Fichier",
 		"type_text_submission": "Texte",
 		"type_url_submission": "Lien / URL",
+		"type_code": "Code",
+		"code_language": "Langage de code",
+		"code_language_hint": "Le langage dans lequel les apprenants écrivent. Seul JavaScript s'exécute dans l'auto-vérification du navigateur ; les autres sont en édition seule.",
+		"code_starter": "Code de départ (facultatif)",
 		"type_peer_review": "Évaluation par les pairs",
 		"grading": "Notation",
 		"grading_manual": "Manuelle",
@@ -1099,6 +1137,9 @@
 		"remaining_other": "{{count}} tentatives restantes"
 	},
 	"settings": {
+		"name": "Nom",
+		"name_hint": "Le titre que les apprenants voient dans le catalogue.",
+		"name_too_short": "Le nom doit comporter au moins 3 caractères.",
 		"title": "Paramètres du cours",
 		"subtitle": "Vignette, description, tarif et Earn-Back visibles dans le catalogue.",
 		"thumbnail": "Vignette",
@@ -1184,6 +1225,8 @@
 		"failed": "Échoué",
 		"pending": "Soumis — en attente de notation.",
 		"your_work": "Votre soumission",
+		"code": "Votre code",
+		"code_hint": "L'exécution est une auto-vérification — votre note vient d'un correcteur, pas de l'exécution.",
 		"text": "Texte",
 		"url": "Lien / URL",
 		"files": "Fichiers",
@@ -1217,6 +1260,7 @@
 		"start": "Démarrer l'évaluation",
 		"view_result": "Voir le dernier résultat",
 		"your_answer": "Votre réponse…",
+		"code_hint": "L'exécution est une auto-vérification — votre note est décidée après l'envoi.",
 		"answered": "{{a}} sur {{n}} répondues",
 		"submit": "Soumettre",
 		"passed": "Réussi",
@@ -1238,6 +1282,9 @@
 		"reason_locked_out": "Vous avez utilisé toutes vos reprises pour l'instant.",
 		"locked_until": "Vos reprises se réinitialisent le {{when}}",
 		"reason_prerequisites": "Terminez d'abord toutes les leçons et les quiz de module.",
+		"reason_awaiting_grading": "Votre dernière tentative attend d'être notée par un instructeur.",
+		"awaiting_title": "En attente de notation",
+		"awaiting_body": "Vous avez soumis cette évaluation. Un instructeur notera votre code — votre résultat apparaîtra ici une fois terminé.",
 		"camera_unavailable": "Surveillance indisponible",
 		"camera_unavailable_hint": "Votre tentative est enregistrée comme non surveillée.",
 		"offline_banner": "Vous êtes hors ligne — continuez. Vos réponses sont enregistrées sur cet appareil et se synchroniseront à votre retour. Le chronomètre continue.",
@@ -1268,5 +1315,8 @@
 		"audio": "Audio",
 		"pdf": "PDF",
 		"text": "Texte"
+	},
+	"academy": {
+		"label": "Académie"
 	}
 }

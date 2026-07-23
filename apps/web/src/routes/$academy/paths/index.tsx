@@ -22,18 +22,19 @@ const PATH_LEVELS = [
 	"mixed",
 ] as const;
 
-export const Route = createFileRoute("/teachers/paths/")({
+export const Route = createFileRoute("/$academy/paths/")({
 	component: PathsCatalogPage,
 });
 
 function PathsCatalogPage() {
 	const { t } = useTranslation(["academy", "authoring"]);
+	const { academy } = Route.useParams();
 	const [query, setQuery] = useState("");
 	const [level, setLevel] = useState<string>("all");
 
 	const { data: paths, isPending } = useQuery({
-		queryKey: ["published-paths"],
-		queryFn: getPublishedPaths,
+		queryKey: ["published-paths", academy],
+		queryFn: () => getPublishedPaths(academy),
 		staleTime: 0,
 		refetchOnMount: "always",
 	});

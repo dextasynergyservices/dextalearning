@@ -43,6 +43,7 @@ function path(overrides: Partial<PathDetail> = {}): PathDetail {
 		id: "p1",
 		title: "Full Stack",
 		slug: "full-stack",
+		academy: null,
 		status: "draft",
 		level: "beginner",
 		thumbnailKey: null,

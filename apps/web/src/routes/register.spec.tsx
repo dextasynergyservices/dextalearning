@@ -80,9 +80,11 @@ describe("RegisterPage", () => {
 		await user.click(screen.getByRole("button", { name: "Create account" }));
 
 		expect(await screen.findByText("Verify your email")).toBeInTheDocument();
-		expect(registerAccountMock).toHaveBeenCalledWith(
-			expect.objectContaining({ email: validFields.email }),
-		);
+		// Assert the payload only — the second argument is the Turnstile token,
+		// which is null whenever Turnstile isn't configured (as in tests).
+		expect(registerAccountMock.mock.calls[0][0]).toMatchObject({
+			email: validFields.email,
+		});
 	});
 
 	it("shows a 'sign in instead' nudge for an already-registered email, instead of a toast", async () => {

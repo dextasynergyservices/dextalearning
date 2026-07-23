@@ -7,11 +7,16 @@ import {
 	Bell,
 	BellRing,
 	BookOpenCheck,
+	CalendarDays,
 	ClipboardCheck,
+	Clock,
 	GraduationCap,
 	Inbox,
+	ShieldAlert,
 	Sparkles,
 	Sprout,
+	UserCheck,
+	Users,
 	Wallet,
 } from "lucide-react";
 import { type ComponentType, useEffect, useRef, useState } from "react";
@@ -123,6 +128,65 @@ const TYPE_META: Record<
 	earn_back_failed_admin: {
 		icon: AlertTriangle,
 		to: "/admin/payouts",
+		tint: "bg-error/10 text-error",
+	},
+	// Instructor applications (§8.1.1). Without these three the bell fell through
+	// to DEFAULT_TYPE_META and showed "Update" linking to the learner dashboard —
+	// which is wrong for all three audiences.
+	instructor_application: {
+		icon: UserCheck,
+		// Admin-only: the queue lives on the Users page, where the decision is made.
+		to: "/admin/users",
+		tint: "bg-brand-primary/10 text-brand-primary",
+	},
+	instructor_approved: {
+		icon: GraduationCap,
+		// The whole point of the news: their studio just opened.
+		to: "/instructor",
+		tint: "bg-success/10 text-success",
+	},
+	instructor_rejected: {
+		icon: BellRing,
+		// Still a learner here, so send them somewhere useful rather than nowhere.
+		to: "/dashboard",
+		tint: "bg-muted text-muted-foreground",
+	},
+	// Groups are planned in memory before they're persisted, so the notification
+	// has no group id to deep-link with — send them to the cohorts they're in.
+	group_reassigned: {
+		icon: Users,
+		to: "/learn/mine",
+		tint: "bg-info/10 text-info",
+	},
+	// §8.6 calendar + lifecycle notices.
+	cohort_kickoff: {
+		icon: CalendarDays,
+		to: "/learn/cohort/$cohortId",
+		params: (data) => ({ cohortId: String(data.cohortId ?? "") }),
+		tint: "bg-brand-primary/10 text-brand-primary",
+	},
+	deadline_soon: {
+		icon: Clock,
+		to: "/learn/mine",
+		tint: "bg-warning/15 text-amber-600 dark:text-amber-400",
+	},
+	facilitator_assigned: {
+		icon: Users,
+		to: "/facilitator/cohorts/$cohortId",
+		params: (data) => ({ cohortId: String(data.cohortId ?? "") }),
+		tint: "bg-brand-primary/10 text-brand-primary",
+	},
+	course_published: {
+		icon: BookOpenCheck,
+		to: "/admin/courses",
+		tint: "bg-success/10 text-success",
+	},
+	// Goes to instructors AND admins; each lands in their own integrity queue.
+	integrity_flagged: {
+		icon: ShieldAlert,
+		to: "/instructor/attempt-reports/$assessmentId",
+		adminTo: "/admin/integrity",
+		params: (data) => ({ assessmentId: String(data.assessmentId ?? "") }),
 		tint: "bg-error/10 text-error",
 	},
 };

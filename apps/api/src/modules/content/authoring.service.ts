@@ -8,12 +8,15 @@ import {
 	UnprocessableEntityException,
 } from "@nestjs/common";
 import type { AuthenticatedUser } from "../../auth/types";
+import { renderNotificationEmail } from "../../emails/render";
 import { PrismaService } from "../../prisma/prisma.service";
 import {
 	STORAGE_PORT,
 	type StoragePort,
 } from "../../shared/storage/storage.port";
 import type { UploadFile } from "../media/media.constants";
+import { NotificationsService } from "../notifications/notifications.service";
+import { TenantService } from "../tenant/tenant.service";
 import { normalizeCommercials } from "./commercials.calculator";
 import type {
 	CreateCourseDto,
@@ -43,6 +46,8 @@ export class AuthoringService {
 	constructor(
 		private readonly prisma: PrismaService,
 		@Inject(STORAGE_PORT) private readonly storage: StoragePort,
+		private readonly tenants: TenantService,
+		private readonly notifications: NotificationsService,
 	) {}
 
 	private isOwnerOrAdmin(createdBy: string | null, user: AuthenticatedUser) {
@@ -85,7 +90,7 @@ export class AuthoringService {
 
 	// ── Courses ──────────────────────────────────────────────────────────
 	async createCourse(user: AuthenticatedUser, dto: CreateCourseDto) {
-		const { title, description, level, language, ...commercial } = dto;
+		const { title, description, level, language, academy, ...commercial } = dto;
 		return this.prisma.course.create({
 			data: {
 				title,
@@ -93,7 +98,11 @@ export class AuthoringService {
 				description,
 				level,
 				language: language ?? "en",
-				tenantId: user.tenantId ?? null,
+				// Academy chosen at creation (else the creator's, else the default).
+				tenantId: await this.tenants.resolveForAuthoring(
+					academy,
+					user.tenantId,
+				),
 				createdBy: user.id,
 				status: "draft",
 				...normalizeCommercials(commercial),
@@ -247,7 +256,8 @@ export class AuthoringService {
 					issues.push({ ...tag, reason: "no_content_type" });
 					continue;
 				}
-				if (!lesson.transcriptText?.trim()) {
+				// Code exercises have no spoken/media content to transcribe (§13.1).
+				if (lesson.contentType !== "code" && !lesson.transcriptText?.trim()) {
 					issues.push({ ...tag, reason: "missing_transcript" });
 				}
 				if (lesson.contentType === "video" && !lesson.videoKeysJson) {
@@ -262,6 +272,9 @@ export class AuthoringService {
 				if (lesson.contentType === "pdf" && !lesson.pdfKey) {
 					issues.push({ ...tag, reason: "missing_pdf" });
 				}
+				if (lesson.contentType === "code" && !lesson.codeConfigJson) {
+					issues.push({ ...tag, reason: "empty_code" });
+				}
 			}
 		}
 		if (lessonCount === 0) issues.push({ reason: "no_lessons" });
@@ -273,10 +286,58 @@ export class AuthoringService {
 				details: { issues },
 			});
 		}
-		return this.prisma.course.update({
+		const wasPublished = course.status === "published";
+		const published = await this.prisma.course.update({
 			where: { id: courseId },
 			data: { status: "published" },
 		});
+		// §8.6 "New course created" → admins. Fired on PUBLISH rather than on
+		// create: an empty draft tells an admin nothing, and drafts are made
+		// constantly — going live is the moment worth their attention. Skipped on a
+		// re-publish so editing a live course doesn't re-notify.
+		if (!wasPublished) await this.notifyAdminsOfNewCourse(published.title);
+		return published;
+	}
+
+	/** Tell admins a course just went live (§8.6). Best-effort — publishing must
+	 *  not fail because a mailbox is down. */
+	private async notifyAdminsOfNewCourse(title: string): Promise<void> {
+		try {
+			const admins = await this.prisma.user.findMany({
+				where: { role: "admin", suspendedAt: null },
+				select: { id: true, email: true },
+			});
+			await Promise.all(
+				admins.map(async (admin) =>
+					this.notifications.notify(admin.id, {
+						type: "course_published",
+						dataJson: { title },
+						inApp: true,
+						email: {
+							to: admin.email,
+							subject: `New course live — ${title}`,
+							html: await renderNotificationEmail({
+								preview: `New course live — ${title}`,
+								heading: "A new course is live",
+								paragraphs: [
+									`${title} has just been published to the catalogue.`,
+								],
+								cta: "Review it",
+								ctaUrl: `${process.env.FRONTEND_URL ?? "http://localhost:5173"}/admin/courses`,
+							}),
+						},
+						push: {
+							title: "New course live",
+							body: title,
+							url: "/admin/courses",
+							tag: "course-published",
+						},
+					}),
+				),
+			);
+		} catch {
+			// Best-effort — see above.
+		}
 	}
 
 	// ── Modules ──────────────────────────────────────────────────────────
@@ -352,11 +413,18 @@ export class AuthoringService {
 		dto: UpdateLessonDto,
 	) {
 		await this.assertLessonOwner(lessonId, user);
+		// The validated `codeConfigJson` arrives as a class instance; Prisma's JSON
+		// input needs a plain object, so spread it (and only when present).
+		const { codeConfigJson, ...rest } = dto;
+		const data = {
+			...rest,
+			...(codeConfigJson ? { codeConfigJson: { ...codeConfigJson } } : {}),
+		};
 		// Must serialize: audio lessons carry a BIGINT `audioSizeBytes` that
 		// JSON cannot stringify — returning the raw row 500s the response.
 		const lesson = await this.prisma.lesson.update({
 			where: { id: lessonId },
-			data: dto,
+			data,
 		});
 		return this.serializeLesson(lesson);
 	}

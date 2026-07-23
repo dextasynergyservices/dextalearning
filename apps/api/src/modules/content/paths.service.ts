@@ -13,6 +13,7 @@ import {
 	type StoragePort,
 } from "../../shared/storage/storage.port";
 import type { UploadFile } from "../media/media.constants";
+import { TenantService } from "../tenant/tenant.service";
 import { normalizeCommercials } from "./commercials.calculator";
 import type { CreatePathDto, UpdatePathDto } from "./dto/paths.dto";
 
@@ -37,6 +38,7 @@ export class PathsService {
 	constructor(
 		private readonly prisma: PrismaService,
 		@Inject(STORAGE_PORT) private readonly storage: StoragePort,
+		private readonly tenants: TenantService,
 	) {}
 
 	private isOwnerOrAdmin(createdBy: string | null, user: AuthenticatedUser) {
@@ -88,7 +90,10 @@ export class PathsService {
 				slug: await this.uniqueSlug(dto.title),
 				description: dto.description,
 				level: dto.level,
-				tenantId: user.tenantId ?? null,
+				tenantId: await this.tenants.resolveForAuthoring(
+					dto.academy,
+					user.tenantId,
+				),
 				createdBy: user.id,
 				status: "draft",
 			},
@@ -123,6 +128,7 @@ export class PathsService {
 		const path = await this.prisma.learningPath.findUnique({
 			where: { id: pathId },
 			include: {
+				tenant: { select: { slug: true } },
 				introLesson: {
 					select: {
 						id: true,
@@ -197,7 +203,12 @@ export class PathsService {
 		});
 		const availableCourses = candidates.filter((c) => !inPath.has(c.id));
 
-		return this.withCommercials({ ...path, pathCourses, availableCourses });
+		return this.withCommercials({
+			...path,
+			academy: path.tenant?.slug ?? null,
+			pathCourses,
+			availableCourses,
+		});
 	}
 
 	/**

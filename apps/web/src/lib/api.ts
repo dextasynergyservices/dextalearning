@@ -72,6 +72,9 @@ export interface RegisterResult {
 	userId: string;
 	email: string;
 	emailVerified: boolean;
+	/** True when they asked to teach: the account is created as a learner and an
+	 *  admin has to approve the instructor application before they can author. */
+	instructorPending?: boolean;
 }
 
 /** Calls the server-validated registration endpoint (confirm-password match +

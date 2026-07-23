@@ -14,7 +14,7 @@ import {
 	X,
 	XCircle,
 } from "lucide-react";
-import { useMemo, useRef, useState } from "react";
+import { lazy, Suspense, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { RequireAuth } from "@/components/auth/require-auth";
@@ -30,6 +30,13 @@ import {
 	uploadProjectFile,
 } from "@/lib/content-api";
 import { cn } from "@/lib/utils";
+
+// Monaco is heavy + CDN-loaded — only pull it in for code-submission projects.
+const CodeWorkspace = lazy(() =>
+	import("@/components/player/code-workspace").then((m) => ({
+		default: m.CodeWorkspace,
+	})),
+);
 
 export const Route = createFileRoute("/learn/project/$projectId")({
 	component: ProjectSubmitRoute,
@@ -136,7 +143,22 @@ function ProjectBody({
 			return mine?.urlSubmission ?? "";
 		}
 	});
-	const persistDraft = (field: "text" | "url", value: string) => {
+	// Code lives in `textContent` on the server; its own draft key so a
+	// crash/outage mid-edit restores exactly what was typed (§ D4 resilience).
+	const acceptsCode = info.submissionTypes.includes("code");
+	const [code, setCode] = useState(() => {
+		try {
+			const draft = localStorage.getItem(`${draftKey}-code`);
+			if (draft != null) return draft;
+		} catch {
+			// fall through to server/starter value
+		}
+		return (
+			mine?.textContent ??
+			(acceptsCode ? (info.codeConfig?.starterCode ?? "") : "")
+		);
+	});
+	const persistDraft = (field: "text" | "url" | "code", value: string) => {
 		try {
 			localStorage.setItem(`${draftKey}-${field}`, value);
 		} catch {
@@ -157,7 +179,11 @@ function ProjectBody({
 	const submit = useMutation({
 		mutationFn: () =>
 			submitProject(projectId, {
-				textContent: text.trim() || undefined,
+				// Code and free-text share the server's `textContent`; when code is
+				// accepted it owns that channel.
+				textContent: acceptsCode
+					? code.trim() || undefined
+					: text.trim() || undefined,
 				urlSubmission: url.trim() || undefined,
 				files: files.length ? files : undefined,
 			}),
@@ -165,6 +191,7 @@ function ProjectBody({
 			try {
 				localStorage.removeItem(`${draftKey}-text`);
 				localStorage.removeItem(`${draftKey}-url`);
+				localStorage.removeItem(`${draftKey}-code`);
 			} catch {
 				// Storage unavailable — nothing to clear.
 			}
@@ -344,6 +371,36 @@ function ProjectBody({
 					<h2 className="font-display text-foreground">
 						{t("submit.your_work", { defaultValue: "Your submission" })}
 					</h2>
+
+					{accepts("code") ? (
+						<div>
+							<span className="mb-1.5 block font-medium text-foreground text-sm">
+								{t("submit.code", { defaultValue: "Your code" })}
+							</span>
+							<Suspense
+								fallback={
+									<div className="flex h-[360px] items-center justify-center rounded-card border border-border bg-card">
+										<Loader2 className="size-5 animate-spin text-muted-foreground" />
+									</div>
+								}
+							>
+								<CodeWorkspace
+									language={info.codeConfig?.language ?? "javascript"}
+									value={code}
+									onChange={(v) => {
+										setCode(v);
+										persistDraft("code", v);
+									}}
+								/>
+							</Suspense>
+							<p className="mt-1.5 text-muted-foreground text-xs">
+								{t("submit.code_hint", {
+									defaultValue:
+										"Run is a self-check — your grade comes from a reviewer, not the run.",
+								})}
+							</p>
+						</div>
+					) : null}
 
 					{accepts("text_submission") ? (
 						<label className="block">

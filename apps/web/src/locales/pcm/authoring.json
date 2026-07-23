@@ -98,6 +98,15 @@
 			"stripe": "Card and wallet. Na default for every other currency."
 		}
 	},
+	"instructors": {
+		"queue_title": "Instructor applications",
+		"queue_hint": "Dem no fit create or publish anything until you approve dem.",
+		"queue_empty": "Nobody dey wait. New instructor applications go show here.",
+		"approve": "Approve",
+		"reject": "Reject",
+		"approved": "You don approve di instructor",
+		"rejected": "Dem don reject di application"
+	},
 	"admin_users": {
 		"title": "Users",
 		"subtitle": "Everybody wey dey the platform. Change wetin dem fit do, or stop their access.",
@@ -251,6 +260,7 @@
 		"type_mcq": "Multiple choice",
 		"type_tf": "True / False",
 		"type_short": "Short answer",
+		"type_code": "Code",
 		"answer": "Answer",
 		"edit": "Edit",
 		"ai_added": "Don add {{count}} questions",
@@ -264,6 +274,17 @@
 		"true": "True",
 		"false": "False",
 		"expected_answer": "Answer wey you expect",
+		"code_language": "Code language",
+		"code_starter": "Starter code (optional)",
+		"code_grading": "Grading",
+		"code_grading_ai": "AI go grade am",
+		"code_grading_manual": "Manual",
+		"code_grading_ai_hint": "Dem go grade am automatic against your reference solution wen di learner submit.",
+		"code_grading_manual_hint": "You go check each submission and grade am yourself. Di attempt go hold until you do.",
+		"code_notes": "Grading notes (optional)",
+		"code_notes_ph": "Optional notes to guide your own grading later.",
+		"code_reference": "Reference solution / wetin e suppose do",
+		"code_reference_ph": "Talk wetin correct code suppose do, or paste model solution. Di AI go grade di learner code against am.",
 		"save_question": "Save question",
 		"ai_title": "Use AI generate questions",
 		"ai_blurb": "AI go draft questions from the transcript of every lesson wey you pick — choose whole module or course make e spread the questions. Check am and edit before learners take the assessment.",
@@ -629,6 +650,7 @@
 		"learner": "Learner",
 		"attempt": "Attempt {{n}}",
 		"writeup": "Write-up",
+		"code": "Code",
 		"ai_draft": "Make AI draft di grade",
 		"score": "Score",
 		"pass": "Pass",
@@ -637,6 +659,13 @@
 		"feedback": "Feedback",
 		"cancel": "Cancel",
 		"submit": "Save grade",
+		"code_queue_title": "Dey wait for your grading",
+		"code_queue_hint": "Dis learners submit code wey you choose to grade by hand. Dem result go hold until you grade am.",
+		"code_reference_notes": "Reference / grading notes",
+		"code_correct": "Correct",
+		"code_incorrect": "Incorrect",
+		"code_graded": "Dem don grade di attempt",
+		"code_submit": "Submit grade",
 		"queue_title": "Submissions",
 		"no_subs": "No submission dey yet.",
 		"graded_score": "Dem grade am · {{n}}%",
@@ -866,7 +895,12 @@
 		"timed_import": "Import timing",
 		"timed_parse_error": "No timed segment dey. Paste correct .vtt or .srt transcript.",
 		"timed_saved": "Synced transcript don save",
-		"timed_removed": "Timing don comot"
+		"timed_removed": "Timing don comot",
+		"code_language": "Language",
+		"code_editor_only_hint": "Na only JavaScript dey run for browser now; other languages na editor only.",
+		"code_instructions": "Exercise instructions",
+		"code_instructions_ph": "Talk wetin di learner suppose do…",
+		"code_starter": "Starter code"
 	},
 	"paths": {
 		"title": "Learning Paths",
@@ -1005,6 +1039,10 @@
 		"type_file_upload": "File upload",
 		"type_text_submission": "Text",
 		"type_url_submission": "Link / URL",
+		"type_code": "Code",
+		"code_language": "Code language",
+		"code_language_hint": "Di language wey learners go write. Na only JavaScript dey run for di browser self-check; di others na editor-only.",
+		"code_starter": "Starter code (optional)",
 		"type_peer_review": "Peer review",
 		"grading": "Grading",
 		"grading_manual": "Manual",
@@ -1099,6 +1137,9 @@
 		"remaining_other": "{{count}} attempts remain"
 	},
 	"settings": {
+		"name": "Name",
+		"name_hint": "Di title wey learners go see for di catalogue.",
+		"name_too_short": "Di name must be at least 3 characters.",
 		"title": "Course settings",
 		"subtitle": "Thumbnail, description, price and Earn-Back wey people go see for catalogue.",
 		"thumbnail": "Thumbnail",
@@ -1184,6 +1225,8 @@
 		"failed": "You no pass",
 		"pending": "You don submit — dem never grade am.",
 		"your_work": "Your submission",
+		"code": "Your code",
+		"code_hint": "Run na self-check — na reviewer go grade you, no be di run.",
 		"text": "Write-up",
 		"url": "Link / URL",
 		"files": "Files",
@@ -1217,6 +1260,7 @@
 		"start": "Start assessment",
 		"view_result": "See last result",
 		"your_answer": "Your answer…",
+		"code_hint": "Run na self-check — dem go decide your grade after you submit.",
 		"answered": "{{a}} of {{n}} wey you answer",
 		"submit": "Submit",
 		"passed": "You pass",
@@ -1238,6 +1282,9 @@
 		"reason_locked_out": "You don use all your retakes for now.",
 		"locked_until": "Your retakes go reset {{when}}",
 		"reason_prerequisites": "Finish all the lessons and module quiz first.",
+		"reason_awaiting_grading": "Your last attempt dey wait make instructor grade am.",
+		"awaiting_title": "Dey wait for grading",
+		"awaiting_body": "You don submit dis assessment. Instructor go grade your code — your result go show here wen dem finish.",
 		"camera_unavailable": "Monitoring no dey work",
 		"camera_unavailable_hint": "We go record your attempt as one wey we no watch.",
 		"offline_banner": "You dey offline — continue dey go. Your answers dey saved for this device and dem go sync when you come back. The timer still dey run.",
@@ -1268,5 +1315,8 @@
 		"audio": "Audio",
 		"pdf": "PDF",
 		"text": "Text"
+	},
+	"academy": {
+		"label": "Academy"
 	}
 }

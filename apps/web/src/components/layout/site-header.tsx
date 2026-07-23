@@ -2,16 +2,21 @@ import { Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Logo } from "@/components/brand/logo";
+import { AcademyMenu } from "@/components/layout/academy-menu";
 import { AccountMenu } from "@/components/layout/account-menu";
 import { LanguageSwitcher } from "@/components/layout/language-switcher";
 import { buttonVariants } from "@/components/ui/button";
 import { useSession } from "@/lib/auth-client";
+import { useAcademyParam } from "@/lib/use-current-academy";
 import { cn } from "@/lib/utils";
 
-const NAV_LINKS = [
-	{ to: "/teachers/courses", key: "courses" },
-	{ to: "/teachers/paths", key: "paths" },
-	{ to: "/teachers/cohorts", key: "cohorts" },
+// Catalogue links stay inside the current academy; the rest are global.
+const ACADEMY_NAV = [
+	{ to: "/$academy/courses", key: "courses" },
+	{ to: "/$academy/paths", key: "paths" },
+	{ to: "/$academy/cohorts", key: "cohorts" },
+] as const;
+const GLOBAL_NAV = [
 	{ to: "/about", key: "about" },
 	{ to: "/blog", key: "blog" },
 	{ to: "/community", key: "community" },
@@ -24,6 +29,7 @@ const NAV_LINKS = [
 export function SiteHeader({ dark = false }: { dark?: boolean }) {
 	const { t } = useTranslation("common");
 	const { data: session } = useSession();
+	const academy = useAcademyParam();
 	const [scrolled, setScrolled] = useState(false);
 
 	useEffect(() => {
@@ -51,7 +57,34 @@ export function SiteHeader({ dark = false }: { dark?: boolean }) {
 				/>
 
 				<nav aria-label="Primary" className="flex items-center gap-1">
-					{NAV_LINKS.map(({ to, key }) => (
+					{academy ? (
+						// Inside an academy: a switcher to hop academies, then its catalogue.
+						<>
+							<AcademyMenu current={academy} onDark={onDark} />
+							{ACADEMY_NAV.map(({ to, key }) => (
+								<Link
+									key={to}
+									to={to}
+									params={{ academy }}
+									className={cn(
+										"rounded-btn px-3.5 py-2 text-sm font-medium transition-colors",
+										onDark
+											? "text-slate-200 hover:bg-white/10 hover:text-white"
+											: "text-muted-foreground hover:bg-accent hover:text-foreground",
+									)}
+									activeProps={{
+										className: onDark ? "text-white" : "text-brand-primary",
+									}}
+								>
+									{t(`nav.${key}`)}
+								</Link>
+							))}
+						</>
+					) : (
+						// Global: pick an academy rather than defaulting to one.
+						<AcademyMenu onDark={onDark} />
+					)}
+					{GLOBAL_NAV.map(({ to, key }) => (
 						<Link
 							key={to}
 							to={to}

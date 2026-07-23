@@ -13,7 +13,15 @@ import {
 	WifiOff,
 	XCircle,
 } from "lucide-react";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+	lazy,
+	Suspense,
+	useCallback,
+	useEffect,
+	useMemo,
+	useRef,
+	useState,
+} from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { RequireAuth } from "@/components/auth/require-auth";
@@ -40,6 +48,13 @@ import {
 	submitAttempt,
 } from "@/lib/content-api";
 import { cn } from "@/lib/utils";
+
+// Monaco is heavy + CDN-loaded — only pull it in when a code question renders.
+const CodeWorkspace = lazy(() =>
+	import("@/components/player/code-workspace").then((m) => ({
+		default: m.CodeWorkspace,
+	})),
+);
 
 export const Route = createFileRoute("/learn/assessment/$assessmentId")({
 	component: TakeAssessmentRoute,
@@ -157,6 +172,8 @@ const REASON_KEY: Record<string, string> = {
 	locked_out: "take.reason_locked_out",
 	// The final is still gated behind unfinished lessons/quizzes (§4.3).
 	prerequisites: "take.reason_prerequisites",
+	// A submitted attempt is held for an instructor's manual grade (§9).
+	awaiting_grading: "take.reason_awaiting_grading",
 };
 
 function IntroView({
@@ -409,13 +426,27 @@ function TakingView({
 	onFinished: (r: AttemptResult) => void;
 }) {
 	const { t } = useTranslation("authoring");
-	const [answers, setAnswers] = useState<Record<string, string>>(() => ({
+	const [answers, setAnswers] = useState<Record<string, string>>(() => {
 		// Server first, local mirror on top: the mirror includes answers whose
 		// saves were lost to an outage, so after a crash+resume the learner
 		// gets back exactly what they had chosen (§ D4 resilience).
-		...(attempt.answers ?? {}),
-		...loadLocalAnswers(attempt.attemptId),
-	}));
+		const base: Record<string, string> = {
+			...(attempt.answers ?? {}),
+			...loadLocalAnswers(attempt.attemptId),
+		};
+		// Seed a code question's editor with its starter code when the learner
+		// hasn't touched it yet, so they build on the scaffold rather than a blank.
+		for (const q of attempt.questions) {
+			if (
+				q.type === "code" &&
+				base[q.id] == null &&
+				q.codeConfig?.starterCode
+			) {
+				base[q.id] = q.codeConfig.starterCode;
+			}
+		}
+		return base;
+	});
 	const [remaining, setRemaining] = useState<number | null>(
 		attempt.remainingSeconds,
 	);
@@ -634,6 +665,29 @@ function TakingView({
 										/>
 									))}
 								</div>
+							) : q.type === "code" ? (
+								<div>
+									<Suspense
+										fallback={
+											<div className="flex h-[300px] items-center justify-center rounded-card border border-border bg-card">
+												<Loader2 className="size-5 animate-spin text-muted-foreground" />
+											</div>
+										}
+									>
+										<CodeWorkspace
+											language={q.codeConfig?.language ?? "javascript"}
+											value={answers[q.id] ?? ""}
+											onChange={(v) => setAnswer(q.id, v)}
+											height="300px"
+										/>
+									</Suspense>
+									<p className="mt-1.5 text-muted-foreground text-xs">
+										{t("take.code_hint", {
+											defaultValue:
+												"Run is a self-check — your grade is decided after you submit.",
+										})}
+									</p>
+								</div>
 							) : (
 								<textarea
 									value={answers[q.id] ?? ""}
@@ -712,6 +766,27 @@ function ResultView({
 }) {
 	const { t } = useTranslation("authoring");
 	const passed = result.passed === true;
+
+	// Held for an instructor's manual grade (§9): show nothing but "awaiting" —
+	// no score, no per-question review — until the grade lands.
+	if (result.pendingGrading) {
+		return (
+			<Shell>
+				<div className="rounded-card border border-border bg-card p-8 text-center shadow-card">
+					<Clock className="mx-auto size-12 text-brand-primary" />
+					<h1 className="mt-3 font-display text-2xl text-foreground">
+						{t("take.awaiting_title", { defaultValue: "Awaiting grading" })}
+					</h1>
+					<p className="mt-2 text-muted-foreground text-sm">
+						{t("take.awaiting_body", {
+							defaultValue:
+								"You've submitted this assessment. An instructor will grade your code — your result appears here once they're done.",
+						})}
+					</p>
+				</div>
+			</Shell>
+		);
+	}
 
 	return (
 		<Shell>

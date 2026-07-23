@@ -65,6 +65,7 @@ function cohortDetail(overrides: Partial<CohortDetail> = {}): CohortDetail {
 		id: "co1",
 		title: "January Cohort",
 		slug: "january-cohort",
+		academy: null,
 		status: "draft",
 		startsAt: null,
 		endsAt: null,

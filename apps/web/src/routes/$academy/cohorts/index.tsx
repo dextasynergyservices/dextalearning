@@ -13,17 +13,18 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { getPublishedCohorts } from "@/lib/content-api";
 import { cn } from "@/lib/utils";
 
-export const Route = createFileRoute("/teachers/cohorts/")({
+export const Route = createFileRoute("/$academy/cohorts/")({
 	component: CohortsCatalogPage,
 });
 
 function CohortsCatalogPage() {
 	const { t } = useTranslation(["academy", "authoring", "dashboard"]);
+	const { academy } = Route.useParams();
 	const [query, setQuery] = useState("");
 
 	const { data: cohorts, isPending } = useQuery({
-		queryKey: ["published-cohorts"],
-		queryFn: getPublishedCohorts,
+		queryKey: ["published-cohorts", academy],
+		queryFn: () => getPublishedCohorts(academy),
 		staleTime: 0,
 		refetchOnMount: "always",
 	});

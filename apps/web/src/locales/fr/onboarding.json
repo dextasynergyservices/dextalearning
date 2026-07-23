@@ -72,7 +72,35 @@
 		"learner_title": "Personnalisons votre apprentissage",
 		"learner_subtitle": "Quelques questions rapides pour adapter les cours, le rythme et les rappels.",
 		"instructor_title": "Bienvenue dans le Creator Studio",
-		"instructor_subtitle": "Configurez votre profil d'instructeur pour que les apprenants sachent qui les forme."
+		"instructor_subtitle": "Configurez votre profil d'instructeur pour que les apprenants sachent qui les forme.",
+		"applicant_title": "Dites-nous qui vous êtes",
+		"applicant_subtitle": "Chaque candidature est examinée à la main. C'est ce qui rend DextaLearning digne de confiance."
+	},
+	"applicant": {
+		"welcome_title": "Votre candidature est envoyée",
+		"welcome_subtitle": "Enseigner ici est validé par une personne, pas par un formulaire. Voici la suite.",
+		"points": {
+			"review": "Un administrateur lit votre profil et décide — généralement sous quelques jours.",
+			"notified": "Nous vous écrirons dès qu'il y a une réponse. Rien à relancer de votre côté.",
+			"meanwhile": "Votre compte est déjà actif : vous pouvez suivre des cours en attendant."
+		},
+		"profile_title": "Que devons-nous savoir sur vous ?",
+		"profile_subtitle": "C'est exactement ce que verra l'administrateur qui examine votre candidature.",
+		"headline": "Votre titre",
+		"bio": "Que voulez-vous enseigner, et qu'est-ce qui vous qualifie ?",
+		"bio_ph": "Parlez-nous de votre expérience et de ce que vous aimeriez créer ici.",
+		"submit": "Envoyer la candidature",
+		"waiting_title": "Merci — nous revenons vers vous",
+		"waiting_subtitle": "Votre candidature est chez nos administrateurs. Vous recevrez un e-mail dès la décision.",
+		"meanwhile_note": "En attendant, votre compte fonctionne comme celui de tout apprenant : parcourez le catalogue, inscrivez-vous et commencez un cours dès aujourd'hui.",
+		"set_up_learning": "Configurer mon apprentissage",
+		"status_pending_title": "Candidature d'instructeur en cours d'examen",
+		"status_pending_body": "Un administrateur l'examine. Nous vous écrirons dès la décision — en attendant, tout ici est à vous pour apprendre.",
+		"status_approved_title": "Vous êtes approuvé pour enseigner 🎉",
+		"status_approved_body": "Votre Creator Studio est ouvert. Commencez votre premier cours.",
+		"open_studio": "Ouvrir le studio",
+		"status_rejected_title": "À propos de votre candidature d'instructeur",
+		"status_rejected_body": "Nous n'avons pas pu l'approuver cette fois. Vous restez le bienvenu comme apprenant — écrivez-nous si vous souhaitez plus de détails."
 	},
 	"whatsapp": {
 		"title": "Rappels d'étude sur WhatsApp",

@@ -1,6 +1,8 @@
-import { beforeEach, describe, expect, it } from "vitest";
+import { BadRequestException } from "@nestjs/common";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { AuthenticatedUser } from "../../src/auth/types";
 import { AdminUsersService } from "../../src/modules/admin-users/admin-users.service";
+import type { NotificationsService } from "../../src/modules/notifications/notifications.service";
 import { getTestPrisma } from "./support/db";
 import { createUser } from "./support/factories";
 
@@ -10,7 +12,10 @@ function actorFor(u: { id: string; email: string }): AuthenticatedUser {
 
 describe("AdminUsersService (integration)", () => {
 	const prisma = getTestPrisma();
-	const service = new AdminUsersService(prisma);
+	const notify = vi.fn().mockResolvedValue(undefined);
+	const service = new AdminUsersService(prisma, {
+		notify,
+	} as unknown as NotificationsService);
 
 	let admin: { id: string; email: string };
 	let otherAdmin: { id: string; email: string };
@@ -206,6 +211,95 @@ describe("AdminUsersService (integration)", () => {
 			});
 			expect(payout?.status).toBe("pending");
 			expect(Number(payout?.amount)).toBe(90);
+		});
+	});
+
+	// §5 — authoring is a trusted capability, so an instructor application grants
+	// nothing until an admin decides. These assert the gate actually holds.
+	describe("instructor applications", () => {
+		async function applicant() {
+			const user = await createUser(prisma, { role: "learner" });
+			await prisma.user.update({
+				where: { id: user.id },
+				data: { instructorStatus: "pending" },
+			});
+			return user;
+		}
+
+		it("lists only those awaiting a decision", async () => {
+			const pending = await applicant();
+			const queue = await service.listInstructorApplications();
+			expect(queue.map((a) => a.id)).toContain(pending.id);
+			// A plain learner who never applied is not in the queue.
+			expect(queue.map((a) => a.id)).not.toContain(learner.id);
+		});
+
+		it("approving is what grants the instructor role", async () => {
+			const pending = await applicant();
+			// Until the decision they are a learner — they cannot author anything.
+			const before = await prisma.user.findUnique({
+				where: { id: pending.id },
+			});
+			expect(before?.role).toBe("learner");
+
+			await service.decideInstructorApplication(actor, pending.id, true);
+
+			const after = await prisma.user.findUnique({ where: { id: pending.id } });
+			expect(after?.role).toBe("instructor");
+			expect(after?.instructorStatus).toBe("approved");
+			expect(after?.instructorDecidedBy).toBe(admin.id);
+			expect(after?.instructorDecidedAt).not.toBeNull();
+			expect(notify).toHaveBeenCalledWith(
+				pending.id,
+				expect.objectContaining({ type: "instructor_approved" }),
+			);
+		});
+
+		it("rejecting leaves them a learner", async () => {
+			const pending = await applicant();
+			await service.decideInstructorApplication(actor, pending.id, false);
+
+			const after = await prisma.user.findUnique({ where: { id: pending.id } });
+			expect(after?.role).toBe("learner");
+			expect(after?.instructorStatus).toBe("rejected");
+			expect(notify).toHaveBeenCalledWith(
+				pending.id,
+				expect.objectContaining({ type: "instructor_rejected" }),
+			);
+		});
+
+		it("refuses to decide twice — no re-grant after a rejection", async () => {
+			const pending = await applicant();
+			await service.decideInstructorApplication(actor, pending.id, false);
+			await expect(
+				service.decideInstructorApplication(actor, pending.id, true),
+			).rejects.toThrow(BadRequestException);
+			const after = await prisma.user.findUnique({ where: { id: pending.id } });
+			expect(after?.role).toBe("learner");
+		});
+
+		it("refuses a user who never applied", async () => {
+			await expect(
+				service.decideInstructorApplication(actor, learner.id, true),
+			).rejects.toThrow(BadRequestException);
+		});
+
+		/**
+		 * Approval must be visible to the rest of the system straight away — the
+		 * role is what every guard reads, so this is the whole contract.
+		 */
+		it("leaves the account genuinely usable as an instructor", async () => {
+			const pending = await applicant();
+			await service.decideInstructorApplication(actor, pending.id, true);
+
+			const after = await prisma.user.findUnique({ where: { id: pending.id } });
+			expect(after?.role).toBe("instructor");
+			// Not suspended, and the application is closed rather than lingering.
+			expect(after?.suspendedAt).toBeNull();
+			expect(after?.instructorStatus).toBe("approved");
+			// And they show up as an instructor in the admin listing.
+			const { rows } = await service.list({ role: "instructor" });
+			expect(rows.some((r) => r.id === pending.id)).toBe(true);
 		});
 	});
 });

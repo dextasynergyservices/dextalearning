@@ -1,34 +1,25 @@
+import { useQuery } from "@tanstack/react-query";
 import { Link, useLocation } from "@tanstack/react-router";
 import { AnimatePresence, motion } from "framer-motion";
 import {
 	BookOpen,
+	GraduationCap,
 	House,
 	Info,
 	Mail,
 	MessagesSquare,
 	MoreHorizontal,
 	Newspaper,
+	Search,
 	UsersRound,
 	Waypoints,
 } from "lucide-react";
 import type { ComponentType } from "react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { getAcademies } from "@/lib/content-api";
+import { useAcademyParam } from "@/lib/use-current-academy";
 import { cn } from "@/lib/utils";
-
-interface TabItem {
-	to: string;
-	labelKey: string;
-	icon: ComponentType<{ className?: string }>;
-	exact?: boolean;
-}
-
-const TABS: TabItem[] = [
-	{ to: "/", labelKey: "home", icon: House, exact: true },
-	{ to: "/teachers/courses", labelKey: "courses", icon: BookOpen },
-	{ to: "/teachers/paths", labelKey: "paths", icon: Waypoints },
-	{ to: "/teachers/cohorts", labelKey: "cohorts", icon: UsersRound },
-];
 
 interface MoreItem {
 	to: string;
@@ -54,8 +45,48 @@ const MORE_PATHS = ["/blog", "/about", "/community"];
 export function BottomTabBar() {
 	const { t } = useTranslation("common");
 	const location = useLocation();
+	const academy = useAcademyParam();
 	const [moreOpen, setMoreOpen] = useState(false);
+	const [academiesOpen, setAcademiesOpen] = useState(false);
+	const { data: academies } = useQuery({
+		queryKey: ["academies"],
+		queryFn: getAcademies,
+		staleTime: 5 * 60 * 1000,
+	});
 	const moreActive = MORE_PATHS.some((p) => location.pathname.startsWith(p));
+
+	// Icon + label; shared by the home tab and the academy-scoped tabs.
+	const tabContent =
+		(Icon: ComponentType<{ className?: string }>, labelKey: string) =>
+		({ isActive }: { isActive: boolean }) => (
+			<>
+				<span
+					className={cn(
+						"flex h-8 w-12 items-center justify-center rounded-full transition-colors",
+						isActive
+							? "bg-brand-primary-light text-brand-primary"
+							: "text-muted-foreground group-hover:text-foreground",
+					)}
+				>
+					<Icon className="size-5" />
+				</span>
+				<span
+					className={cn(
+						"font-stats text-[0.62rem] font-semibold tracking-wide uppercase",
+						isActive ? "text-brand-primary" : "text-muted-foreground",
+					)}
+				>
+					{t(`tabs.${labelKey}`)}
+				</span>
+			</>
+		);
+
+	const tabClass = "group flex flex-col items-center gap-1 px-1 pt-2 pb-1.5";
+	const academyTabs = [
+		{ to: "/$academy/courses", labelKey: "courses", icon: BookOpen },
+		{ to: "/$academy/paths", labelKey: "paths", icon: Waypoints },
+		{ to: "/$academy/cohorts", labelKey: "cohorts", icon: UsersRound },
+	] as const;
 
 	return (
 		<>
@@ -65,40 +96,42 @@ export function BottomTabBar() {
 				style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
 			>
 				<ul className="mx-auto flex max-w-md items-stretch justify-around">
-					{TABS.map(({ to, labelKey, icon: Icon, exact }) => (
-						<li key={labelKey} className="flex-1">
-							<Link
-								to={to}
-								activeOptions={{ exact: Boolean(exact) }}
-								className="group flex flex-col items-center gap-1 px-1 pt-2 pb-1.5"
-							>
-								{({ isActive }) => (
-									<>
-										<span
-											className={cn(
-												"flex h-8 w-12 items-center justify-center rounded-full transition-colors",
-												isActive
-													? "bg-brand-primary-light text-brand-primary"
-													: "text-muted-foreground group-hover:text-foreground",
-											)}
-										>
-											<Icon className="size-5" />
-										</span>
-										<span
-											className={cn(
-												"font-stats text-[0.62rem] font-semibold tracking-wide uppercase",
-												isActive
-													? "text-brand-primary"
-													: "text-muted-foreground",
-											)}
-										>
-											{t(`tabs.${labelKey}`)}
-										</span>
-									</>
-								)}
-							</Link>
-						</li>
-					))}
+					<li className="flex-1">
+						<Link to="/" activeOptions={{ exact: true }} className={tabClass}>
+							{tabContent(House, "home")}
+						</Link>
+					</li>
+					{academy ? (
+						academyTabs.map(({ to, labelKey, icon }) => (
+							<li key={labelKey} className="flex-1">
+								<Link to={to} params={{ academy }} className={tabClass}>
+									{tabContent(icon, labelKey)}
+								</Link>
+							</li>
+						))
+					) : (
+						<>
+							<li className="flex-1">
+								<button
+									type="button"
+									onClick={() => setAcademiesOpen(true)}
+									className={tabClass}
+								>
+									{tabContent(
+										GraduationCap,
+										"academies",
+									)({
+										isActive: academiesOpen,
+									})}
+								</button>
+							</li>
+							<li className="flex-1">
+								<Link to="/search" className={tabClass}>
+									{tabContent(Search, "search")}
+								</Link>
+							</li>
+						</>
+					)}
 					<li className="flex-1">
 						<button
 							type="button"
@@ -173,6 +206,52 @@ export function BottomTabBar() {
 											<Icon className="size-5" />
 										</span>
 										{t(labelKey)}
+									</Link>
+								))}
+							</div>
+						</motion.div>
+					</div>
+				) : null}
+			</AnimatePresence>
+
+			{/* Academies sheet (global pages) — pick an academy to enter. */}
+			<AnimatePresence>
+				{academiesOpen ? (
+					<div className="fixed inset-0 z-[60] lg:hidden">
+						<motion.button
+							type="button"
+							aria-label={t("tabs.academies", { defaultValue: "Academies" })}
+							initial={{ opacity: 0 }}
+							animate={{ opacity: 1 }}
+							exit={{ opacity: 0 }}
+							onClick={() => setAcademiesOpen(false)}
+							className="absolute inset-0 bg-slate-900/40"
+						/>
+						<motion.div
+							initial={{ y: "100%" }}
+							animate={{ y: 0 }}
+							exit={{ y: "100%" }}
+							transition={{ type: "spring", stiffness: 380, damping: 38 }}
+							className="absolute inset-x-0 bottom-0 rounded-t-card border-border border-t bg-card shadow-modal"
+							style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+						>
+							<div className="mx-auto max-w-md p-3">
+								<div className="mx-auto mb-2 h-1.5 w-10 rounded-full bg-border" />
+								<p className="px-3 py-1 font-stats font-semibold text-muted-foreground text-xs uppercase tracking-wide">
+									{t("tabs.academies", { defaultValue: "Academies" })}
+								</p>
+								{(academies ?? []).map((a) => (
+									<Link
+										key={a.slug}
+										to="/$academy"
+										params={{ academy: a.slug }}
+										onClick={() => setAcademiesOpen(false)}
+										className="flex items-center gap-3 rounded-btn px-3 py-3.5 font-medium text-foreground transition-colors hover:bg-accent active:bg-accent"
+									>
+										<span className="flex size-9 items-center justify-center rounded-full bg-brand-primary-light text-brand-primary">
+											<GraduationCap className="size-5" />
+										</span>
+										{a.name}
 									</Link>
 								))}
 							</div>

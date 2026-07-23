@@ -15,6 +15,7 @@ import {
 	Min,
 	MinLength,
 } from "class-validator";
+import { SanitizeRichText } from "../../../common/sanitize/rich-text.sanitizer";
 
 const CURRENCIES = ["NGN", "USD", "GHS", "KES", "ZAR", "GBP", "EUR"] as const;
 const EXAM_MODES = [
@@ -38,10 +39,16 @@ export class CreateCohortDto {
 	@MaxLength(200)
 	title!: string;
 
+	@ApiPropertyOptional({ description: "Academy slug. Default: teachers." })
+	@IsOptional()
+	@IsString()
+	academy?: string;
+
 	@ApiPropertyOptional()
 	@IsOptional()
 	@IsString()
 	@MaxLength(5000)
+	@SanitizeRichText()
 	description?: string;
 }
 
@@ -57,6 +64,7 @@ export class UpdateCohortDto {
 	@IsOptional()
 	@IsString()
 	@MaxLength(5000)
+	@SanitizeRichText()
 	description?: string;
 
 	@ApiPropertyOptional({ description: "ISO date the cohort starts." })

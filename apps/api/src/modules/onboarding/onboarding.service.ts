@@ -112,10 +112,17 @@ export class OnboardingService {
 				studyAnchor: true,
 				weeklyHours: true,
 				timezone: true,
+				// Live read: a session can still carry the old value after an admin
+				// approves, so anything that reports application status uses this.
+				role: true,
+				instructorStatus: true,
 			},
 		});
 		if (!user) throw new NotFoundException("User not found");
 		return {
+			/** Application state (§8.1.1): pending | approved | rejected | null. */
+			instructorStatus: user.instructorStatus,
+			role: user.role,
 			firstName: user.firstName,
 			lastName: user.lastName,
 			otherNames: user.otherNames,

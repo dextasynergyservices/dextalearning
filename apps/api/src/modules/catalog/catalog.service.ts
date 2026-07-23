@@ -4,6 +4,7 @@ import {
 	STORAGE_PORT,
 	type StoragePort,
 } from "../../shared/storage/storage.port";
+import { TenantService } from "../tenant/tenant.service";
 import { rotateWindow, topByScore } from "./catalog.calculator";
 
 /** Commercial fields surfaced to the public catalogue (§4.1, §4.11). */
@@ -89,7 +90,26 @@ export class CatalogService {
 	constructor(
 		private readonly prisma: PrismaService,
 		@Inject(STORAGE_PORT) private readonly storage: StoragePort,
+		private readonly tenants: TenantService,
 	) {}
+
+	/**
+	 * Tenant isolation (§2.1): turns an academy slug into a Prisma `where`
+	 * fragment. With a slug it scopes reads to that academy (an unknown slug is a
+	 * 404, never a silent cross-academy leak); without one it returns `{}`, i.e.
+	 * the global, cross-academy view used by the homepage and search.
+	 */
+	private async academyWhere(academy?: string): Promise<{ tenantId?: string }> {
+		if (!academy) return {};
+		const tenantId = await this.tenants.resolveId(academy);
+		if (!tenantId) {
+			throw new NotFoundException({
+				message: "Academy not found",
+				code: "ACADEMY_NOT_FOUND",
+			});
+		}
+		return { tenantId };
+	}
 
 	/** Decimal `price` → number, plus a presigned thumbnail URL for the card. */
 	private async withCommercials<T extends Commercial>(course: T) {
@@ -141,10 +161,11 @@ export class CatalogService {
 	 * Homepage "Featured" shelves — admin-approved (`isFeatured`) courses/paths
 	 * (published) and cohorts (open), card-shaped, on a weekly rotation.
 	 */
-	async getFeatured() {
+	async getFeatured(academy?: string) {
+		const scope = await this.academyWhere(academy);
 		const [courses, paths, cohorts] = await Promise.all([
 			this.prisma.course.findMany({
-				where: { status: "published", isFeatured: true },
+				where: { status: "published", isFeatured: true, ...scope },
 				orderBy: { createdAt: "desc" },
 				select: {
 					id: true,
@@ -158,7 +179,7 @@ export class CatalogService {
 				},
 			}),
 			this.prisma.learningPath.findMany({
-				where: { status: "published", isFeatured: true },
+				where: { status: "published", isFeatured: true, ...scope },
 				orderBy: { createdAt: "desc" },
 				select: {
 					id: true,
@@ -174,7 +195,7 @@ export class CatalogService {
 				},
 			}),
 			this.prisma.cohort.findMany({
-				where: { status: "open", isFeatured: true },
+				where: { status: "open", isFeatured: true, ...scope },
 				orderBy: { startsAt: "asc" },
 				select: {
 					id: true,
@@ -217,7 +238,8 @@ export class CatalogService {
 	 * reported **per shelf**, since a learner may have history in one type but not
 	 * another — only a truly personalised shelf shows the "because…" note.
 	 */
-	async getRecommended(userId?: string) {
+	async getRecommended(userId?: string, academy?: string) {
+		const scope = await this.academyWhere(academy);
 		const [courseEnr, pathEnr, cohortEnr, profile] = userId
 			? await Promise.all([
 					this.prisma.courseEnrollment.findMany({
@@ -245,14 +267,17 @@ export class CatalogService {
 				userId,
 				courseEnr.map((e) => e.courseId),
 				profile?.skillLevel ?? null,
+				scope,
 			),
 			this.recommendedPaths(
 				userId,
 				pathEnr.map((e) => e.pathId),
+				scope,
 			),
 			this.recommendedCohorts(
 				userId,
 				cohortEnr.map((e) => e.cohortId),
+				scope,
 			),
 		]);
 		return {
@@ -305,7 +330,8 @@ export class CatalogService {
 	private async recommendedCourses(
 		userId: string | undefined,
 		enrolledIds: string[],
-		onboardingLevel?: string | null,
+		onboardingLevel: string | null,
+		scope: { tenantId?: string },
 	) {
 		const personalized = Boolean(userId) && enrolledIds.length > 0;
 		const candidates = await this.prisma.course.findMany({
@@ -313,6 +339,7 @@ export class CatalogService {
 				status: "published",
 				isFeatured: false,
 				id: { notIn: enrolledIds },
+				...scope,
 			},
 			orderBy: [{ enrolledCount: "desc" }, { createdAt: "desc" }],
 			take: RECO_POOL,
@@ -361,6 +388,7 @@ export class CatalogService {
 	private async recommendedPaths(
 		userId: string | undefined,
 		enrolledIds: string[],
+		scope: { tenantId?: string },
 	) {
 		const personalized = Boolean(userId) && enrolledIds.length > 0;
 		const candidates = await this.prisma.learningPath.findMany({
@@ -368,6 +396,7 @@ export class CatalogService {
 				status: "published",
 				isFeatured: false,
 				id: { notIn: enrolledIds },
+				...scope,
 			},
 			orderBy: [{ enrollments: { _count: "desc" } }, { createdAt: "desc" }],
 			take: RECO_POOL,
@@ -406,10 +435,16 @@ export class CatalogService {
 	private async recommendedCohorts(
 		userId: string | undefined,
 		enrolledIds: string[],
+		scope: { tenantId?: string },
 	) {
 		const personalized = Boolean(userId) && enrolledIds.length > 0;
 		const candidates = await this.prisma.cohort.findMany({
-			where: { status: "open", isFeatured: false, id: { notIn: enrolledIds } },
+			where: {
+				status: "open",
+				isFeatured: false,
+				id: { notIn: enrolledIds },
+				...scope,
+			},
 			orderBy: [{ seatsFilled: "desc" }, { startsAt: "asc" }],
 			take: RECO_POOL,
 			select: COHORT_CARD_SELECT,
@@ -452,9 +487,9 @@ export class CatalogService {
 		];
 	}
 
-	async listPublishedCourses() {
+	async listPublishedCourses(academy?: string) {
 		const courses = await this.prisma.course.findMany({
-			where: { status: "published" },
+			where: { status: "published", ...(await this.academyWhere(academy)) },
 			orderBy: { createdAt: "desc" },
 			select: {
 				id: true,
@@ -482,9 +517,11 @@ export class CatalogService {
 		);
 	}
 
-	async getPublishedCourse(slug: string) {
-		const course = await this.prisma.course.findUnique({
-			where: { slug },
+	async getPublishedCourse(slug: string, academy?: string) {
+		// findFirst (not findUnique): the tenant scope isn't part of slug's unique
+		// index, and a course in another academy must read as 404, not leak.
+		const course = await this.prisma.course.findFirst({
+			where: { slug, ...(await this.academyWhere(academy)) },
 			select: {
 				id: true,
 				title: true,
@@ -497,6 +534,7 @@ export class CatalogService {
 				enrolledCount: true,
 				...COMMERCIAL_SELECT,
 				earnBackDeadlineDays: true,
+				tenant: { select: { slug: true, name: true } },
 				creator: { select: INSTRUCTOR_SELECT },
 				modules: {
 					orderBy: { orderIndex: "asc" },
@@ -523,32 +561,36 @@ export class CatalogService {
 		if (course?.status !== "published") {
 			throw new NotFoundException("Course not found");
 		}
-		const { creator, ...rest } = course;
+		const { creator, tenant, ...rest } = course;
 		return {
 			...(await this.withCommercials(rest)),
+			academy: tenant,
 			instructor: await this.shapeInstructor(creator),
 		};
 	}
 
-	/** Public instructor profile + their published courses (§8.1.1). */
-	async getPublishedInstructor(id: string) {
+	/** Public instructor profile + their published courses (§8.1.1). Within an
+	 *  academy the listed content is scoped to that academy; global (no academy)
+	 *  shows everything the instructor created. */
+	async getPublishedInstructor(id: string, academy?: string) {
+		const scope = await this.academyWhere(academy);
 		const user = await this.prisma.user.findUnique({
 			where: { id },
 			select: {
 				...INSTRUCTOR_SELECT,
 				role: true,
 				createdCourses: {
-					where: { status: "published" },
+					where: { status: "published", ...scope },
 					orderBy: { createdAt: "desc" },
 					select: COURSE_CARD_SELECT,
 				},
 				createdLearningPaths: {
-					where: { status: "published" },
+					where: { status: "published", ...scope },
 					orderBy: { createdAt: "desc" },
 					select: PATH_CARD_SELECT,
 				},
 				createdCohorts: {
-					where: { status: "open" },
+					where: { status: "open", ...scope },
 					orderBy: { startsAt: "asc" },
 					select: COHORT_CARD_SELECT,
 				},
@@ -582,9 +624,9 @@ export class CatalogService {
 		};
 	}
 
-	async listPublishedPaths() {
+	async listPublishedPaths(academy?: string) {
 		const paths = await this.prisma.learningPath.findMany({
-			where: { status: "published" },
+			where: { status: "published", ...(await this.academyWhere(academy)) },
 			orderBy: { createdAt: "desc" },
 			select: {
 				id: true,
@@ -603,9 +645,9 @@ export class CatalogService {
 		return Promise.all(paths.map((path) => this.withPathCommercials(path)));
 	}
 
-	async getPublishedPath(slug: string) {
-		const path = await this.prisma.learningPath.findUnique({
-			where: { slug },
+	async getPublishedPath(slug: string, academy?: string) {
+		const path = await this.prisma.learningPath.findFirst({
+			where: { slug, ...(await this.academyWhere(academy)) },
 			select: {
 				id: true,
 				title: true,
@@ -618,6 +660,7 @@ export class CatalogService {
 				status: true,
 				earnBackDeadlineDays: true,
 				...COMMERCIAL_SELECT,
+				tenant: { select: { slug: true, name: true } },
 				creator: { select: INSTRUCTOR_SELECT },
 				introLesson: { select: { id: true, contentType: true } },
 				pathCourses: {
@@ -673,9 +716,10 @@ export class CatalogService {
 				},
 			};
 		});
-		const { creator, ...pathRest } = path;
+		const { creator, tenant, ...pathRest } = path;
 		return {
 			...(await this.withPathCommercials({ ...pathRest, pathCourses })),
+			academy: tenant,
 			instructor: await this.shapeInstructor(creator),
 		};
 	}
@@ -687,9 +731,9 @@ export class CatalogService {
 		};
 	}
 
-	async listPublishedCohorts() {
+	async listPublishedCohorts(academy?: string) {
 		const cohorts = await this.prisma.cohort.findMany({
-			where: { status: "open" },
+			where: { status: "open", ...(await this.academyWhere(academy)) },
 			orderBy: { startsAt: "asc" },
 			select: {
 				id: true,
@@ -712,9 +756,9 @@ export class CatalogService {
 		return cohorts.map((cohort) => this.withCohortPrice(cohort));
 	}
 
-	async getPublishedCohort(slug: string) {
-		const cohort = await this.prisma.cohort.findUnique({
-			where: { slug },
+	async getPublishedCohort(slug: string, academy?: string) {
+		const cohort = await this.prisma.cohort.findFirst({
+			where: { slug, ...(await this.academyWhere(academy)) },
 			select: {
 				id: true,
 				title: true,
@@ -731,6 +775,7 @@ export class CatalogService {
 				currency: true,
 				isEarnBackEligible: true,
 				earnBackPercentage: true,
+				tenant: { select: { slug: true, name: true } },
 				creator: { select: INSTRUCTOR_SELECT },
 				introLesson: { select: { id: true, contentType: true } },
 				courses: {
@@ -757,9 +802,10 @@ export class CatalogService {
 		if (cohort?.status !== "open") {
 			throw new NotFoundException("Cohort not found");
 		}
-		const { creator, ...cohortRest } = cohort;
+		const { creator, tenant, ...cohortRest } = cohort;
 		return {
 			...this.withCohortPrice(cohortRest),
+			academy: tenant,
 			instructor: await this.shapeInstructor(creator),
 		};
 	}

@@ -51,7 +51,8 @@
 		"about": "About",
 		"blog": "Blog",
 		"community": "Community",
-		"contact": "Contact"
+		"contact": "Contact",
+		"academies": "Academies"
 	},
 	"phoneVerify": {
 		"verifyCta": "Verify am",
@@ -95,7 +96,8 @@
 		"explore": "Explore",
 		"search": "Search",
 		"account": "Account",
-		"more": "More"
+		"more": "More",
+		"academies": "Academies"
 	},
 	"tagline": "Learning wey dey stick — we build am so that people fit really learn.",
 	"theme": {

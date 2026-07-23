@@ -1,12 +1,20 @@
 // @vitest-environment jsdom
 import { screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
-import { renderWithRouter } from "@/test/render";
+import { describe, expect, it, vi } from "vitest";
+import { renderInAcademy, renderWithRouter } from "@/test/render";
 import { SiteFooter } from "./site-footer";
 
+vi.mock("@/lib/content-api", () => ({
+	getAcademies: vi.fn().mockResolvedValue([
+		{ slug: "teachers", name: "Teacher Academy" },
+		{ slug: "tech", name: "Tech Academy" },
+	]),
+}));
+
 describe("SiteFooter", () => {
-	it("renders the desktop column links and the mobile-only ones", async () => {
-		renderWithRouter(<SiteFooter />);
+	it("renders the academy catalogue links in the desktop column and the mobile-only ones", async () => {
+		// Inside an academy the "Learn" column shows that academy's catalogue.
+		renderInAcademy(<SiteFooter />);
 		// Desktop and mobile layouts both render (CSS toggles visibility), so a
 		// label shared by both (e.g. "Courses") appears twice.
 		expect(
@@ -16,6 +24,21 @@ describe("SiteFooter", () => {
 		expect(
 			screen.getByRole("link", { name: "Learning Paths" }),
 		).toBeInTheDocument();
+	});
+
+	it("lists the academies (not a defaulted catalogue) on global pages", async () => {
+		// Off any academy the "Learn" column offers the academies themselves,
+		// never a silently-defaulted academy's Courses/Paths/Cohorts.
+		renderWithRouter(<SiteFooter />);
+		expect(
+			await screen.findByRole("link", { name: "Tech Academy" }),
+		).toBeInTheDocument();
+		expect(
+			screen.getByRole("link", { name: "Teacher Academy" }),
+		).toBeInTheDocument();
+		expect(
+			screen.queryByRole("link", { name: "Learning Paths" }),
+		).not.toBeInTheDocument();
 	});
 
 	it("renders the current year in the copyright line", async () => {

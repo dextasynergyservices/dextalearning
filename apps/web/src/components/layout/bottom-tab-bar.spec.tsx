@@ -2,12 +2,12 @@
 import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
-import { renderWithRouter } from "@/test/render";
+import { renderInAcademy, renderWithRouter } from "@/test/render";
 import { BottomTabBar } from "./bottom-tab-bar";
 
 describe("BottomTabBar", () => {
-	it("renders the primary tabs and a More button", async () => {
-		renderWithRouter(<BottomTabBar />);
+	it("renders the academy catalogue tabs and a More button inside an academy", async () => {
+		renderInAcademy(<BottomTabBar />);
 		expect(
 			await screen.findByRole("link", { name: /Home/ }),
 		).toBeInTheDocument();

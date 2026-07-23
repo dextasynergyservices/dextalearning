@@ -490,6 +490,7 @@ export class MediaService {
 			videoKeysJson: unknown;
 			audioKey: string | null;
 			contentText: string | null;
+			codeConfigJson: unknown;
 			transcriptText: string | null;
 			transcriptCuesJson: unknown;
 			videoDurationSec: number | null;
@@ -551,6 +552,25 @@ export class MediaService {
 				type: "pdf" as const,
 				pages,
 				transcriptText: lesson.transcriptText,
+			};
+		}
+
+		if (lesson.contentType === "code") {
+			// The learner-facing config only — instructions, starter code, language.
+			// No solution is ever sent (nothing to leak). §9 Tech Academy.
+			const cfg =
+				(lesson.codeConfigJson as {
+					language?: string;
+					instructions?: string;
+					starterCode?: string;
+				} | null) ?? {};
+			return {
+				type: "code" as const,
+				code: {
+					language: cfg.language ?? "javascript",
+					instructions: cfg.instructions ?? "",
+					starterCode: cfg.starterCode ?? "",
+				},
 			};
 		}
 

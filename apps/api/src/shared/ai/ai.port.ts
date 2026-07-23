@@ -59,6 +59,12 @@ export interface ShortAnswerGrade {
 	question: string;
 	expected: string;
 	given: string;
+	/**
+	 * Present when the item is a CODE question (§9): the answer is source code in
+	 * this language, graded on whether it correctly solves the task rather than
+	 * on textual similarity. Absent for ordinary short answers.
+	 */
+	language?: string;
 }
 
 export interface TutorMessage {

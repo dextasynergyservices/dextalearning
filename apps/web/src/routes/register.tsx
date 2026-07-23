@@ -111,7 +111,9 @@ function RegisterPage() {
 			) : null}
 			<GoogleButton
 				label={t("register.google")}
-				onClick={() => signInWithGoogle()}
+				// Carry the "Join as" choice across the OAuth redirect — Better Auth's
+				// social handler can't receive it, so it's redeemed after sign-in.
+				onClick={() => signInWithGoogle(role === "instructor")}
 			/>
 			<AuthDivider />
 			<form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
@@ -142,7 +144,7 @@ function RegisterPage() {
 						{role === "instructor"
 							? t("register.role_instructor_hint", {
 									defaultValue:
-										"Create and sell courses, paths and assessments.",
+										"Create and sell courses, paths and assessments. An admin reviews your application first — you'll learn as usual until it's approved.",
 								})
 							: t("register.role_learner_hint", {
 									defaultValue:

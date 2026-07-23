@@ -15,6 +15,7 @@ import type {
 	Question,
 } from "../../../generated/prisma/client";
 import type { AuthenticatedUser } from "../../auth/types";
+import { renderNotificationEmail } from "../../emails/render";
 import { PrismaService } from "../../prisma/prisma.service";
 import { AI_PORT, type AiPort } from "../../shared/ai/ai.port";
 import {
@@ -28,6 +29,7 @@ import {
 } from "../../shared/storage/storage.port";
 import { CompletionService } from "../completion/completion.service";
 import type { UploadFile } from "../media/media.constants";
+import { NotificationsService } from "../notifications/notifications.service";
 import { isFinalAssessmentScope } from "./assessment-scopes";
 import {
 	calculateIntegrity,
@@ -38,6 +40,7 @@ import {
 	resolveSeverity,
 	shouldAutoSubmit,
 } from "./attempts.calculator";
+import type { GradeManualDto } from "./dto/assessments.dto";
 import type {
 	IngestAntiCheatDto,
 	SaveAnswerDto,
@@ -50,6 +53,12 @@ const PROCTORING_IMAGE_TYPES: Record<string, string> = {
 	"image/webp": "webp",
 };
 const MAX_PROCTORING_BYTES = 1_500_000;
+/**
+ * Integrity score below which a finished attempt is raised to the creator +
+ * admins (§8.6). 100 is a clean sitting; the weights in `attempts.calculator`
+ * mean this is roughly "one high-severity flag, or several medium ones".
+ */
+const INTEGRITY_ALERT_BELOW = 90;
 
 /** Snapshot of a single attempt, stored in `answersJson` (server-owned). */
 interface AttemptSnapshot {
@@ -59,11 +68,24 @@ interface AttemptSnapshot {
 		body: string;
 		points: number;
 		options: string[] | null;
+		/** {language, starterCode} for a code question; absent/null otherwise. */
+		codeConfig?: { language: string; starterCode?: string } | null;
 	}[];
 	answers: Record<string, string>;
 	answeredAt: Record<string, string>;
 	/** Per-question correctness frozen at grading (incl. AI short-answer). */
 	correct?: Record<string, boolean>;
+	/** Code questions awaiting an instructor's manual grade (§9). While non-empty
+	 *  the attempt is submitted but ungraded: score/passed/gradedAt stay null. */
+	pendingManual?: string[];
+}
+
+/** How a code question is graded — `manual` holds it for an instructor, anything
+ *  else (incl. absent) is graded automatically at submit. */
+function codeGradingMode(optionsJson: unknown): "ai" | "manual" {
+	return (optionsJson as { grading?: string } | null)?.grading === "manual"
+		? "manual"
+		: "ai";
 }
 
 function shuffle<T>(input: T[]): T[] {
@@ -89,7 +111,83 @@ export class AttemptsService {
 		@Inject(AI_PORT) private readonly ai: AiPort,
 		private readonly events: EventEmitter2,
 		private readonly completion: CompletionService,
+		private readonly notifications: NotificationsService,
 	) {}
+
+	/**
+	 * Raise the §8.6 "high anti-cheat flag" notice to the assessment's creator and
+	 * every admin, once, when a submitted attempt lands below the integrity bar.
+	 *
+	 * Fired at finalize rather than per anti-cheat event on purpose: a single
+	 * attempt can log dozens of events, and a notification per event would train
+	 * everyone to ignore them. Best-effort — grading must never fail on it.
+	 */
+	private async notifyIntegrityFlagged(
+		assessment: Assessment,
+		attempt: AssessmentAttempt,
+	): Promise<void> {
+		if (attempt.integrityScore >= INTEGRITY_ALERT_BELOW) return;
+		try {
+			const learner = attempt.userId
+				? await this.prisma.user.findUnique({
+						where: { id: attempt.userId },
+						select: { firstName: true, lastName: true },
+					})
+				: null;
+			const admins = await this.prisma.user.findMany({
+				where: { role: "admin", suspendedAt: null },
+				select: { id: true, email: true },
+			});
+			const creator = assessment.createdBy
+				? await this.prisma.user.findUnique({
+						where: { id: assessment.createdBy },
+						select: { id: true, email: true },
+					})
+				: null;
+			// The creator may also be an admin — don't tell them twice.
+			const recipients = [...admins, ...(creator ? [creator] : [])].filter(
+				(r, i, all) => all.findIndex((x) => x.id === r.id) === i,
+			);
+			const learnerName = learner
+				? `${learner.firstName} ${learner.lastName}`.trim()
+				: "A learner";
+			const title = assessment.title ?? "an assessment";
+			await Promise.all(
+				recipients.map(async (r) =>
+					this.notifications.notify(r.id, {
+						type: "integrity_flagged",
+						dataJson: {
+							learnerName,
+							assessmentTitle: title,
+							integrityScore: attempt.integrityScore,
+							flagCount: attempt.flagCount,
+							attemptId: attempt.id,
+							// The bell deep-links an instructor to this assessment's
+							// attempt report, so the id has to travel with the notice.
+							assessmentId: assessment.id,
+						},
+						inApp: true,
+						email: {
+							to: r.email,
+							subject: `Integrity flag — ${title}`,
+							html: await renderNotificationEmail({
+								preview: `Integrity flag on ${title}`,
+								heading: "An attempt was flagged for review",
+								paragraphs: [
+									`${learnerName} finished ${title} with an integrity score of ${attempt.integrityScore}/100 (${attempt.flagCount} flag(s)).`,
+									"A low score is evidence to review, not a verdict — open the attempt to see what was logged.",
+								],
+								cta: "Review the attempt",
+								ctaUrl: `${process.env.FRONTEND_URL ?? "http://localhost:5173"}/admin/integrity`,
+							}),
+						},
+					}),
+				),
+			);
+		} catch {
+			// Best-effort — never fail grading over a notification.
+		}
+	}
 
 	// ── Timer helpers ─────────────────────────────────────────────────────────
 	private expiresAt(
@@ -225,6 +323,19 @@ export class AttemptsService {
 			reason = "no_questions";
 		}
 
+		// A submitted attempt still awaiting its manual grade (§9) holds the learner:
+		// no retake until the instructor finishes it — otherwise the "best score"
+		// and completion gates would race an ungraded attempt. Keyed on the snapshot's
+		// held questions (not just gradedAt) so it's precise about what's pending.
+		const pendingAttempt = attempts.find(
+			(a) =>
+				a.gradedAt == null && (this.snapOf(a).pendingManual?.length ?? 0) > 0,
+		);
+		if (pendingAttempt) {
+			canStart = false;
+			reason = "awaiting_grading";
+		}
+
 		return {
 			canStart,
 			reason,
@@ -237,6 +348,8 @@ export class AttemptsService {
 			cooldownUntil: retry.nextAttemptAt,
 			lockedUntil: retry.lockedUntil,
 			lastAttemptId: attempts[0]?.id ?? null,
+			/** The attempt awaiting a manual grade, if any (§9). */
+			pendingGradingAttemptId: pendingAttempt?.id ?? null,
 		};
 	}
 
@@ -360,6 +473,8 @@ export class AttemptsService {
 				return "You have used all your retakes. You can try again once the cooldown ends.";
 			case "prerequisites":
 				return "Finish all the lessons and module quizzes before taking the final assessment.";
+			case "awaiting_grading":
+				return "Your last attempt is waiting to be graded by an instructor.";
 			default:
 				return "You cannot start this assessment right now.";
 		}
@@ -381,12 +496,19 @@ export class AttemptsService {
 				? (q.optionsJson as string[])
 				: null;
 			if (options && assessment.shuffleAnswers) options = shuffle(options);
+			// Code questions carry {language, starterCode} — safe to send; the
+			// reference solution lives in `correctAnswer` and is never exposed.
+			const codeConfig =
+				q.type === "code" && q.optionsJson && !Array.isArray(q.optionsJson)
+					? (q.optionsJson as { language: string; starterCode?: string })
+					: null;
 			return {
 				id: q.id,
 				type: q.type,
 				body: q.body,
 				points: q.points,
 				options,
+				codeConfig,
 			};
 		});
 		return { questions, answers: {}, answeredAt: {} };
@@ -661,27 +783,43 @@ export class AttemptsService {
 			question: string;
 			expected: string;
 			given: string;
+			language?: string;
 		}[] = [];
+		const pendingManual: string[] = [];
 		for (const sq of snap.questions) {
 			const q = byId.get(sq.id);
 			const answer = snap.answers[sq.id];
+			// A manually-graded code question is held for an instructor: it isn't
+			// scored now and never reaches the AI (§9).
+			if (q?.type === "code" && codeGradingMode(q.optionsJson) === "manual") {
+				pendingManual.push(sq.id);
+				continue;
+			}
 			const exact = isAnswerCorrect(q, answer);
 			correct.set(sq.id, exact);
+			// Short-answer AND ai-graded code questions grade on MEANING/correctness,
+			// not exact text — the same trusted server-side AI path (§4.4, §9). The
+			// client's in-browser "Run" is a self-check only and never scores.
 			if (
 				!exact &&
-				q?.type === "short_answer" &&
+				(q?.type === "short_answer" || q?.type === "code") &&
 				(answer ?? "").trim().length > 0 &&
 				(q.correctAnswer ?? "").trim().length > 0
 			) {
+				const codeCfg =
+					q.type === "code"
+						? (q.optionsJson as { language?: string } | null)
+						: null;
 				aiCandidates.push({
 					qid: sq.id,
 					question: q.body,
 					expected: q.correctAnswer ?? "",
 					given: answer ?? "",
+					...(codeCfg?.language ? { language: codeCfg.language } : {}),
 				});
 			}
 		}
-		// Only one batched AI call, and only when there are short-answer misses.
+		// Only one batched AI call, and only when there are ai-graded misses.
 		if (aiCandidates.length > 0) {
 			try {
 				const verdicts = await this.ai.gradeShortAnswers(
@@ -689,6 +827,7 @@ export class AttemptsService {
 						question: c.question,
 						expected: c.expected,
 						given: c.given,
+						...(c.language ? { language: c.language } : {}),
 					})),
 				);
 				aiCandidates.forEach((c, i) => {
@@ -699,17 +838,15 @@ export class AttemptsService {
 			}
 		}
 
-		const scoredQuestions = snap.questions.map((sq) => {
-			const q = byId.get(sq.id);
-			return {
-				points: q?.points ?? sq.points ?? 1,
-				correct: !!correct.get(sq.id),
-			};
-		});
 		// Freeze the graded correctness so the review matches the score (§4.4).
 		snap.correct = Object.fromEntries(correct);
-		const { score } = calculateScore(scoredQuestions);
-		const passed = isPassed(score, Number(assessment.passMark));
+		// Hold the attempt when any code answer awaits a manual grade: submitted but
+		// ungraded (score/passed/gradedAt null) until an instructor finishes (§9).
+		const pending = pendingManual.length > 0;
+		snap.pendingManual = pending ? pendingManual : undefined;
+		const graded = pending
+			? { score: null as number | null, passed: null as boolean | null }
+			: this.scoreSnapshot(snap, byId, Number(assessment.passMark));
 
 		const fastFlags = detectFastAnswers({
 			thresholdSeconds: assessment.anticheatTimePerQuestionFlagSeconds ?? 2,
@@ -742,10 +879,10 @@ export class AttemptsService {
 				data: {
 					answersJson: snap as object,
 					submittedAt: new Date(),
-					gradedAt: new Date(),
+					gradedAt: pending ? null : new Date(),
 					autoSubmitted,
-					score,
-					passed,
+					score: graded.score,
+					passed: graded.passed,
 					flagCount,
 					integrityScore,
 					...(cameraMonitorFailed ? { cameraMonitored: false } : {}),
@@ -753,8 +890,162 @@ export class AttemptsService {
 			});
 		});
 
-		// Every finalize is a new attempt entity — emit unconditionally (§6.4);
-		// Engagement/Reminders subscribe, this context never calls them.
+		// §8.6: a badly-flagged attempt is surfaced to its creator + admins whether
+		// or not it's held for manual grading — integrity is about the sitting.
+		await this.notifyIntegrityFlagged(assessment, updated);
+
+		// A graded attempt notifies engagement/reminders; a held one waits until the
+		// manual grade lands, which fires this then (§6.4).
+		if (!pending && updated.userId) {
+			this.events.emit(LearningEvents.AttemptSubmitted, {
+				userId: updated.userId,
+				assessmentId: assessment.id,
+				lessonId: assessment.lessonId,
+				scope: assessment.scope,
+				score: graded.score ?? 0,
+				passed: graded.passed ?? false,
+				attemptNumber: updated.attemptNumber,
+			} satisfies AttemptSubmittedEvent);
+		}
+
+		return this.toResult(assessment, updated, questions);
+	}
+
+	/** Percent score + pass from the snapshot's frozen correctness. Shared by
+	 *  auto-finalize and the manual-grade finalize so they can't drift. */
+	private scoreSnapshot(
+		snap: AttemptSnapshot,
+		byId: Map<string, Question>,
+		passMark: number,
+	): { score: number; passed: boolean } {
+		const scoredQuestions = snap.questions.map((sq) => ({
+			points: byId.get(sq.id)?.points ?? sq.points ?? 1,
+			correct: !!snap.correct?.[sq.id],
+		}));
+		const { score } = calculateScore(scoredQuestions);
+		return { score, passed: isPassed(score, passMark) };
+	}
+
+	// ── Instructor: manual grading of held code answers (§9) ──────────────────
+	/** The assessment's creator, or any admin, may grade its attempts. */
+	private async loadAssessmentForGrading(
+		user: AuthenticatedUser,
+		assessmentId: string,
+	): Promise<Assessment> {
+		const assessment = await this.prisma.assessment.findUnique({
+			where: { id: assessmentId },
+		});
+		if (!assessment) throw new NotFoundException("Assessment not found");
+		if (user.role !== "admin" && assessment.createdBy !== user.id) {
+			throw new ForbiddenException("You do not own this assessment.");
+		}
+		return assessment;
+	}
+
+	/** Attempts submitted but still awaiting a manual grade, with each held code
+	 *  answer (+ the instructor's reference) for the grading queue. */
+	async listPendingManual(user: AuthenticatedUser, assessmentId: string) {
+		const assessment = await this.loadAssessmentForGrading(user, assessmentId);
+		const attempts = await this.prisma.assessmentAttempt.findMany({
+			where: {
+				assessmentId,
+				submittedAt: { not: null },
+				gradedAt: null,
+				invalidated: false,
+			},
+			orderBy: { submittedAt: "asc" },
+			include: { user: { select: { name: true, email: true } } },
+		});
+		const references = await this.prisma.question.findMany({
+			where: { assessmentId },
+			select: { id: true, correctAnswer: true },
+		});
+		const refById = new Map(references.map((q) => [q.id, q.correctAnswer]));
+		return {
+			assessmentId: assessment.id,
+			title: assessment.title,
+			attempts: attempts.map((a) => {
+				const snap = this.snapOf(a);
+				const held = new Set(snap.pendingManual ?? []);
+				return {
+					attemptId: a.id,
+					userName: a.user?.name ?? null,
+					userEmail: a.user?.email ?? null,
+					submittedAt: a.submittedAt,
+					attemptNumber: a.attemptNumber,
+					answers: snap.questions
+						.filter((q) => held.has(q.id))
+						.map((q) => ({
+							questionId: q.id,
+							body: q.body,
+							codeConfig: q.codeConfig ?? null,
+							answer: snap.answers[q.id] ?? "",
+							reference: refById.get(q.id) ?? null,
+						})),
+				};
+			}),
+		};
+	}
+
+	/** Apply an instructor's verdicts to a held attempt, then finalize it: the
+	 *  score/pass are recomputed over ALL questions and completion/reminders fire
+	 *  exactly as an auto-graded submit would (§9, §6.4). */
+	async gradeManual(
+		user: AuthenticatedUser,
+		attemptId: string,
+		dto: GradeManualDto,
+	) {
+		const attempt = await this.prisma.assessmentAttempt.findUnique({
+			where: { id: attemptId },
+		});
+		if (!attempt?.assessmentId)
+			throw new NotFoundException("Attempt not found");
+		const assessment = await this.loadAssessmentForGrading(
+			user,
+			attempt.assessmentId,
+		);
+		if (!attempt.submittedAt) {
+			throw new BadRequestException("This attempt hasn't been submitted.");
+		}
+		const snap = this.snapOf(attempt);
+		const held = new Set(snap.pendingManual ?? []);
+		if (held.size === 0) {
+			throw new BadRequestException("This attempt has nothing to grade.");
+		}
+		const verdictOf = new Map(
+			dto.verdicts.map((v) => [v.questionId, v.correct]),
+		);
+		for (const qid of held) {
+			if (!verdictOf.has(qid)) {
+				throw new BadRequestException("Grade every held answer.");
+			}
+		}
+		snap.correct = { ...(snap.correct ?? {}) };
+		for (const qid of held) {
+			snap.correct[qid] = verdictOf.get(qid) === true;
+		}
+		snap.pendingManual = undefined;
+
+		const questions = await this.prisma.question.findMany({
+			where: { id: { in: snap.questions.map((q) => q.id) } },
+		});
+		const byId = new Map(questions.map((q) => [q.id, q]));
+		const { score, passed } = this.scoreSnapshot(
+			snap,
+			byId,
+			Number(assessment.passMark),
+		);
+		const updated = await this.prisma.assessmentAttempt.update({
+			where: { id: attemptId },
+			data: {
+				answersJson: snap as object,
+				gradedAt: new Date(),
+				score,
+				passed,
+				...(dto.feedback !== undefined ? { feedback: dto.feedback } : {}),
+			},
+		});
+		// The attempt is graded now — fire the signal auto-grading would have.
 		if (updated.userId) {
 			this.events.emit(LearningEvents.AttemptSubmitted, {
 				userId: updated.userId,
@@ -766,7 +1057,6 @@ export class AttemptsService {
 				attemptNumber: updated.attemptNumber,
 			} satisfies AttemptSubmittedEvent);
 		}
-
 		return this.toResult(assessment, updated, questions);
 	}
 
@@ -789,6 +1079,7 @@ export class AttemptsService {
 				body: q.body,
 				points: q.points,
 				options: q.options,
+				codeConfig: q.codeConfig ?? null,
 			})),
 			answers: snap.answers,
 		};
@@ -830,6 +1121,9 @@ export class AttemptsService {
 			previousBest,
 			delta: previousBest == null ? null : score - previousBest,
 			passed: attempt.passed,
+			// Submitted but held for an instructor's manual grade (§9) — the client
+			// shows "Awaiting grading" instead of a (meaningless) score/pass.
+			pendingGrading: attempt.gradedAt == null,
 			passMark: Number(assessment.passMark),
 			integrityScore: attempt.integrityScore,
 			flagCount: attempt.flagCount,
@@ -840,6 +1134,7 @@ export class AttemptsService {
 					type: sq.type,
 					body: sq.body,
 					options: sq.options,
+					codeConfig: sq.codeConfig ?? null,
 					points: q?.points ?? sq.points ?? 1,
 					yourAnswer: snap.answers[sq.id] ?? null,
 					correctAnswer: q?.correctAnswer ?? null,

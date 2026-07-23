@@ -38,7 +38,17 @@ registerPWA((activate) => {
 
 const queryClient = new QueryClient({
 	defaultOptions: {
-		queries: { staleTime: 60_000, retry: 1, refetchOnWindowFocus: false },
+		queries: {
+			staleTime: 60_000,
+			retry: 1,
+			// Refetch when the user comes back to the tab or the network returns.
+			// Without this, a dashboard left open showed whatever it loaded an hour
+			// ago and only a manual page refresh fixed it — which is exactly what
+			// people were doing. `staleTime` still gates it, so coming back inside a
+			// minute costs nothing: this refetches on focus only when data is stale.
+			refetchOnWindowFocus: true,
+			refetchOnReconnect: true,
+		},
 	},
 });
 

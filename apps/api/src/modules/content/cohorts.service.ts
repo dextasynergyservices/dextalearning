@@ -5,7 +5,10 @@ import {
 	UnprocessableEntityException,
 } from "@nestjs/common";
 import type { AuthenticatedUser } from "../../auth/types";
+import { renderNotificationEmail } from "../../emails/render";
 import { PrismaService } from "../../prisma/prisma.service";
+import { NotificationsService } from "../notifications/notifications.service";
+import { TenantService } from "../tenant/tenant.service";
 import { normalizeCommercials } from "./commercials.calculator";
 import type { CreateCohortDto, UpdateCohortDto } from "./dto/cohorts.dto";
 
@@ -27,7 +30,11 @@ function slugify(title: string): string {
 /** Cohort authoring (Admin only — §4.1): courses, schedule, grouping, staff. */
 @Injectable()
 export class CohortsService {
-	constructor(private readonly prisma: PrismaService) {}
+	constructor(
+		private readonly prisma: PrismaService,
+		private readonly tenants: TenantService,
+		private readonly notifications: NotificationsService,
+	) {}
 
 	private async uniqueSlug(title: string): Promise<string> {
 		const base = slugify(title) || "cohort";
@@ -38,12 +45,15 @@ export class CohortsService {
 		return existing ? `${base}-${randomBytes(3).toString("hex")}` : base;
 	}
 
+	/** Throws if the cohort is gone; returns it so callers that need its title
+	 *  (e.g. notification copy) don't have to re-query. */
 	private async assertExists(cohortId: string) {
 		const cohort = await this.prisma.cohort.findUnique({
 			where: { id: cohortId },
-			select: { id: true },
+			select: { id: true, title: true },
 		});
 		if (!cohort) throw new NotFoundException("Cohort not found");
+		return cohort;
 	}
 
 	private withPrice<T extends { price?: unknown }>(cohort: T) {
@@ -59,7 +69,10 @@ export class CohortsService {
 				title: dto.title,
 				slug: await this.uniqueSlug(dto.title),
 				description: dto.description,
-				tenantId: user.tenantId ?? null,
+				tenantId: await this.tenants.resolveForAuthoring(
+					dto.academy,
+					user.tenantId,
+				),
 				createdBy: user.id,
 				status: "draft",
 			},
@@ -94,6 +107,7 @@ export class CohortsService {
 		const cohort = await this.prisma.cohort.findUnique({
 			where: { id: cohortId },
 			include: {
+				tenant: { select: { slug: true } },
 				introLesson: {
 					select: {
 						id: true,
@@ -162,6 +176,7 @@ export class CohortsService {
 
 		return this.withPrice({
 			...cohort,
+			academy: cohort.tenant?.slug ?? null,
 			availableCourses,
 			availablePaths,
 			assignableInstructors,
@@ -331,13 +346,64 @@ export class CohortsService {
 		cohortId: string,
 		userId: string,
 	) {
-		await this.assertExists(cohortId);
+		const cohort = await this.assertExists(cohortId);
+		const existing = await this.prisma.cohortFacilitator.findUnique({
+			where: { cohortId_userId: { cohortId, userId } },
+			select: { cohortId: true },
+		});
 		await this.prisma.cohortFacilitator.upsert({
 			where: { cohortId_userId: { cohortId, userId } },
 			create: { cohortId, userId, assignedBy: admin.id },
 			update: {},
 		});
+		// Someone has just been given a job — tell them (§8.6). Only on a genuinely
+		// new assignment, so re-saving the staff list doesn't re-notify.
+		if (!existing) {
+			await this.notifyFacilitatorAssigned(userId, cohort.title, cohortId);
+		}
 		return { assigned: true };
+	}
+
+	/** "You're facilitating X" — best-effort; assignment must not fail on it. */
+	private async notifyFacilitatorAssigned(
+		userId: string,
+		cohortTitle: string,
+		cohortId: string,
+	): Promise<void> {
+		try {
+			const user = await this.prisma.user.findUnique({
+				where: { id: userId },
+				select: { email: true, firstName: true },
+			});
+			if (!user) return;
+			await this.notifications.notify(userId, {
+				type: "facilitator_assigned",
+				dataJson: { cohortTitle, cohortId },
+				inApp: true,
+				email: {
+					to: user.email,
+					subject: `You're facilitating ${cohortTitle}`,
+					html: await renderNotificationEmail({
+						preview: `You're facilitating ${cohortTitle}`,
+						heading: "You're facilitating a cohort",
+						paragraphs: [
+							`Hi ${user.firstName}, you've been assigned as a facilitator for ${cohortTitle}.`,
+							"You can see its groups, learners and progress from your facilitator portal.",
+						],
+						cta: "Open the cohort",
+						ctaUrl: `${process.env.FRONTEND_URL ?? "http://localhost:5173"}/facilitator/cohorts/${cohortId}`,
+					}),
+				},
+				push: {
+					title: "You're facilitating a cohort",
+					body: cohortTitle,
+					url: `/facilitator/cohorts/${cohortId}`,
+					tag: "facilitator-assigned",
+				},
+			});
+		} catch {
+			// Best-effort — the assignment itself is what matters.
+		}
 	}
 
 	async removeFacilitator(cohortId: string, userId: string) {

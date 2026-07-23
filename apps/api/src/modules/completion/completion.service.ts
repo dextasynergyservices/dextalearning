@@ -220,8 +220,13 @@ export class CompletionService {
 			},
 		});
 
+		// text/pdf complete on "scrolled to end"; a `code` exercise completes on the
+		// same boolean signal, sent when the learner finishes the exercise (§9 —
+		// Tech Academy code lessons have no watch %). All use threshold 100.
 		const isReadable =
-			lesson.contentType === "text" || lesson.contentType === "pdf";
+			lesson.contentType === "text" ||
+			lesson.contentType === "pdf" ||
+			lesson.contentType === "code";
 		const incomingPct = input.scrolledToEnd
 			? 100
 			: Math.max(0, Math.min(100, input.videoWatchedPct ?? 0));

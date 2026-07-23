@@ -311,6 +311,7 @@ export function PathEditorPage({
 							<InlineCreate
 								kind="course"
 								attaching={add.isPending}
+								academy={path.academy ?? undefined}
 								onCreated={(courseId) => add.mutate(courseId)}
 							/>
 						</div>

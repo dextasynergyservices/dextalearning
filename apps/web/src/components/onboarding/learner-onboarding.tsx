@@ -370,7 +370,7 @@ function Activation({
 	const navigate = useNavigate();
 	const { data } = useQuery({
 		queryKey: ["recommended"],
-		queryFn: getRecommended,
+		queryFn: () => getRecommended(),
 	});
 	const courses = (data?.courses ?? []).slice(0, 3);
 
@@ -405,7 +405,12 @@ function Activation({
 				</Button>
 				<button
 					type="button"
-					onClick={() => navigate({ to: "/teachers/courses" })}
+					onClick={() =>
+						navigate({
+							to: "/$academy/courses",
+							params: { academy: "teachers" },
+						})
+					}
 					className={cn(buttonVariants({ variant: "outline", size: "lg" }))}
 				>
 					{t("done.browse")}

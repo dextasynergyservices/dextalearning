@@ -1,6 +1,7 @@
 import { Module } from "@nestjs/common";
 import { EngagementModule } from "../engagement/engagement.module";
 import { NotificationsModule } from "../notifications/notifications.module";
+import { LifecycleRemindersService } from "./lifecycle-reminders.service";
 import { RemindersEventsHandler } from "./reminders.events-handler";
 import { RemindersScheduler } from "./reminders.scheduler";
 import { RemindersService } from "./reminders.service";
@@ -13,6 +14,12 @@ import { RemindersService } from "./reminders.service";
  */
 @Module({
 	imports: [EngagementModule, NotificationsModule],
-	providers: [RemindersService, RemindersEventsHandler, RemindersScheduler],
+	exports: [RemindersService, LifecycleRemindersService],
+	providers: [
+		RemindersService,
+		LifecycleRemindersService,
+		RemindersEventsHandler,
+		RemindersScheduler,
+	],
 })
 export class RemindersModule {}

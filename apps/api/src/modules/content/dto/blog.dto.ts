@@ -1,5 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { IsOptional, IsString, MaxLength, MinLength } from "class-validator";
+import { SanitizeRichText } from "../../../common/sanitize/rich-text.sanitizer";
 
 export class CreateBlogPostDto {
 	@ApiProperty()
@@ -41,5 +42,6 @@ export class UpdateBlogPostDto {
 	@IsOptional()
 	@IsString()
 	@MaxLength(500_000)
+	@SanitizeRichText()
 	bodyHtml?: string;
 }

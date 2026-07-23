@@ -13,6 +13,7 @@ import type { ComponentType } from "react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
+import { AcademySelect } from "@/components/authoring/academy-select";
 import { StudioShell } from "@/components/authoring/studio-shell";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
@@ -43,6 +44,7 @@ export function CoursesPage({
 	const queryKey = area === "admin" ? ["admin-courses"] : ["my-courses"];
 	const isAdminArea = area === "admin";
 	const [title, setTitle] = useState("");
+	const [academy, setAcademy] = useState("teachers");
 	const [creating, setCreating] = useState(false);
 	const [courseToDelete, setCourseToDelete] = useState<CourseSummary | null>(
 		null,
@@ -58,7 +60,7 @@ export function CoursesPage({
 		courses?.reduce((total, course) => total + course._count.modules, 0) ?? 0;
 
 	const create = useMutation({
-		mutationFn: () => createCourse({ title: title.trim() }),
+		mutationFn: () => createCourse({ title: title.trim(), academy }),
 		onSuccess: () => {
 			setTitle("");
 			setCreating(false);
@@ -143,6 +145,7 @@ export function CoursesPage({
 							placeholder={t("courses.field_title")}
 							className="h-11 flex-1 rounded-input border border-border px-3.5 text-foreground outline-none focus:border-brand-primary"
 						/>
+						<AcademySelect value={academy} onChange={setAcademy} />
 						<Button
 							type="submit"
 							disabled={title.trim().length < 3 || create.isPending}

@@ -27,6 +27,7 @@
 		"@fontsource/righteous": "^5.2.7",
 		"@gsap/react": "^2.1.2",
 		"@hookform/resolvers": "^5.4.0",
+		"@monaco-editor/react": "^4.7.0",
 		"@radix-ui/react-popover": "^1.1.19",
 		"@sentry/react": "^10.65.0",
 		"@tanstack/react-query": "5",

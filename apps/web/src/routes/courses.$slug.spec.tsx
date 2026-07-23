@@ -43,6 +43,7 @@ function course(overrides: Partial<PublicCourse> = {}): PublicCourse {
 		id: "c1",
 		title: "React Basics",
 		slug: "react-basics",
+		academy: { slug: "teachers", name: "Teacher Academy" },
 		description: "<p>Learn React from scratch.</p>",
 		level: "beginner",
 		language: "en",

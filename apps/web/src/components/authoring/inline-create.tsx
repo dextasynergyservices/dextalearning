@@ -21,10 +21,14 @@ export function InlineCreate({
 	kind,
 	onCreated,
 	attaching,
+	academy,
 }: {
 	kind: "course" | "path";
 	onCreated: (id: string) => void;
 	attaching?: boolean;
+	/** Inherit the parent (path/cohort) builder's academy, so a course created
+	 *  inside a Tech path is Tech. Falls back to the default when unknown. */
+	academy?: string;
 }) {
 	const { t } = useTranslation("authoring");
 	const [title, setTitle] = useState("");
@@ -35,8 +39,8 @@ export function InlineCreate({
 	const create = useMutation<CourseSummary | PathSummary, Error, void>({
 		mutationFn: () =>
 			kind === "course"
-				? createCourse({ title: title.trim() })
-				: createPath({ title: title.trim() }),
+				? createCourse({ title: title.trim(), academy })
+				: createPath({ title: title.trim(), academy }),
 		onSuccess: (created) => {
 			setTitle("");
 			onCreated(created.id);

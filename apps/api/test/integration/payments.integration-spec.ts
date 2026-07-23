@@ -16,6 +16,28 @@ import { getTestPrisma } from "./support/db";
 import { createCohort, createCourse, createUser } from "./support/factories";
 import { FakeQueuePort } from "./support/fakes/fake-queue";
 
+/**
+ * Whole days between payment and the Earn-Back deadline (§4.11.1 measures the
+ * window from PAYMENT, not from when the deadline was set).
+ *
+ * Throws if either timestamp is missing rather than casting `null` to `Date`:
+ * an unsettled order is a broken fixture, and saying so beats a `TypeError`
+ * raised somewhere inside the arithmetic.
+ */
+function daysFromPaymentToDeadline(
+	order: { paidAt: Date | null; earnBackDeadline: Date | null } | null,
+): number {
+	if (!order?.paidAt || !order.earnBackDeadline) {
+		throw new Error(
+			`order is not settled — paidAt=${order?.paidAt ?? "null"}, earnBackDeadline=${order?.earnBackDeadline ?? "null"}`,
+		);
+	}
+	return Math.round(
+		(order.earnBackDeadline.getTime() - order.paidAt.getTime()) /
+			(24 * 60 * 60 * 1000),
+	);
+}
+
 function memoryCache(): CachePort {
 	const store = new Map<string, unknown>();
 	return {
@@ -212,12 +234,7 @@ describe("PaymentsService (integration)", () => {
 		);
 		const order = await prisma.order.findUnique({ where: { id: orderId } });
 		expect(order?.earnBackDeadline).not.toBeNull();
-		const days = Math.round(
-			((order?.earnBackDeadline as Date).getTime() -
-				(order?.paidAt as Date).getTime()) /
-				(24 * 60 * 60 * 1000),
-		);
-		expect(days).toBe(30);
+		expect(daysFromPaymentToDeadline(order)).toBe(30);
 		// The creator fixed it, so the learner has nothing to decide.
 		expect(order?.earnBackDeadlineSource).toBe("creator");
 	});
@@ -278,12 +295,7 @@ describe("PaymentsService (integration)", () => {
 			expect(order?.earnBackDeadlineSource).toBe("learner");
 			expect(order?.earnBackDeadlineDays).toBe(14);
 			expect(order?.earnBackDeadlineSetAt).not.toBeNull();
-			const days = Math.round(
-				((order?.earnBackDeadline as Date).getTime() -
-					(order?.paidAt as Date).getTime()) /
-					(24 * 60 * 60 * 1000),
-			);
-			expect(days).toBe(14);
+			expect(daysFromPaymentToDeadline(order)).toBe(14);
 			expect(result.days).toBe(14);
 		});
 

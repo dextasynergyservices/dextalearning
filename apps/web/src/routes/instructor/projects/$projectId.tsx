@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Inbox, Loader2, Plus, RotateCcw, Save, Trash2, X } from "lucide-react";
-import { type ReactNode, useState } from "react";
+import { lazy, type ReactNode, Suspense, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { DurationInput } from "@/components/authoring/duration-input";
@@ -33,6 +33,7 @@ const SUBMISSION_TYPES: ProjectSubmissionType[] = [
 	"file_upload",
 	"text_submission",
 	"url_submission",
+	"code",
 	"peer_review",
 ];
 const GRADING_TYPES: ProjectGradingType[] = [
@@ -40,6 +41,29 @@ const GRADING_TYPES: ProjectGradingType[] = [
 	"ai_assisted",
 	"peer_review",
 ];
+// Mirrors the API's CODE_LANGUAGES; only `javascript` runs in the self-check sandbox.
+const CODE_LANGUAGES = [
+	"javascript",
+	"typescript",
+	"python",
+	"html",
+	"css",
+	"sql",
+	"json",
+	"java",
+	"cpp",
+	"go",
+	"rust",
+	"shell",
+];
+
+// Monaco is heavy and CDN-loaded — keep it out of the editor bundle until a
+// creator actually turns on code submissions.
+const CodeWorkspace = lazy(() =>
+	import("@/components/player/code-workspace").then((m) => ({
+		default: m.CodeWorkspace,
+	})),
+);
 
 function toLocalInput(iso: string | null): string {
 	if (!iso) return "";
@@ -172,6 +196,12 @@ function ProjectForm({ project }: { project: ProjectDetail }) {
 	const [rubric, setRubric] = useState<RubricCriterion[]>(
 		project.rubricJson ?? [],
 	);
+	const [codeLanguage, setCodeLanguage] = useState(
+		project.codeConfigJson?.language ?? "javascript",
+	);
+	const [codeStarter, setCodeStarter] = useState(
+		project.codeConfigJson?.starterCode ?? "",
+	);
 
 	const toggleType = (typ: ProjectSubmissionType) =>
 		setTypes((prev) =>
@@ -179,6 +209,7 @@ function ProjectForm({ project }: { project: ProjectDetail }) {
 		);
 
 	const showFile = types.includes("file_upload");
+	const showCode = types.includes("code");
 	const showPeer = grading === "peer_review" || types.includes("peer_review");
 	const totalPoints = rubric.reduce(
 		(s, r) => s + (Number(r.maxPoints) || 0),
@@ -204,6 +235,12 @@ function ProjectForm({ project }: { project: ProjectDetail }) {
 				retryCooldownHours:
 					retryCooldown.trim() === "" ? null : Number(retryCooldown),
 				retryLockoutDays,
+				codeConfigJson: types.includes("code")
+					? {
+							language: codeLanguage,
+							starterCode: codeStarter.trim() || undefined,
+						}
+					: undefined,
 				rubric: rubric
 					.filter((r) => r.label.trim())
 					.map((r) => ({
@@ -278,6 +315,50 @@ function ProjectForm({ project }: { project: ProjectDetail }) {
 							))}
 						</div>
 					</div>
+
+					{showCode ? (
+						<div className="rounded-card border border-border bg-muted/40 p-4">
+							<Field
+								label={t("project.code_language", {
+									defaultValue: "Code language",
+								})}
+								hint={t("project.code_language_hint", {
+									defaultValue:
+										"The language learners write in. Only JavaScript runs in the in-browser self-check; the rest are editor-only.",
+								})}
+							>
+								<Select
+									value={codeLanguage}
+									onChange={(v) => setCodeLanguage(v)}
+								>
+									{CODE_LANGUAGES.map((l) => (
+										<option key={l} value={l}>
+											{l}
+										</option>
+									))}
+								</Select>
+							</Field>
+							<p className="mt-4 mb-1.5 font-medium text-foreground text-sm">
+								{t("project.code_starter", {
+									defaultValue: "Starter code (optional)",
+								})}
+							</p>
+							<Suspense
+								fallback={
+									<div className="flex h-[240px] items-center justify-center rounded-card border border-border bg-card">
+										<Loader2 className="size-5 animate-spin text-muted-foreground" />
+									</div>
+								}
+							>
+								<CodeWorkspace
+									language={codeLanguage}
+									value={codeStarter}
+									onChange={setCodeStarter}
+									height="240px"
+								/>
+							</Suspense>
+						</div>
+					) : null}
 
 					<div className="grid gap-4 sm:grid-cols-3">
 						<Field label={t("project.grading", { defaultValue: "Grading" })}>

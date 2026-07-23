@@ -2,13 +2,18 @@ import { NotFoundException } from "@nestjs/common";
 import { describe, expect, it } from "vitest";
 import { CatalogEventsHandler } from "../../src/modules/catalog/catalog.events-handler";
 import { CatalogService } from "../../src/modules/catalog/catalog.service";
+import { TenantService } from "../../src/modules/tenant/tenant.service";
 import { getTestPrisma } from "./support/db";
 import { createCourse, createUser } from "./support/factories";
 import { FakeStorageAdapter } from "./support/fakes/fake-storage.adapter";
 
 describe("CatalogService (integration)", () => {
 	const prisma = getTestPrisma();
-	const service = new CatalogService(prisma, new FakeStorageAdapter());
+	const service = new CatalogService(
+		prisma,
+		new FakeStorageAdapter(),
+		new TenantService(prisma),
+	);
 
 	describe("getFeatured", () => {
 		it("only shows published, admin-featured courses", async () => {

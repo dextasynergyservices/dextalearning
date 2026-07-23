@@ -2,6 +2,8 @@ import { BadRequestException, ForbiddenException } from "@nestjs/common";
 import { beforeEach, describe, expect, it } from "vitest";
 import type { AuthenticatedUser } from "../../src/auth/types";
 import { AuthoringService } from "../../src/modules/content/authoring.service";
+import type { NotificationsService } from "../../src/modules/notifications/notifications.service";
+import { TenantService } from "../../src/modules/tenant/tenant.service";
 import { getTestPrisma } from "./support/db";
 import { createUser } from "./support/factories";
 import { FakeStorageAdapter } from "./support/fakes/fake-storage.adapter";
@@ -15,7 +17,13 @@ function asAuthenticatedUser(
 
 describe("AuthoringService (integration)", () => {
 	const prisma = getTestPrisma();
-	const service = new AuthoringService(prisma, new FakeStorageAdapter());
+	const service = new AuthoringService(
+		prisma,
+		new FakeStorageAdapter(),
+		new TenantService(prisma),
+		// Publishing notifies admins (§8.6); that's a side effect, not the subject.
+		{ notify: async () => {} } as unknown as NotificationsService,
+	);
 
 	let ownerId: string;
 	let otherId: string;

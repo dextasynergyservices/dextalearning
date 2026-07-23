@@ -45,15 +45,15 @@ function SearchPage() {
 
 	const coursesQ = useQuery({
 		queryKey: ["published-courses"],
-		queryFn: getPublishedCourses,
+		queryFn: () => getPublishedCourses(),
 	});
 	const pathsQ = useQuery({
 		queryKey: ["published-paths"],
-		queryFn: getPublishedPaths,
+		queryFn: () => getPublishedPaths(),
 	});
 	const cohortsQ = useQuery({
 		queryKey: ["published-cohorts"],
-		queryFn: getPublishedCohorts,
+		queryFn: () => getPublishedCohorts(),
 	});
 
 	const normalized = query.trim().toLowerCase();

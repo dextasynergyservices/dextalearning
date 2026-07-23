@@ -13,10 +13,18 @@ import {
 	Trash2,
 	X,
 } from "lucide-react";
-import { type ReactNode, useEffect, useMemo, useState } from "react";
+import {
+	lazy,
+	type ReactNode,
+	Suspense,
+	useEffect,
+	useMemo,
+	useState,
+} from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { AssessmentSettingsPanel } from "@/components/authoring/assessment-settings-panel";
+import { CodeGradingQueue } from "@/components/authoring/code-grading-queue";
 import { LessonSourcePicker } from "@/components/authoring/lesson-source-picker";
 import { StudioShell } from "@/components/authoring/studio-shell";
 import { ReadingLanguageToggle } from "@/components/learn/reading-language-toggle";
@@ -48,7 +56,34 @@ function InstructorAssessmentRoute() {
 	return <AssessmentEditorPage assessmentId={assessmentId} area="instructor" />;
 }
 
-const QUESTION_TYPES: QuestionType[] = ["mcq", "true_false", "short_answer"];
+const QUESTION_TYPES: QuestionType[] = [
+	"mcq",
+	"true_false",
+	"short_answer",
+	"code",
+];
+// Mirrors the API's CODE_LANGUAGES; only `javascript` runs in the self-check sandbox.
+const CODE_LANGUAGES = [
+	"javascript",
+	"typescript",
+	"python",
+	"html",
+	"css",
+	"sql",
+	"json",
+	"java",
+	"cpp",
+	"go",
+	"rust",
+	"shell",
+];
+
+// Monaco is heavy + CDN-loaded — only pull it in when editing a code question.
+const CodeWorkspace = lazy(() =>
+	import("@/components/player/code-workspace").then((m) => ({
+		default: m.CodeWorkspace,
+	})),
+);
 
 export function AssessmentEditorPage({
 	assessmentId,
@@ -276,6 +311,8 @@ export function AssessmentEditorPage({
 							</ol>
 						)}
 					</section>
+
+					<CodeGradingQueue assessmentId={assessmentId} />
 				</div>
 			)}
 
@@ -341,6 +378,7 @@ const TYPE_KEY: Record<QuestionType, string> = {
 	mcq: "type_mcq",
 	true_false: "type_tf",
 	short_answer: "type_short",
+	code: "type_code",
 };
 
 function QuestionRow({
@@ -529,6 +567,15 @@ function QuestionDialog({
 		initialOptions.length ? initialOptions : ["", "", "", ""],
 	);
 	const [correct, setCorrect] = useState(question?.correctAnswer ?? "");
+	const [codeLanguage, setCodeLanguage] = useState(
+		question?.codeConfig?.language ?? "javascript",
+	);
+	const [codeStarter, setCodeStarter] = useState(
+		question?.codeConfig?.starterCode ?? "",
+	);
+	const [codeGrading, setCodeGrading] = useState<"ai" | "manual">(
+		question?.codeConfig?.grading ?? "ai",
+	);
 
 	const save = useMutation({
 		mutationFn: () => {
@@ -544,6 +591,15 @@ function QuestionDialog({
 							? correct || "true"
 							: correct.trim(),
 				...(type === "mcq" ? { options: cleanOptions } : {}),
+				...(type === "code"
+					? {
+							codeConfig: {
+								language: codeLanguage,
+								starterCode: codeStarter.trim() || undefined,
+								grading: codeGrading,
+							},
+						}
+					: {}),
 			};
 			return question
 				? updateQuestion(question.id, payload)
@@ -553,11 +609,16 @@ function QuestionDialog({
 		onError: (e) => toast.error(e.message),
 	});
 
+	// A manually-graded code question needs no reference (an instructor decides);
+	// everything else auto-grades against the expected/reference answer.
+	const needsReference = !(type === "code" && codeGrading === "manual");
 	const valid =
 		body.trim().length > 0 &&
 		(type === "mcq"
 			? options.filter((o) => o.trim()).length >= 2 && correct.trim().length > 0
-			: correct.trim().length > 0);
+			: needsReference
+				? correct.trim().length > 0
+				: true);
 
 	return (
 		<Modal
@@ -573,7 +634,7 @@ function QuestionDialog({
 					<p className="mb-1.5 font-medium text-foreground text-sm">
 						{t("assessment.q_type", { defaultValue: "Type" })}
 					</p>
-					<div className="grid grid-cols-3 gap-2">
+					<div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
 						{QUESTION_TYPES.map((qt) => (
 							<button
 								key={qt}
@@ -696,6 +757,111 @@ function QuestionDialog({
 								</button>
 							))}
 						</div>
+					</div>
+				) : type === "code" ? (
+					<div className="space-y-4">
+						<div>
+							<p className="mb-1.5 font-medium text-foreground text-sm">
+								{t("assessment.code_grading", { defaultValue: "Grading" })}
+							</p>
+							<div className="grid grid-cols-2 gap-2">
+								{(["ai", "manual"] as const).map((g) => (
+									<button
+										key={g}
+										type="button"
+										onClick={() => setCodeGrading(g)}
+										className={cn(
+											"rounded-btn border px-3 py-2.5 text-left text-sm transition-colors",
+											codeGrading === g
+												? "border-brand-primary bg-brand-primary/10 font-medium text-brand-primary"
+												: "border-border text-muted-foreground hover:border-border",
+										)}
+									>
+										{t(`assessment.code_grading_${g}`, {
+											defaultValue: g === "ai" ? "AI-graded" : "Manual",
+										})}
+									</button>
+								))}
+							</div>
+							<p className="mt-1.5 text-muted-foreground text-xs">
+								{codeGrading === "manual"
+									? t("assessment.code_grading_manual_hint", {
+											defaultValue:
+												"You review each submission and grade it yourself. The attempt is held until you do.",
+										})
+									: t("assessment.code_grading_ai_hint", {
+											defaultValue:
+												"Graded automatically against your reference solution when the learner submits.",
+										})}
+							</p>
+						</div>
+						<label className="block">
+							<span className="mb-1.5 block font-medium text-foreground text-sm">
+								{t("assessment.code_language", {
+									defaultValue: "Code language",
+								})}
+							</span>
+							<select
+								value={codeLanguage}
+								onChange={(e) => setCodeLanguage(e.target.value)}
+								className="h-10 w-full rounded-input border border-border bg-card px-3 text-sm outline-none focus:border-brand-primary"
+							>
+								{CODE_LANGUAGES.map((l) => (
+									<option key={l} value={l}>
+										{l}
+									</option>
+								))}
+							</select>
+						</label>
+						<div>
+							<p className="mb-1.5 font-medium text-foreground text-sm">
+								{t("assessment.code_starter", {
+									defaultValue: "Starter code (optional)",
+								})}
+							</p>
+							<Suspense
+								fallback={
+									<div className="flex h-[200px] items-center justify-center rounded-card border border-border bg-card">
+										<Loader2 className="size-5 animate-spin text-muted-foreground" />
+									</div>
+								}
+							>
+								<CodeWorkspace
+									language={codeLanguage}
+									value={codeStarter}
+									onChange={setCodeStarter}
+									height="200px"
+								/>
+							</Suspense>
+						</div>
+						<label className="block">
+							<span className="mb-1.5 block font-medium text-foreground text-sm">
+								{codeGrading === "manual"
+									? t("assessment.code_notes", {
+											defaultValue: "Grading notes (optional)",
+										})
+									: t("assessment.code_reference", {
+											defaultValue: "Reference solution / expected behaviour",
+										})}
+							</span>
+							<textarea
+								value={correct}
+								onChange={(e) => setCorrect(e.target.value)}
+								rows={4}
+								placeholder={
+									codeGrading === "manual"
+										? t("assessment.code_notes_ph", {
+												defaultValue:
+													"Optional notes to guide your own grading later.",
+											})
+										: t("assessment.code_reference_ph", {
+												defaultValue:
+													"Describe what correct code must do, or paste a model solution. The AI grades the learner's code against this.",
+											})
+								}
+								className="w-full resize-none rounded-input border border-border px-3.5 py-2.5 text-foreground text-sm outline-none focus:border-brand-primary"
+							/>
+						</label>
 					</div>
 				) : (
 					<label className="block">

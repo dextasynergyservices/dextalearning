@@ -16,7 +16,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { formatMoney, getPublicCohort } from "@/lib/content-api";
 import { cn } from "@/lib/utils";
 
-export const Route = createFileRoute("/teachers/cohorts/$slug")({
+export const Route = createFileRoute("/cohorts/$slug")({
 	component: CohortDetailPage,
 });
 
@@ -63,7 +63,8 @@ function CohortDetailPage() {
 						{t("cohorts.not_found_body")}
 					</p>
 					<Link
-						to="/teachers/cohorts"
+						to="/$academy/cohorts"
+						params={{ academy: "teachers" }}
 						className={cn(
 							buttonVariants({ variant: "outline", size: "md" }),
 							"mt-6",

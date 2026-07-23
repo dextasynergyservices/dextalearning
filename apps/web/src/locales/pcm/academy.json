@@ -190,5 +190,28 @@
 		},
 		"earnback_hint_learner_deadline": "You go set your own deadline — up to {{max}} days — sharp-sharp after payment. Finish before am and we go send the refundable {{amount}} back to your card.",
 		"skip_deadline": "Later"
+	},
+	"not_found": {
+		"title": "We no find dis academy",
+		"body": "Dis academy no dey. Check di address well or go back to home."
+	},
+	"academies": {
+		"tech": {
+			"headline": "Build software wey people dey use",
+			"subtitle": "Learn code di way engineers dey really work — hands-on, project first, with di science wey make am stick."
+		}
+	},
+	"code": {
+		"run": "Run am",
+		"output": "Output",
+		"no_output": "(no output)",
+		"editor_only": "Editor only",
+		"completed": "Don complete",
+		"mark_complete": "Mark di exercise as done",
+		"run_first": "Run your code first"
+	},
+	"play": {
+		"code_done": "Exercise don complete",
+		"code_to_complete": "Finish di exercise and mark am as done for up."
 	}
 }

@@ -317,6 +317,55 @@ describe("SubmissionsService (integration)", () => {
 			expect(info.peerReview).toEqual({ required: 2, completed: 0 });
 			expect(info.mySubmission).toBeNull();
 		});
+
+		// Stream A — code submissions (§9). The learner's code rides the existing
+		// `textContent` channel; the language/starter travel on `codeConfig`.
+		it("surfaces the code config for a code-submission project", async () => {
+			const project = await prisma.project.create({
+				data: {
+					scope: "course",
+					title: "Write a function",
+					orderIndex: 1,
+					submissionTypes: ["code"],
+					codeConfigJson: {
+						language: "javascript",
+						starterCode: "function add(a, b) {}",
+					},
+				},
+			});
+			const info = await service.getProjectInfo(
+				asAuthenticatedUser(learnerId),
+				project.id,
+			);
+			expect(info.submissionTypes).toContain("code");
+			expect(info.codeConfig).toEqual({
+				language: "javascript",
+				starterCode: "function add(a, b) {}",
+			});
+		});
+
+		it("stores submitted code in textContent for grading", async () => {
+			const project = await prisma.project.create({
+				data: {
+					scope: "course",
+					title: "Grade my code",
+					orderIndex: 1,
+					submissionTypes: ["code"],
+					codeConfigJson: { language: "javascript" },
+				},
+			});
+			const code = "function add(a, b) { return a + b; }";
+			const result = await service.submit(
+				asAuthenticatedUser(learnerId),
+				project.id,
+				{ textContent: code },
+			);
+			expect(result.attemptNumber).toBe(1);
+			const stored = await prisma.projectSubmission.findFirst({
+				where: { projectId: project.id, userId: learnerId },
+			});
+			expect(stored?.textContent).toBe(code);
+		});
 	});
 
 	describe("peer review", () => {

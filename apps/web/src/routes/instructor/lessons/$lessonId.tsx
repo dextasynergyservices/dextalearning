@@ -5,6 +5,7 @@ import {
 	CheckCircle2,
 	CircleAlert,
 	Clock3,
+	Code2,
 	FileText,
 	Loader2,
 	Music,
@@ -55,14 +56,30 @@ type EncodableMediaKind = "video" | "audio";
 type MediaStatus = "empty" | "processing" | "ready";
 
 const TYPES: {
-	value: "video" | "audio" | "text" | "pdf";
+	value: "video" | "audio" | "text" | "pdf" | "code";
 	icon: ComponentType<{ className?: string }>;
 }[] = [
 	{ value: "video", icon: Video },
 	{ value: "audio", icon: Music },
 	{ value: "text", icon: Type },
 	{ value: "pdf", icon: FileText },
+	{ value: "code", icon: Code2 },
 ];
+
+const CODE_LANGUAGES = [
+	"javascript",
+	"typescript",
+	"python",
+	"html",
+	"css",
+	"sql",
+	"json",
+	"java",
+	"cpp",
+	"go",
+	"rust",
+	"shell",
+] as const;
 
 const CAPTION_LANGS = ["en", "fr", "es", "pcm"] as const;
 
@@ -447,10 +464,19 @@ export function LessonEditorPage({
 
 	const [transcript, setTranscript] = useState("");
 	const [richText, setRichText] = useState("");
+	const [codeLang, setCodeLang] = useState<string>("javascript");
+	const [codeInstructions, setCodeInstructions] = useState("");
+	const [starterCode, setStarterCode] = useState("");
 	useEffect(() => {
 		if (lesson) {
 			setTranscript(lesson.transcriptText ?? "");
 			setRichText(lesson.contentText ?? "");
+			const cfg = lesson.codeConfigJson;
+			if (cfg) {
+				setCodeLang(cfg.language);
+				setCodeInstructions(cfg.instructions);
+				setStarterCode(cfg.starterCode);
+			}
 		}
 	}, [lesson]);
 
@@ -510,6 +536,21 @@ export function LessonEditorPage({
 	});
 	const saveText = useMutation({
 		mutationFn: () => updateLesson(lessonId, { contentText: richText }),
+		onSuccess: () => {
+			invalidate();
+			toast.success(t("lesson.saved"));
+		},
+		onError: (e) => toast.error(e.message),
+	});
+	const saveCode = useMutation({
+		mutationFn: () =>
+			updateLesson(lessonId, {
+				codeConfigJson: {
+					language: codeLang,
+					instructions: codeInstructions,
+					starterCode,
+				},
+			}),
 		onSuccess: () => {
 			invalidate();
 			toast.success(t("lesson.saved"));
@@ -633,6 +674,86 @@ export function LessonEditorPage({
 									disabled={saveText.isPending}
 								>
 									{saveText.isPending ? (
+										<Loader2 className="size-4 animate-spin" />
+									) : null}
+									{t("lesson.save")}
+								</Button>
+							</div>
+						) : null}
+
+						{lesson.contentType === "code" ? (
+							<div className="space-y-4 rounded-card border border-border bg-card p-5 shadow-card">
+								<div>
+									<label
+										htmlFor="code-lang"
+										className="mb-1.5 block font-medium text-foreground text-sm"
+									>
+										{t("lesson.code_language", { defaultValue: "Language" })}
+									</label>
+									<select
+										id="code-lang"
+										value={codeLang}
+										onChange={(e) => setCodeLang(e.target.value)}
+										className="h-11 w-full rounded-input border border-border bg-card px-3 text-foreground outline-none focus:border-brand-primary"
+									>
+										{CODE_LANGUAGES.map((l) => (
+											<option key={l} value={l}>
+												{l}
+											</option>
+										))}
+									</select>
+									{codeLang !== "javascript" ? (
+										<p className="mt-1.5 text-muted-foreground text-xs">
+											{t("lesson.code_editor_only_hint", {
+												defaultValue:
+													"Only JavaScript runs in the browser today; other languages are editor-only.",
+											})}
+										</p>
+									) : null}
+								</div>
+								<div>
+									<label
+										htmlFor="code-instructions"
+										className="mb-1.5 block font-medium text-foreground text-sm"
+									>
+										{t("lesson.code_instructions", {
+											defaultValue: "Exercise instructions",
+										})}
+									</label>
+									<textarea
+										id="code-instructions"
+										value={codeInstructions}
+										onChange={(e) => setCodeInstructions(e.target.value)}
+										rows={4}
+										placeholder={t("lesson.code_instructions_ph", {
+											defaultValue:
+												"Describe the task the learner should complete…",
+										})}
+										className="w-full rounded-input border border-border bg-card p-3 text-foreground text-sm outline-none focus:border-brand-primary"
+									/>
+								</div>
+								<div>
+									<label
+										htmlFor="code-starter"
+										className="mb-1.5 block font-medium text-foreground text-sm"
+									>
+										{t("lesson.code_starter", { defaultValue: "Starter code" })}
+									</label>
+									<textarea
+										id="code-starter"
+										value={starterCode}
+										onChange={(e) => setStarterCode(e.target.value)}
+										rows={10}
+										spellCheck={false}
+										className="w-full rounded-input border border-border bg-hero-bg p-3 font-mono text-slate-100 text-sm outline-none focus:border-brand-primary"
+									/>
+								</div>
+								<Button
+									size="sm"
+									onClick={() => saveCode.mutate()}
+									disabled={saveCode.isPending}
+								>
+									{saveCode.isPending ? (
 										<Loader2 className="size-4 animate-spin" />
 									) : null}
 									{t("lesson.save")}

@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { AlertCircle } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
 	getIntroMediaToken,
@@ -11,6 +11,11 @@ import { AudioPlayer } from "./audio-player";
 import { PdfViewer } from "./pdf-viewer";
 import { TranscriptPanel } from "./transcript-panel";
 import { VideoPlayer } from "./video-player";
+
+// Monaco is ~2MB — code-split so it loads only when a `code` lesson opens.
+const CodeLesson = lazy(() =>
+	import("./code-lesson").then((m) => ({ default: m.CodeLesson })),
+);
 
 /**
  * Resolves a lesson's protected media bundle and renders the matching player
@@ -24,6 +29,7 @@ export function LessonPlayer({
 	resumePct = 0,
 	preview = false,
 	intro = false,
+	done = false,
 }: {
 	lessonId: string;
 	title?: string;
@@ -35,6 +41,8 @@ export function LessonPlayer({
 	preview?: boolean;
 	/** Use the public path/cohort intro endpoint (no auth). */
 	intro?: boolean;
+	/** Whether the lesson is already complete (code lessons show a done label). */
+	done?: boolean;
 }) {
 	const { data, isPending, isError } = useQuery({
 		queryKey: [
@@ -129,6 +137,14 @@ export function LessonPlayer({
 					// biome-ignore lint/security/noDangerouslySetInnerHtml: instructor rich-text authored via Tiptap, sanitized on render.
 					dangerouslySetInnerHTML={{ __html: data.contentText }}
 				/>
+			) : null}
+
+			{data.type === "code" && data.code ? (
+				<Suspense
+					fallback={<Skeleton className="h-[420px] w-full rounded-card" />}
+				>
+					<CodeLesson code={data.code} done={done} onProgress={onProgress} />
+				</Suspense>
 			) : null}
 
 			{/* Scroll-to-end sentinel for TEXT completion tracking (PDF tracks

@@ -104,11 +104,7 @@ export function PublicCourseCard({ course }: { course: PublishedCourse }) {
 export function PublicPathCard({ path }: { path: PublishedPath }) {
 	const l = useCardLabels();
 	return (
-		<Link
-			to="/teachers/paths/$slug"
-			params={{ slug: path.slug }}
-			className={CARD}
-		>
+		<Link to="/paths/$slug" params={{ slug: path.slug }} className={CARD}>
 			<div className="relative aspect-[16/8] overflow-hidden bg-muted">
 				{path.thumbnailUrl ? (
 					<img
@@ -170,7 +166,7 @@ export function PublicCohortCard({ cohort }: { cohort: PublishedCohort }) {
 	const l = useCardLabels();
 	return (
 		<Link
-			to="/teachers/cohorts/$slug"
+			to="/cohorts/$slug"
 			params={{ slug: cohort.slug }}
 			className="group flex flex-col rounded-card border border-border bg-card p-5 shadow-card transition-all hover:-translate-y-1 hover:shadow-card-hover"
 		>

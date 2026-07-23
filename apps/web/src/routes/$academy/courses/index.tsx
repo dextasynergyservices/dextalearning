@@ -13,17 +13,18 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { getPublishedCourses } from "@/lib/content-api";
 import { cn } from "@/lib/utils";
 
-export const Route = createFileRoute("/teachers/courses/")({
+export const Route = createFileRoute("/$academy/courses/")({
 	component: CoursesCatalogPage,
 });
 
 function CoursesCatalogPage() {
 	const { t } = useTranslation(["academy", "authoring"]);
+	const { academy } = Route.useParams();
 	const [query, setQuery] = useState("");
 
 	const { data: courses, isPending } = useQuery({
-		queryKey: ["published-courses"],
-		queryFn: getPublishedCourses,
+		queryKey: ["published-courses", academy],
+		queryFn: () => getPublishedCourses(academy),
 		staleTime: 0,
 		refetchOnMount: "always",
 	});

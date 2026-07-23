@@ -14,6 +14,7 @@ import {
 	Min,
 	MinLength,
 } from "class-validator";
+import { SanitizeRichText } from "../../../common/sanitize/rich-text.sanitizer";
 
 const PATH_LEVELS = ["beginner", "intermediate", "advanced", "mixed"] as const;
 const CURRENCIES = ["NGN", "USD", "GHS", "KES", "ZAR", "GBP", "EUR"] as const;
@@ -25,10 +26,16 @@ export class CreatePathDto {
 	@MaxLength(200)
 	title!: string;
 
+	@ApiPropertyOptional({ description: "Academy slug. Default: teachers." })
+	@IsOptional()
+	@IsString()
+	academy?: string;
+
 	@ApiPropertyOptional()
 	@IsOptional()
 	@IsString()
 	@MaxLength(5000)
+	@SanitizeRichText()
 	description?: string;
 
 	@ApiPropertyOptional({ enum: PATH_LEVELS })
@@ -49,6 +56,7 @@ export class UpdatePathDto {
 	@IsOptional()
 	@IsString()
 	@MaxLength(5000)
+	@SanitizeRichText()
 	description?: string;
 
 	@ApiPropertyOptional({ enum: PATH_LEVELS })
@@ -62,6 +70,7 @@ export class UpdatePathDto {
 	@IsOptional()
 	@IsString()
 	@MaxLength(2000)
+	@SanitizeRichText()
 	outcomeStatement?: string;
 
 	@ApiPropertyOptional({ description: "Estimated completion time in hours." })
