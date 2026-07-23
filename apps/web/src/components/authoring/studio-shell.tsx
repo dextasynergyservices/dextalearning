@@ -31,6 +31,7 @@ import { type ComponentType, type ReactNode, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { RequireAuth } from "@/components/auth/require-auth";
 import { NotificationBell } from "@/components/layout/notification-bell";
+import { listInstructorApplications } from "@/lib/admin-users-api";
 import { signOut, useSession } from "@/lib/auth-client";
 import { getFeatureRequests } from "@/lib/content-api";
 import { useAvatar } from "@/lib/use-avatar";
@@ -223,6 +224,15 @@ function StudioGate({
 	const pendingFeature = (featureReqs ?? []).filter(
 		(r) => !r.isFeatured,
 	).length;
+	// Admin-only: people waiting to be approved as instructors (§5). Badged on
+	// Users because that's where the decision lives — without a count an admin
+	// would have to open the page to discover anyone is waiting.
+	const { data: instructorApps } = useQuery({
+		queryKey: ["instructor-applications"],
+		queryFn: listInstructorApplications,
+		enabled: area === "admin" && role === "admin",
+	});
+	const pendingInstructors = instructorApps?.length ?? 0;
 	const sidebarNav = area === "admin" ? ADMIN_NAV : INSTRUCTOR_NAV;
 	const mobileTabs =
 		area === "admin" ? MOBILE_ADMIN_TABS : MOBILE_INSTRUCTOR_TABS;
@@ -353,7 +363,13 @@ function StudioGate({
 							collapsed ? "justify-center px-0" : "gap-3 px-3",
 							"text-muted-foreground hover:bg-brand-primary-light hover:text-brand-primary",
 						);
-						const showBadge = to === "/admin/courses" && pendingFeature > 0;
+						const badgeCount =
+							to === "/admin/courses"
+								? pendingFeature
+								: to === "/admin/users"
+									? pendingInstructors
+									: 0;
+						const showBadge = badgeCount > 0;
 						const inner = collapsed ? (
 							<span key={labelKey} className="relative">
 								<Icon className="size-[1.15rem]" />
@@ -367,7 +383,7 @@ function StudioGate({
 								<span className="flex-1">{t(labelKey)}</span>
 								{showBadge ? (
 									<span className="flex min-w-[1.2rem] items-center justify-center rounded-full bg-amber-500 px-1.5 py-0.5 font-stats font-bold text-[0.65rem] text-white">
-										{pendingFeature}
+										{badgeCount}
 									</span>
 								) : null}
 							</>

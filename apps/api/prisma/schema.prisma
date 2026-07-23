@@ -73,6 +73,7 @@ enum LessonContentType {
   text
   pdf
   audio
+  code
 
   @@map("lesson_content_type")
 }
@@ -165,6 +166,7 @@ enum QuestionType {
   mcq
   true_false
   short_answer
+  code
 
   @@map("question_type")
 }
@@ -301,6 +303,14 @@ model User {
   otherNames            String?       @map("other_names") @db.VarChar(100)
   fullName              String?       @map("full_name") @db.VarChar(300)
   role                  UserRole
+  // Instructor application (§5 — authoring is a trusted capability). Self-service
+  // sign-up may REQUEST instructor, but the role stays `learner` until an admin
+  // approves: pending | approved | rejected, null = never applied. Gating on the
+  // role itself (not this column) is deliberate — no guard has to remember to
+  // check a second flag for authoring to stay closed.
+  instructorStatus      String?       @map("instructor_status") @db.VarChar(20)
+  instructorDecidedAt   DateTime?     @map("instructor_decided_at") @db.Timestamptz(6)
+  instructorDecidedBy   String?       @map("instructor_decided_by") @db.Uuid
   avatarUrl             String?       @map("avatar_url")
   phone                 String?       @db.VarChar(20)
   phoneVerified         Boolean       @default(false) @map("phone_verified")
@@ -525,6 +535,7 @@ model Lesson {
   audioSizeBytes       BigInt?            @map("audio_size_bytes")
   contentText          String?            @map("content_text")
   pdfKey               String?            @map("pdf_key")
+  codeConfigJson       Json?              @map("code_config_json")
   captionKeysJson      Json?              @map("caption_keys_json")
   transcriptText       String?            @map("transcript_text")
   transcriptCuesJson   Json?              @map("transcript_cues_json")
@@ -937,6 +948,7 @@ model Project {
   title            String             @db.VarChar(200)
   description      String?
   rubricJson       Json?              @map("rubric_json")
+  codeConfigJson   Json?              @map("code_config_json")
   submissionTypes  String[]           @default(["file_upload"]) @map("submission_types")
   allowedFileTypes String[]           @default([]) @map("allowed_file_types")
   maxFileSizeMb    Int                @default(50) @map("max_file_size_mb")

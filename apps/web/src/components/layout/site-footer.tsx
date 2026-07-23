@@ -1,4 +1,6 @@
+import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
+import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { Logo } from "@/components/brand/logo";
 import {
@@ -9,17 +11,18 @@ import {
 	YoutubeIcon,
 } from "@/components/brand/social-icons";
 import { LanguageSwitcher } from "@/components/layout/language-switcher";
+import { getAcademies } from "@/lib/content-api";
+import { useAcademyParam } from "@/lib/use-current-academy";
 
-const FOOTER_COLUMNS = [
-	{
-		titleKey: "footer.learn",
-		links: [
-			{ to: "/teachers/courses", labelKey: "nav.courses" },
-			{ to: "/teachers/paths", labelKey: "footer.learning_paths" },
-			{ to: "/teachers/cohorts", labelKey: "nav.cohorts" },
-			{ to: "/search", labelKey: "tabs.search" },
-		],
-	},
+/** The global (academy-agnostic) footer columns. The academy-scoped "Learn"
+ *  column is built dynamically — see `useLearnLinks`. */
+const GLOBAL_COLUMNS: {
+	titleKey: string;
+	links: {
+		to: "/about" | "/blog" | "/community" | "/login" | "/register";
+		labelKey: string;
+	}[];
+}[] = [
 	{
 		titleKey: "footer.company",
 		links: [
@@ -35,14 +38,92 @@ const FOOTER_COLUMNS = [
 			{ to: "/register", labelKey: "actions.create_account" },
 		],
 	},
-] as const;
+];
 
-const MOBILE_LINKS = [
-	{ to: "/teachers/courses", labelKey: "nav.courses" },
-	{ to: "/about", labelKey: "nav.about" },
-	{ to: "/blog", labelKey: "nav.blog" },
-	{ to: "/community", labelKey: "nav.community" },
-] as const;
+const LINK_CLASS =
+	"text-muted-foreground text-sm transition-colors hover:text-brand-primary";
+
+/**
+ * The "Learn" links, academy-aware like the header/tab bar: inside an academy →
+ * that academy's Courses/Paths/Cohorts; on global pages → the academies
+ * themselves (never a silent default). Plus cross-academy Search.
+ */
+function useLearnLinks(): { key: string; el: ReactNode }[] {
+	const { t } = useTranslation("common");
+	const academy = useAcademyParam();
+	const { data: academies } = useQuery({
+		queryKey: ["academies"],
+		queryFn: getAcademies,
+		staleTime: 5 * 60 * 1000,
+	});
+
+	const search = {
+		key: "search",
+		el: (
+			<Link to="/search" className={LINK_CLASS}>
+				{t("tabs.search")}
+			</Link>
+		),
+	};
+
+	if (academy) {
+		return [
+			{
+				key: "courses",
+				el: (
+					<Link
+						to="/$academy/courses"
+						params={{ academy }}
+						className={LINK_CLASS}
+					>
+						{t("nav.courses")}
+					</Link>
+				),
+			},
+			{
+				key: "paths",
+				el: (
+					<Link
+						to="/$academy/paths"
+						params={{ academy }}
+						className={LINK_CLASS}
+					>
+						{t("footer.learning_paths")}
+					</Link>
+				),
+			},
+			{
+				key: "cohorts",
+				el: (
+					<Link
+						to="/$academy/cohorts"
+						params={{ academy }}
+						className={LINK_CLASS}
+					>
+						{t("nav.cohorts")}
+					</Link>
+				),
+			},
+			search,
+		];
+	}
+
+	return [
+		...(academies ?? []).map((a) => ({
+			key: a.slug,
+			el: (
+				<Link
+					to="/$academy"
+					params={{ academy: a.slug }}
+					className={LINK_CLASS}
+				>
+					{a.name}
+				</Link>
+			),
+		})),
+		search,
+	];
+}
 
 const SOCIALS = [
 	{ href: "https://facebook.com", label: "Facebook", icon: FacebookIcon },
@@ -73,6 +154,8 @@ function SocialLinks() {
 
 export function SiteFooter() {
 	const { t } = useTranslation("common");
+	const academy = useAcademyParam();
+	const learnLinks = useLearnLinks();
 	const year = new Date().getFullYear();
 
 	return (
@@ -90,7 +173,20 @@ export function SiteFooter() {
 						</div>
 					</div>
 
-					{FOOTER_COLUMNS.map((column) => (
+					<div>
+						<h3 className="font-stats font-semibold text-muted-foreground text-xs uppercase tracking-wider">
+							{academy
+								? t("footer.learn")
+								: t("nav.academies", { defaultValue: "Academies" })}
+						</h3>
+						<ul className="mt-4 space-y-3">
+							{learnLinks.map((link) => (
+								<li key={link.key}>{link.el}</li>
+							))}
+						</ul>
+					</div>
+
+					{GLOBAL_COLUMNS.map((column) => (
 						<div key={column.titleKey}>
 							<h3 className="font-stats font-semibold text-muted-foreground text-xs uppercase tracking-wider">
 								{t(column.titleKey)}
@@ -98,10 +194,7 @@ export function SiteFooter() {
 							<ul className="mt-4 space-y-3">
 								{column.links.map((link) => (
 									<li key={link.to}>
-										<Link
-											to={link.to}
-											className="text-muted-foreground text-sm transition-colors hover:text-brand-primary"
-										>
+										<Link to={link.to} className={LINK_CLASS}>
 											{t(link.labelKey)}
 										</Link>
 									</li>
@@ -128,15 +221,26 @@ export function SiteFooter() {
 					<SocialLinks />
 				</div>
 				<nav className="mt-5 flex flex-wrap gap-x-5 gap-y-2">
-					{MOBILE_LINKS.map((link) => (
+					{/* Academy catalogue only when inside an academy; the tab bar's
+					    Academies sheet covers the global case. */}
+					{academy ? (
 						<Link
-							key={link.to}
-							to={link.to}
-							className="text-muted-foreground text-sm transition-colors hover:text-brand-primary"
+							to="/$academy/courses"
+							params={{ academy }}
+							className={LINK_CLASS}
 						>
-							{t(link.labelKey)}
+							{t("nav.courses")}
 						</Link>
-					))}
+					) : null}
+					<Link to="/about" className={LINK_CLASS}>
+						{t("nav.about")}
+					</Link>
+					<Link to="/blog" className={LINK_CLASS}>
+						{t("nav.blog")}
+					</Link>
+					<Link to="/community" className={LINK_CLASS}>
+						{t("nav.community")}
+					</Link>
 				</nav>
 				<div className="mt-6 flex items-center justify-between border-border border-t pt-4">
 					<p className="text-muted-foreground text-xs">

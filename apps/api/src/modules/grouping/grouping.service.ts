@@ -260,7 +260,10 @@ export class GroupingService {
 							heading: copy.heading(ctx),
 							paragraphs: [copy.body(ctx)],
 							cta: "Open my cohort",
-							ctaUrl: `${process.env.FRONTEND_URL ?? "http://localhost:5173"}/learn/groups`,
+							// `/learn/groups` has no route — only `/learn/groups/$groupId`,
+							// and the group id doesn't exist yet when this fires (groups are
+							// planned in memory). Send them to their cohorts instead.
+							ctaUrl: `${process.env.FRONTEND_URL ?? "http://localhost:5173"}/learn/mine`,
 						}),
 					},
 					...(u.phone && u.whatsappOptIn
@@ -269,7 +272,8 @@ export class GroupingService {
 					push: {
 						title: copy.subject(ctx),
 						body: copy.body(ctx),
-						url: "/dashboard",
+						// Match the in-app bell and the email: their cohorts.
+						url: "/learn/mine",
 						tag: "group_reassigned",
 					},
 				});

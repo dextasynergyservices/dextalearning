@@ -38,6 +38,7 @@ function submission(
 		submittedAt: "2026-06-01T10:00:00.000Z",
 		textContent: "Here is my write-up.",
 		urlSubmission: null,
+		codeConfig: null,
 		files: [],
 		projectId: "proj1",
 		projectTitle: "Build a todo app",

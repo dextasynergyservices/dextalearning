@@ -38,6 +38,7 @@ function project(overrides: Partial<ProjectInfo> = {}): ProjectInfo {
 		description: "Ship a working CRUD app.",
 		scope: "course",
 		submissionTypes: ["text_submission", "url_submission"],
+		codeConfig: null,
 		gradingType: "manual",
 		passMark: 70,
 		dueAt: null,

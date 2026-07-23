@@ -174,12 +174,21 @@ export const auth = betterAuth({
 	databaseHooks: {
 		user: {
 			create: {
-				// Self-service sign-up may pick learner or instructor only; admin /
-				// facilitator are granted out-of-band, never self-assigned.
+				// Self-service sign-up may REQUEST instructor, but never receives it:
+				// authoring is a trusted capability (its rich text renders in other
+				// people's browsers), so an instructor request lands as `pending` on
+				// a `learner` account and an admin decides. Admin / facilitator are
+				// granted out-of-band and are never self-assignable.
 				before: async (user) => {
 					const requested = (user as { role?: string }).role;
-					const role = requested === "instructor" ? "instructor" : "learner";
-					return { data: { ...user, role } };
+					const wantsInstructor = requested === "instructor";
+					return {
+						data: {
+							...user,
+							role: "learner",
+							...(wantsInstructor ? { instructorStatus: "pending" } : {}),
+						},
+					};
 				},
 				// OAuth sign-ups arrive already verified (no email step) — welcome
 				// them here; email/password users get it from afterEmailVerification.
@@ -223,6 +232,9 @@ export const auth = betterAuth({
 				input: true,
 			},
 			language: { type: "string", required: false, defaultValue: "en" },
+			// Set by the create hook only (`input: false`) — a client cannot post
+			// itself an "approved" instructor application.
+			instructorStatus: { type: "string", required: false, input: false },
 		},
 	},
 	plugins: [

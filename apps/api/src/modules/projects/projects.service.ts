@@ -143,11 +143,46 @@ export class ProjectsService {
 				title: dto.title,
 				...parent,
 				orderIndex: (last._max.orderIndex ?? 0) + 1,
-				tenantId: user.tenantId ?? null,
+				// Inherits its parent's academy (§2.1) — never independently chosen.
+				tenantId: await this.parentTenantId(parent),
 				createdBy: user.id,
 			},
 		});
 		return this.present(created);
+	}
+
+	private async parentTenantId(parent: ParentRef): Promise<string | null> {
+		if (parent.courseId) {
+			return (
+				(
+					await this.prisma.course.findUnique({
+						where: { id: parent.courseId },
+						select: { tenantId: true },
+					})
+				)?.tenantId ?? null
+			);
+		}
+		if (parent.pathId) {
+			return (
+				(
+					await this.prisma.learningPath.findUnique({
+						where: { id: parent.pathId },
+						select: { tenantId: true },
+					})
+				)?.tenantId ?? null
+			);
+		}
+		if (parent.cohortId) {
+			return (
+				(
+					await this.prisma.cohort.findUnique({
+						where: { id: parent.cohortId },
+						select: { tenantId: true },
+					})
+				)?.tenantId ?? null
+			);
+		}
+		return null;
 	}
 
 	async listForParent(user: AuthenticatedUser, parent: ParentRef) {
@@ -178,7 +213,7 @@ export class ProjectsService {
 		dto: UpdateProjectDto,
 	) {
 		await this.loadOwned(user, id);
-		const { dueAt, rubric, ...rest } = dto;
+		const { dueAt, rubric, codeConfigJson, ...rest } = dto;
 		const updated = await this.prisma.project.update({
 			where: { id },
 			data: {
@@ -188,6 +223,10 @@ export class ProjectsService {
 					: {}),
 				...(rubric !== undefined
 					? { rubricJson: this.normalizeRubric(rubric) }
+					: {}),
+				// Prisma's Json input wants a plain object, not the class instance.
+				...(codeConfigJson !== undefined
+					? { codeConfigJson: { ...codeConfigJson } }
 					: {}),
 			},
 		});
@@ -321,6 +360,11 @@ export class ProjectsService {
 			submittedAt: sub.submittedAt,
 			textContent: sub.textContent,
 			urlSubmission: sub.urlSubmission,
+			// Present when the project accepts code — the grader renders `textContent`
+			// as read-only code in this language.
+			codeConfig: project.submissionTypes.includes("code")
+				? (project.codeConfigJson ?? null)
+				: null,
 			files,
 			projectId: project.id,
 			projectTitle: project.title,

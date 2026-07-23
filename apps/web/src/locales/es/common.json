@@ -51,7 +51,8 @@
 		"about": "Acerca de",
 		"blog": "Blog",
 		"community": "Comunidad",
-		"contact": "Contacto"
+		"contact": "Contacto",
+		"academies": "Academias"
 	},
 	"phoneVerify": {
 		"verifyCta": "Verificar",
@@ -95,7 +96,8 @@
 		"explore": "Explorar",
 		"search": "Buscar",
 		"account": "Cuenta",
-		"more": "Más"
+		"more": "Más",
+		"academies": "Academias"
 	},
 	"tagline": "Aprendizaje que perdura, diseñado para cómo aprenden las personas de verdad.",
 	"theme": {

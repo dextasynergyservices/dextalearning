@@ -24,6 +24,7 @@ function pathDetail(): PathDetail {
 		id: "p1",
 		title: "Full Stack Path",
 		slug: "full-stack",
+		academy: null,
 		status: "draft",
 		level: "beginner",
 		thumbnailKey: null,

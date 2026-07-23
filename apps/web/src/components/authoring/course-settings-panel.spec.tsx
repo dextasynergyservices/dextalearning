@@ -164,6 +164,43 @@ describe("CourseSettingsPanel", () => {
 		expect(toast.success).toHaveBeenCalledWith("Settings saved");
 	});
 
+	it("edits the course name and sends the new title on save", async () => {
+		updateCourseMock.mockResolvedValue(course());
+		const user = userEvent.setup();
+		renderWithProviders(<CourseSettingsPanel course={course()} />);
+
+		// The name field is pre-filled with the current title and editable.
+		const nameField = screen.getByDisplayValue("React Basics");
+		await user.clear(nameField);
+		await user.type(nameField, "React Fundamentals");
+		await user.click(screen.getByRole("button", { name: "Save settings" }));
+
+		await waitFor(() => {
+			expect(updateCourseMock).toHaveBeenCalledWith(
+				"c1",
+				expect.objectContaining({ title: "React Fundamentals" }),
+			);
+		});
+	});
+
+	it("blocks saving a too-short name and never calls the API", async () => {
+		const { toast } = await import("sonner");
+		const user = userEvent.setup();
+		renderWithProviders(<CourseSettingsPanel course={course()} />);
+
+		const nameField = screen.getByDisplayValue("React Basics");
+		await user.clear(nameField);
+		await user.type(nameField, "AB");
+		await user.click(screen.getByRole("button", { name: "Save settings" }));
+
+		await waitFor(() => {
+			expect(toast.error).toHaveBeenCalledWith(
+				"The name must be at least 3 characters.",
+			);
+		});
+		expect(updateCourseMock).not.toHaveBeenCalled();
+	});
+
 	it("uploads a thumbnail and shows a success toast", async () => {
 		const { toast } = await import("sonner");
 		uploadCourseThumbnailMock.mockResolvedValue({

@@ -1,4 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+import { Type } from "class-transformer";
 import {
 	ArrayNotEmpty,
 	IsArray,
@@ -13,11 +14,47 @@ import {
 	MaxLength,
 	Min,
 	MinLength,
+	ValidateNested,
 } from "class-validator";
+import { SanitizeRichText } from "../../../common/sanitize/rich-text.sanitizer";
 
 const LEVELS = ["beginner", "intermediate", "advanced"] as const;
 const LANGS = ["en", "fr", "es", "pcm"] as const;
-const CONTENT_TYPES = ["video", "text", "pdf", "audio"] as const;
+const CONTENT_TYPES = ["video", "text", "pdf", "audio", "code"] as const;
+
+/** Languages a code lesson can target (§9 Tech Academy). JS/TS run in-browser;
+ *  the rest are editor-only for now (see the free-tier execution decision). */
+export const CODE_LANGUAGES = [
+	"javascript",
+	"typescript",
+	"python",
+	"html",
+	"css",
+	"sql",
+	"json",
+	"java",
+	"cpp",
+	"go",
+	"rust",
+	"shell",
+] as const;
+
+/** Config for a `code` lesson — stored on `Lesson.codeConfigJson`. */
+export class CodeConfigDto {
+	@ApiProperty({ enum: CODE_LANGUAGES })
+	@IsIn(CODE_LANGUAGES)
+	language!: (typeof CODE_LANGUAGES)[number];
+
+	@ApiProperty({ description: "The exercise brief shown above the editor." })
+	@IsString()
+	@MaxLength(20_000)
+	instructions!: string;
+
+	@ApiProperty({ description: "Initial editor contents." })
+	@IsString()
+	@MaxLength(50_000)
+	starterCode!: string;
+}
 const CURRENCIES = ["NGN", "USD", "GHS", "KES", "ZAR", "GBP", "EUR"] as const;
 
 export class CreateCourseDto {
@@ -27,10 +64,19 @@ export class CreateCourseDto {
 	@MaxLength(200)
 	title!: string;
 
+	@ApiPropertyOptional({
+		description:
+			"Academy (tenant) slug this course belongs to. Default: teachers.",
+	})
+	@IsOptional()
+	@IsString()
+	academy?: string;
+
 	@ApiPropertyOptional()
 	@IsOptional()
 	@IsString()
 	@MaxLength(5000)
+	@SanitizeRichText()
 	description?: string;
 
 	@ApiPropertyOptional({ enum: LEVELS })
@@ -103,6 +149,7 @@ export class UpdateCourseDto {
 	@IsOptional()
 	@IsString()
 	@MaxLength(5000)
+	@SanitizeRichText()
 	description?: string;
 
 	@ApiPropertyOptional({ enum: LEVELS })
@@ -226,7 +273,17 @@ export class UpdateLessonDto {
 	@IsOptional()
 	@IsString()
 	@MaxLength(200_000)
+	@SanitizeRichText()
 	contentText?: string;
+
+	@ApiPropertyOptional({
+		type: CodeConfigDto,
+		description: "For `code` lessons",
+	})
+	@IsOptional()
+	@ValidateNested()
+	@Type(() => CodeConfigDto)
+	codeConfigJson?: CodeConfigDto;
 
 	@ApiPropertyOptional()
 	@IsOptional()

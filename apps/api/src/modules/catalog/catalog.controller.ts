@@ -6,6 +6,7 @@ import { OptionalSessionGuard } from "../../auth/guards/optional-session.guard";
 import { RolesGuard } from "../../auth/guards/roles.guard";
 import { SessionGuard } from "../../auth/guards/session.guard";
 import type { AuthenticatedUser } from "../../auth/types";
+import { AcademySlug } from "../../common/academy/academy-slug.decorator";
 import { CatalogService } from "./catalog.service";
 
 @ApiTags("catalog")
@@ -17,8 +18,8 @@ export class CatalogController {
 	@ApiOperation({
 		summary: "Featured courses, paths and cohorts for the homepage",
 	})
-	featured() {
-		return this.catalog.getFeatured();
+	featured(@AcademySlug() academy?: string) {
+		return this.catalog.getFeatured(academy);
 	}
 
 	@Get("recommended")
@@ -26,8 +27,11 @@ export class CatalogController {
 	@ApiOperation({
 		summary: "Recommended content (personalised when signed in, else popular)",
 	})
-	recommended(@CurrentUser() user?: AuthenticatedUser) {
-		return this.catalog.getRecommended(user?.id);
+	recommended(
+		@CurrentUser() user?: AuthenticatedUser,
+		@AcademySlug() academy?: string,
+	) {
+		return this.catalog.getRecommended(user?.id, academy);
 	}
 
 	@Get("feature-requests")
@@ -45,8 +49,8 @@ export class CatalogController {
 			"Public browse list of every course in `published` status, newest first. Drafts and archived courses are never returned.",
 	})
 	@ApiOkResponse({ description: "Array of published course summaries." })
-	listCourses() {
-		return this.catalog.listPublishedCourses();
+	listCourses(@AcademySlug() academy?: string) {
+		return this.catalog.listPublishedCourses(academy);
 	}
 
 	@Get("courses/:slug")
@@ -56,8 +60,8 @@ export class CatalogController {
 			"Returns the full curriculum (modules → lessons, in order) for a single published course by slug. Returns 404 if the course does not exist or is not published. Lesson media itself is fetched separately via `GET /lessons/:id/media-token`.",
 	})
 	@ApiOkResponse({ description: "The published course and its curriculum." })
-	getCourse(@Param("slug") slug: string) {
-		return this.catalog.getPublishedCourse(slug);
+	getCourse(@Param("slug") slug: string, @AcademySlug() academy?: string) {
+		return this.catalog.getPublishedCourse(slug, academy);
 	}
 
 	@Get("instructors/:id")
@@ -65,8 +69,8 @@ export class CatalogController {
 		summary: "Public instructor profile + their published courses",
 	})
 	@ApiOkResponse({ description: "Instructor profile and authored courses." })
-	getInstructor(@Param("id") id: string) {
-		return this.catalog.getPublishedInstructor(id);
+	getInstructor(@Param("id") id: string, @AcademySlug() academy?: string) {
+		return this.catalog.getPublishedInstructor(id, academy);
 	}
 
 	@Get("paths")
@@ -76,8 +80,8 @@ export class CatalogController {
 			"Public browse list of every path in `published` status, newest first.",
 	})
 	@ApiOkResponse({ description: "Array of published path summaries." })
-	listPaths() {
-		return this.catalog.listPublishedPaths();
+	listPaths(@AcademySlug() academy?: string) {
+		return this.catalog.listPublishedPaths(academy);
 	}
 
 	@Get("paths/:slug")
@@ -87,8 +91,8 @@ export class CatalogController {
 			"Returns a published path by slug with its ordered courses. Returns 404 if it does not exist or is not published.",
 	})
 	@ApiOkResponse({ description: "The published path and its courses." })
-	getPath(@Param("slug") slug: string) {
-		return this.catalog.getPublishedPath(slug);
+	getPath(@Param("slug") slug: string, @AcademySlug() academy?: string) {
+		return this.catalog.getPublishedPath(slug, academy);
 	}
 
 	@Get("cohorts")
@@ -97,8 +101,8 @@ export class CatalogController {
 		description: "Public list of every cohort in `open` status, by start date.",
 	})
 	@ApiOkResponse({ description: "Array of open cohort summaries." })
-	listCohorts() {
-		return this.catalog.listPublishedCohorts();
+	listCohorts(@AcademySlug() academy?: string) {
+		return this.catalog.listPublishedCohorts(academy);
 	}
 
 	@Get("cohorts/:slug")
@@ -108,8 +112,8 @@ export class CatalogController {
 			"Returns an open cohort by slug with its ordered courses and assigned instructors. Returns 404 if it does not exist or is not open.",
 	})
 	@ApiOkResponse({ description: "The open cohort and its courses." })
-	getCohort(@Param("slug") slug: string) {
-		return this.catalog.getPublishedCohort(slug);
+	getCohort(@Param("slug") slug: string, @AcademySlug() academy?: string) {
+		return this.catalog.getPublishedCohort(slug, academy);
 	}
 
 	@Get("posts")

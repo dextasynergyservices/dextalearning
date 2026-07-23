@@ -72,7 +72,35 @@
 		"learner_title": "Make we personalize your learning",
 		"learner_subtitle": "Small questions so we fit arrange courses, pace and reminders for you.",
 		"instructor_title": "Welcome to the Creator Studio",
-		"instructor_subtitle": "Set up your instructor profile so learners go sabi who dey teach dem."
+		"instructor_subtitle": "Set up your instructor profile so learners go sabi who dey teach dem.",
+		"applicant_title": "Tell us who you be",
+		"applicant_subtitle": "We dey check every instructor application by hand. Na wetin make DextaLearning worth trust."
+	},
+	"applicant": {
+		"welcome_title": "Your application don enter",
+		"welcome_subtitle": "Person dey check am, no be just form. Na dis go happen next.",
+		"points": {
+			"review": "Admin go read your profile and decide — usually within some days.",
+			"notified": "We go email you sharp sharp wen answer land. You no need dey chase am.",
+			"meanwhile": "Your account dey live now, so you fit take courses while you dey wait."
+		},
+		"profile_title": "Wetin we suppose sabi about you?",
+		"profile_subtitle": "Na exactly dis di admin go see wen dem dey review your application, so make e count.",
+		"headline": "Your headline",
+		"bio": "Wetin you wan teach, and wetin qualify you?",
+		"bio_ph": "Talk about your experience, and wetin you wan build here.",
+		"submit": "Submit application",
+		"waiting_title": "Thank you — we go reach you",
+		"waiting_subtitle": "Your application dey with our admins. You go get email once dem decide.",
+		"meanwhile_note": "For now your account dey work like any learner own: browse di catalogue, enrol, and start course today.",
+		"set_up_learning": "Set up my learning",
+		"status_pending_title": "Dem dey review your instructor application",
+		"status_pending_body": "Admin dey check am. We go email you once dem decide — for now, everything here na for you to learn.",
+		"status_approved_title": "You don get approval to teach 🎉",
+		"status_approved_body": "Your Creator Studio don open. Start to build your first course.",
+		"open_studio": "Open studio",
+		"status_rejected_title": "About your instructor application",
+		"status_rejected_body": "We no fit approve am dis time. You still welcome well well as learner — message us if you want more detail."
 	},
 	"whatsapp": {
 		"title": "Study reminders for WhatsApp",

@@ -95,7 +95,11 @@ describe("InstructorPathsRoute", () => {
 		await user.click(screen.getByRole("button", { name: "Create path" }));
 
 		await waitFor(() => {
-			expect(createPathMock).toHaveBeenCalledWith({ title: "Backend Path" });
+			// The create form also carries the chosen academy (§9 multi-academy).
+			expect(createPathMock).toHaveBeenCalledWith({
+				title: "Backend Path",
+				academy: "teachers",
+			});
 		});
 	});
 

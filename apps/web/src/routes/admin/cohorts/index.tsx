@@ -12,6 +12,7 @@ import {
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
+import { AcademySelect } from "@/components/authoring/academy-select";
 import { StudioShell } from "@/components/authoring/studio-shell";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
@@ -49,6 +50,7 @@ function CohortsListPage() {
 	const { t } = useTranslation("authoring");
 	const queryClient = useQueryClient();
 	const [title, setTitle] = useState("");
+	const [academy, setAcademy] = useState("teachers");
 	const [creating, setCreating] = useState(false);
 	const [toDelete, setToDelete] = useState<CohortSummary | null>(null);
 
@@ -58,7 +60,7 @@ function CohortsListPage() {
 	});
 
 	const create = useMutation({
-		mutationFn: () => createCohort({ title: title.trim() }),
+		mutationFn: () => createCohort({ title: title.trim(), academy }),
 		onSuccess: () => {
 			setTitle("");
 			setCreating(false);
@@ -143,6 +145,7 @@ function CohortsListPage() {
 							})}
 							className="h-11 flex-1 rounded-input border border-border px-3.5 text-foreground outline-none focus:border-brand-primary"
 						/>
+						<AcademySelect value={academy} onChange={setAcademy} />
 						<Button
 							type="submit"
 							disabled={title.trim().length < 3 || create.isPending}

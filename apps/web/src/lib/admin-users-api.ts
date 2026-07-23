@@ -74,3 +74,25 @@ export const signOutUserEverywhere = (id: string) =>
 	apiFetch<{ revoked: number }>(`/admin/users/${id}/sign-out`, {
 		method: "POST",
 	});
+
+// ── Instructor applications (§5) ────────────────────────────────────────────
+/** Someone who asked to teach. They are a `learner` until approved — approving
+ *  is what grants the instructor role. */
+export interface InstructorApplication {
+	id: string;
+	email: string;
+	name: string;
+	avatarUrl: string | null;
+	appliedAt: string;
+	headline: string | null;
+	bio: string | null;
+}
+
+export const listInstructorApplications = () =>
+	apiFetch<InstructorApplication[]>("/admin/users/instructor-applications");
+
+export const decideInstructorApplication = (id: string, approve: boolean) =>
+	apiFetch<AdminUserRow>(
+		`/admin/users/instructor-applications/${id}/${approve ? "approve" : "reject"}`,
+		{ method: "POST" },
+	);

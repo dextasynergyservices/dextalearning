@@ -11,24 +11,10 @@
       content="DextaLearning — a behavior-driven Learning Operating System that makes deep, lasting learning the default."
     />
     <title>DextaLearning — Learning that actually sticks</title>
-    <!-- Apply the saved/system theme before first paint to avoid a flash. Kept
-         in sync at runtime by src/lib/theme.ts. -->
-    <script>
-      (() => {
-        try {
-          const t = localStorage.getItem("dexta-theme") || "system";
-          const dark =
-            t === "dark" ||
-            (t === "system" &&
-              window.matchMedia("(prefers-color-scheme: dark)").matches);
-          if (dark) {
-            document.documentElement.classList.add("dark");
-            const m = document.querySelector('meta[name="theme-color"]');
-            if (m) m.setAttribute("content", "#0a0a0a");
-          }
-        } catch (_e) {}
-      })();
-    </script>
+    <!-- Applies the saved/system theme before first paint to avoid a flash.
+         Render-blocking and same-origin on purpose: keeping it out of an inline
+         <script> is what lets the CSP drop `script-src 'unsafe-inline'`. -->
+    <script src="/theme-init.js"></script>
   </head>
   <body>
     <div id="root"></div>

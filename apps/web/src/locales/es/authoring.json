@@ -98,6 +98,15 @@
 			"stripe": "Tarjetas y monederos. Por defecto para las demás monedas."
 		}
 	},
+	"instructors": {
+		"queue_title": "Solicitudes de instructor",
+		"queue_hint": "No pueden crear ni publicar nada hasta que los apruebes.",
+		"queue_empty": "Nadie está esperando. Las nuevas solicitudes aparecerán aquí.",
+		"approve": "Aprobar",
+		"reject": "Rechazar",
+		"approved": "Instructor aprobado",
+		"rejected": "Solicitud rechazada"
+	},
 	"admin_users": {
 		"title": "Usuarios",
 		"subtitle": "Todas las personas de la plataforma. Cambia lo que pueden hacer o suspende su acceso.",
@@ -251,6 +260,7 @@
 		"type_mcq": "Opción múltiple",
 		"type_tf": "Verdadero / Falso",
 		"type_short": "Respuesta corta",
+		"type_code": "Código",
 		"answer": "Respuesta",
 		"edit": "Editar",
 		"ai_added": "{{count}} preguntas añadidas",
@@ -264,6 +274,17 @@
 		"true": "Verdadero",
 		"false": "Falso",
 		"expected_answer": "Respuesta esperada",
+		"code_language": "Lenguaje de código",
+		"code_starter": "Código inicial (opcional)",
+		"code_grading": "Calificación",
+		"code_grading_ai": "Calificada por IA",
+		"code_grading_manual": "Manual",
+		"code_grading_ai_hint": "Se califica automáticamente contra tu solución de referencia cuando el estudiante envía.",
+		"code_grading_manual_hint": "Revisas cada entrega y la calificas tú mismo. El intento se retiene hasta que lo hagas.",
+		"code_notes": "Notas de calificación (opcional)",
+		"code_notes_ph": "Notas opcionales para guiar tu propia calificación más tarde.",
+		"code_reference": "Solución de referencia / comportamiento esperado",
+		"code_reference_ph": "Describe qué debe hacer el código correcto, o pega una solución modelo. La IA califica el código del estudiante en función de esto.",
 		"save_question": "Guardar pregunta",
 		"ai_title": "Generar preguntas con IA",
 		"ai_blurb": "La IA redacta preguntas a partir de las transcripciones de cada lección que elijas — selecciona un módulo o curso entero para repartir las preguntas. Revísalas y edítalas antes de que los estudiantes hagan la evaluación.",
@@ -629,6 +650,7 @@
 		"learner": "Estudiante",
 		"attempt": "Intento {{n}}",
 		"writeup": "Texto",
+		"code": "Código",
 		"ai_draft": "Borrador con IA",
 		"score": "Puntuación",
 		"pass": "Aprobado",
@@ -637,6 +659,13 @@
 		"feedback": "Comentarios",
 		"cancel": "Cancelar",
 		"submit": "Guardar calificación",
+		"code_queue_title": "Esperando tu calificación",
+		"code_queue_hint": "Estos estudiantes enviaron código que elegiste calificar manualmente. Su resultado se retiene hasta que lo califiques.",
+		"code_reference_notes": "Referencia / notas de calificación",
+		"code_correct": "Correcto",
+		"code_incorrect": "Incorrecto",
+		"code_graded": "Intento calificado",
+		"code_submit": "Enviar calificación",
 		"queue_title": "Entregas",
 		"no_subs": "Aún no hay entregas.",
 		"graded_score": "Calificada · {{n}} %",
@@ -866,7 +895,12 @@
 		"timed_import": "Importar sincronización",
 		"timed_parse_error": "No se encontraron segmentos sincronizados. Pega una transcripción .vtt o .srt válida.",
 		"timed_saved": "Transcripción sincronizada guardada",
-		"timed_removed": "Sincronización eliminada"
+		"timed_removed": "Sincronización eliminada",
+		"code_language": "Lenguaje",
+		"code_editor_only_hint": "Hoy solo JavaScript se ejecuta en el navegador; los demás lenguajes son solo editor.",
+		"code_instructions": "Instrucciones del ejercicio",
+		"code_instructions_ph": "Describe la tarea que debe completar el estudiante…",
+		"code_starter": "Código inicial"
 	},
 	"paths": {
 		"title": "Rutas de aprendizaje",
@@ -1005,6 +1039,10 @@
 		"type_file_upload": "Archivo",
 		"type_text_submission": "Texto",
 		"type_url_submission": "Enlace / URL",
+		"type_code": "Código",
+		"code_language": "Lenguaje de código",
+		"code_language_hint": "El lenguaje en el que escriben los estudiantes. Solo JavaScript se ejecuta en la autocomprobación del navegador; los demás son solo de edición.",
+		"code_starter": "Código inicial (opcional)",
 		"type_peer_review": "Revisión por pares",
 		"grading": "Calificación",
 		"grading_manual": "Manual",
@@ -1099,6 +1137,9 @@
 		"remaining_other": "Quedan {{count}} intentos"
 	},
 	"settings": {
+		"name": "Nombre",
+		"name_hint": "El título que los estudiantes ven en el catálogo.",
+		"name_too_short": "El nombre debe tener al menos 3 caracteres.",
 		"title": "Ajustes del curso",
 		"subtitle": "Miniatura, descripción, precio y Earn-Back que se ven en el catálogo.",
 		"thumbnail": "Miniatura",
@@ -1184,6 +1225,8 @@
 		"failed": "No aprobado",
 		"pending": "Entregado — pendiente de calificación.",
 		"your_work": "Tu entrega",
+		"code": "Tu código",
+		"code_hint": "Ejecutar es una autocomprobación: tu calificación la da un revisor, no la ejecución.",
 		"text": "Texto",
 		"url": "Enlace / URL",
 		"files": "Archivos",
@@ -1217,6 +1260,7 @@
 		"start": "Comenzar evaluación",
 		"view_result": "Ver último resultado",
 		"your_answer": "Tu respuesta…",
+		"code_hint": "Ejecutar es una autocomprobación: tu calificación se decide después de enviar.",
 		"answered": "{{a}} de {{n}} respondidas",
 		"submit": "Enviar",
 		"passed": "Aprobado",
@@ -1238,6 +1282,9 @@
 		"reason_locked_out": "Has usado todos tus reintentos por ahora.",
 		"locked_until": "Tus reintentos se reinician el {{when}}",
 		"reason_prerequisites": "Primero termina todas las lecciones y los cuestionarios de módulo.",
+		"reason_awaiting_grading": "Tu último intento está esperando a que lo califique un instructor.",
+		"awaiting_title": "Esperando calificación",
+		"awaiting_body": "Has enviado esta evaluación. Un instructor calificará tu código — tu resultado aparecerá aquí cuando termine.",
 		"camera_unavailable": "Supervisión no disponible",
 		"camera_unavailable_hint": "Tu intento queda registrado como no supervisado.",
 		"offline_banner": "Estás sin conexión — sigue adelante. Tus respuestas están guardadas en este dispositivo y se sincronizarán cuando vuelvas. El cronómetro sigue corriendo.",
@@ -1268,5 +1315,8 @@
 		"audio": "Audio",
 		"pdf": "PDF",
 		"text": "Texto"
+	},
+	"academy": {
+		"label": "Academia"
 	}
 }

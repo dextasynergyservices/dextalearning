@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import { renderWithRouter } from "@/test/render";
+import { renderInAcademy, renderWithRouter } from "@/test/render";
 import { SiteHeader } from "./site-header";
 
 const { useSessionMock } = vi.hoisted(() => ({ useSessionMock: vi.fn() }));
@@ -13,6 +13,10 @@ vi.mock("@/lib/auth-client", async (importOriginal) => {
 
 vi.mock("@/lib/content-api", () => ({
 	getMyProfile: vi.fn().mockResolvedValue({ image: null }),
+	getAcademies: vi.fn().mockResolvedValue([
+		{ slug: "teachers", name: "Teacher Academy" },
+		{ slug: "tech", name: "Tech Academy" },
+	]),
 }));
 
 describe("SiteHeader", () => {
@@ -42,9 +46,9 @@ describe("SiteHeader", () => {
 		).not.toBeInTheDocument();
 	});
 
-	it("renders the primary nav links", async () => {
+	it("renders the academy catalogue nav links inside an academy", async () => {
 		useSessionMock.mockReturnValue({ data: null });
-		renderWithRouter(<SiteHeader />);
+		renderInAcademy(<SiteHeader />);
 		expect(
 			await screen.findByRole("link", { name: "Courses" }),
 		).toBeInTheDocument();

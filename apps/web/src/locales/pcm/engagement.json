@@ -200,6 +200,42 @@
 			"project_submission_received": {
 				"title": "New submission to grade",
 				"body": "{{learnerName}} don submit {{projectTitle}}."
+			},
+			"instructor_application": {
+				"title": "New instructor application",
+				"body": "{{name}} wan teach. Dem no fit publish anything until you approve dem."
+			},
+			"instructor_approved": {
+				"title": "You don get approval to teach 🎉",
+				"body": "Your Creator Studio don open — start to build your first course."
+			},
+			"instructor_rejected": {
+				"title": "About your instructor application",
+				"body": "We no fit approve am dis time. You still welcome well well as learner."
+			},
+			"group_reassigned": {
+				"title": "Your group don change",
+				"body": "You dey {{groupName}} now for {{cohortTitle}}."
+			},
+			"cohort_kickoff": {
+				"title": "{{cohortTitle}} don start",
+				"body": "Your cohort don dey go — open am make you meet your group."
+			},
+			"deadline_soon": {
+				"title": "E go soon due",
+				"body": "{{count}} thing(s) go due for di next few days, starting with {{first}}."
+			},
+			"facilitator_assigned": {
+				"title": "You dey facilitate one cohort",
+				"body": "Dem don assign you as facilitator for {{cohortTitle}}."
+			},
+			"course_published": {
+				"title": "New course don land",
+				"body": "Dem don publish {{title}} for di catalogue."
+			},
+			"integrity_flagged": {
+				"title": "Dem flag one attempt",
+				"body": "{{learnerName}} finish {{assessmentTitle}} with integrity score of {{integrityScore}}/100."
 			}
 		}
 	},

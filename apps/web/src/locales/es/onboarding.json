@@ -72,7 +72,35 @@
 		"learner_title": "Personalicemos tu aprendizaje",
 		"learner_subtitle": "Unas preguntas rápidas para adaptar los cursos, el ritmo y los recordatorios.",
 		"instructor_title": "Bienvenido al Creator Studio",
-		"instructor_subtitle": "Configura tu perfil de instructor para que los estudiantes sepan de quién aprenden."
+		"instructor_subtitle": "Configura tu perfil de instructor para que los estudiantes sepan de quién aprenden.",
+		"applicant_title": "Cuéntanos quién eres",
+		"applicant_subtitle": "Revisamos cada solicitud a mano. Es lo que hace que DextaLearning merezca confianza."
+	},
+	"applicant": {
+		"welcome_title": "Tu solicitud está enviada",
+		"welcome_subtitle": "Enseñar aquí lo revisa una persona, no un formulario. Esto es lo que sigue.",
+		"points": {
+			"review": "Un administrador lee tu perfil y decide, normalmente en un par de días.",
+			"notified": "Te escribiremos en cuanto haya respuesta. No tienes que perseguir nada.",
+			"meanwhile": "Tu cuenta ya está activa: puedes tomar cursos mientras esperas."
+		},
+		"profile_title": "¿Qué deberíamos saber de ti?",
+		"profile_subtitle": "Esto es exactamente lo que ve un administrador al revisar tu solicitud, así que aprovéchalo.",
+		"headline": "Tu titular",
+		"bio": "¿Qué quieres enseñar y qué te cualifica?",
+		"bio_ph": "Cuéntanos tu experiencia y qué te gustaría crear aquí.",
+		"submit": "Enviar solicitud",
+		"waiting_title": "Gracias, te contactaremos",
+		"waiting_subtitle": "Tu solicitud está con nuestros administradores. Recibirás un correo en cuanto se decida.",
+		"meanwhile_note": "Mientras tanto tu cuenta funciona como la de cualquier estudiante: explora el catálogo, inscríbete y empieza un curso hoy.",
+		"set_up_learning": "Configurar mi aprendizaje",
+		"status_pending_title": "Solicitud de instructor en revisión",
+		"status_pending_body": "Un administrador la está revisando. Te escribiremos en cuanto se decida; mientras tanto, todo esto es tuyo para aprender.",
+		"status_approved_title": "Estás aprobado para enseñar 🎉",
+		"status_approved_body": "Tu Creator Studio está abierto. Empieza a crear tu primer curso.",
+		"open_studio": "Abrir estudio",
+		"status_rejected_title": "Sobre tu solicitud de instructor",
+		"status_rejected_body": "No pudimos aprobarla esta vez. Sigues siendo muy bienvenido como estudiante; escríbenos si quieres más detalles."
 	},
 	"whatsapp": {
 		"title": "Recordatorios de estudio en WhatsApp",

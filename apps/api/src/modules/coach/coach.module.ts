@@ -13,6 +13,7 @@ import { CoachService } from "./coach.service";
 @Module({
 	imports: [EngagementModule, NotificationsModule],
 	controllers: [CoachController],
+	exports: [CoachService],
 	providers: [CoachService, CoachScheduler],
 })
 export class CoachModule {}

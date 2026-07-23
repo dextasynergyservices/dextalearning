@@ -24,7 +24,7 @@ import { formatMoney, getPathProgress, getPublicPath } from "@/lib/content-api";
 import { contentLengthLabel } from "@/lib/duration";
 import { cn } from "@/lib/utils";
 
-export const Route = createFileRoute("/teachers/paths/$slug")({
+export const Route = createFileRoute("/paths/$slug")({
 	component: PathDetailPage,
 });
 
@@ -74,7 +74,8 @@ function PathDetailPage() {
 						{t("paths.not_found_body")}
 					</p>
 					<Link
-						to="/teachers/paths"
+						to="/$academy/paths"
+						params={{ academy: "teachers" }}
 						className={cn(
 							buttonVariants({ variant: "outline", size: "md" }),
 							"mt-6",

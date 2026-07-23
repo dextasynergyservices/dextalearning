@@ -187,6 +187,7 @@ function SettingsCard({
 }) {
 	const { t } = useTranslation("authoring");
 	const [form, setForm] = useState({
+		title: cohort.title,
 		description: cohort.description ?? "",
 		startsAt: dateInput(cohort.startsAt),
 		endsAt: dateInput(cohort.endsAt),
@@ -209,8 +210,16 @@ function SettingsCard({
 		setForm((f) => ({ ...f, ...patch }));
 
 	const save = useMutation({
-		mutationFn: () =>
-			updateCohort(cohort.id, {
+		mutationFn: () => {
+			if (form.title.trim().length < 3) {
+				throw new Error(
+					t("settings.name_too_short", {
+						defaultValue: "The name must be at least 3 characters.",
+					}),
+				);
+			}
+			return updateCohort(cohort.id, {
+				title: form.title.trim(),
 				description: form.description.trim() || undefined,
 				isFeatured: form.isFeatured,
 				startsAt: form.startsAt || undefined,
@@ -232,7 +241,8 @@ function SettingsCard({
 				targetGroupSize: Number(form.targetGroupSize) || 5,
 				minGroupSize: Number(form.minGroupSize) || 3,
 				maxGroupSize: Number(form.maxGroupSize) || 8,
-			}),
+			});
+		},
 		onSuccess: () => {
 			onSaved();
 			toast.success(t("settings.saved", { defaultValue: "Settings saved" }));
@@ -262,6 +272,21 @@ function SettingsCard({
 				</h2>
 			</header>
 			<div className="space-y-5 p-4 sm:p-6">
+				<Field
+					label={t("settings.name", { defaultValue: "Cohort name" })}
+					hint={t("settings.name_hint", {
+						defaultValue: "The title learners see on the catalogue.",
+					})}
+				>
+					<input
+						type="text"
+						value={form.title}
+						onChange={(e) => set({ title: e.target.value })}
+						maxLength={200}
+						className="h-11 w-full rounded-input border border-border px-3.5 text-foreground outline-none focus:border-brand-primary"
+					/>
+				</Field>
+
 				<Field
 					label={t("settings.description", { defaultValue: "Description" })}
 				>
@@ -626,6 +651,7 @@ function CourseManager({
 				<InlineCreate
 					kind="course"
 					attaching={add.isPending}
+					academy={cohort.academy ?? undefined}
 					onCreated={(courseId) => add.mutate(courseId)}
 				/>
 			</div>
@@ -742,6 +768,7 @@ function PathManager({
 				<InlineCreate
 					kind="path"
 					attaching={add.isPending}
+					academy={cohort.academy ?? undefined}
 					onCreated={(pathId) => add.mutate(pathId)}
 				/>
 			</div>

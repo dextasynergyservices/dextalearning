@@ -9,6 +9,7 @@ import type { NestExpressApplication } from "@nestjs/platform-express";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 import { toNodeHandler } from "better-auth/node";
 import type { NextFunction, Request, Response } from "express";
+import helmet from "helmet";
 import { pinoHttp } from "pino-http";
 import { RedisIoAdapter } from "./adapters/redis-io.adapter";
 import { AppModule } from "./app.module";
@@ -34,6 +35,18 @@ async function bootstrap() {
 	app.set("trust proxy", 1);
 
 	app.setGlobalPrefix("api/v1");
+	// Baseline security headers (§5): nosniff, frameguard, HSTS, referrer policy.
+	app.use(
+		helmet({
+			// This API returns JSON, not HTML — a CSP here protects nothing and
+			// would break Swagger UI. The SPA's CSP lives at the edge, in
+			// apps/web/vercel.json, which is where an XSS payload would run.
+			contentSecurityPolicy: false,
+			// The SPA calls this API from its own origin, so CORP must not be
+			// same-origin or every cross-origin response would be blocked.
+			crossOriginResourcePolicy: { policy: "cross-origin" },
+		}),
+	);
 	app.enableCors({
 		origin: frontendUrl.split(",").map((origin) => origin.trim()),
 		credentials: true,

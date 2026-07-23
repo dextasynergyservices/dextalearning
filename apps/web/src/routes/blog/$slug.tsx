@@ -205,7 +205,8 @@ function BlogPostPage() {
 							</p>
 						</div>
 						<Link
-							to="/teachers/courses"
+							to="/$academy/courses"
+							params={{ academy: "teachers" }}
 							className="inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-btn bg-brand-accent px-5 font-semibold text-neutral-900 text-sm transition-colors hover:bg-brand-accent-hover"
 						>
 							{t("landing.browse_courses", {

@@ -41,7 +41,12 @@ export class SessionGuard implements CanActivate {
 
 		const account = await this.prisma.user.findUnique({
 			where: { id: data.user.id },
-			select: { suspendedAt: true, suspendedReason: true },
+			// `role` is read here, not taken from the session payload: a role change
+			// (notably approving an instructor application — §8.1.1) must take effect
+			// on the very next request, not whenever the caller's session happens to
+			// refresh. That matters doubly when `secondaryStorage` is on, because the
+			// session — and the role baked into it — is then cached in Redis.
+			select: { suspendedAt: true, suspendedReason: true, role: true },
 		});
 		if (account?.suspendedAt) {
 			throw new ForbiddenException({
@@ -54,7 +59,12 @@ export class SessionGuard implements CanActivate {
 			});
 		}
 
-		request.user = data.user as unknown as AuthenticatedUser;
+		// The database is the authority on the role; everything else about the user
+		// can come from the session.
+		request.user = {
+			...(data.user as unknown as AuthenticatedUser),
+			...(account?.role ? { role: account.role } : {}),
+		};
 		return true;
 	}
 }

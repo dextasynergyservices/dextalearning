@@ -2,6 +2,7 @@ import { ForbiddenException } from "@nestjs/common";
 import { beforeEach, describe, expect, it } from "vitest";
 import type { AuthenticatedUser } from "../../src/auth/types";
 import { PathsService } from "../../src/modules/content/paths.service";
+import { TenantService } from "../../src/modules/tenant/tenant.service";
 import { getTestPrisma } from "./support/db";
 import { createCourse, createUser } from "./support/factories";
 import { FakeStorageAdapter } from "./support/fakes/fake-storage.adapter";
@@ -15,7 +16,11 @@ function asAuthenticatedUser(
 
 describe("PathsService (integration)", () => {
 	const prisma = getTestPrisma();
-	const service = new PathsService(prisma, new FakeStorageAdapter());
+	const service = new PathsService(
+		prisma,
+		new FakeStorageAdapter(),
+		new TenantService(prisma),
+	);
 
 	let ownerId: string;
 	let otherId: string;

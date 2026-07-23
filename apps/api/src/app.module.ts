@@ -30,7 +30,9 @@ import { ProductAnalyticsModule } from "./modules/product-analytics/product-anal
 import { ProjectsModule } from "./modules/projects/projects.module";
 import { RemindersModule } from "./modules/reminders/reminders.module";
 import { SimplifierModule } from "./modules/simplifier/simplifier.module";
+import { SweepsModule } from "./modules/sweeps/sweeps.module";
 import { TeachingModule } from "./modules/teaching/teaching.module";
+import { TenantModule } from "./modules/tenant/tenant.module";
 import { TranslationModule } from "./modules/translation/translation.module";
 import { TutorModule } from "./modules/tutor/tutor.module";
 import { PrismaModule } from "./prisma/prisma.module";
@@ -80,6 +82,7 @@ const schedulerImports =
 		LeaderboardModule,
 		ChatModule,
 		TeachingModule,
+		TenantModule,
 		TutorModule,
 		SimplifierModule,
 		KnowledgeModule,
@@ -93,6 +96,7 @@ const schedulerImports =
 		EngagementModule,
 		NotificationsModule,
 		RemindersModule,
+		SweepsModule,
 		AdminUsersModule,
 		AnalyticsPortModule,
 		ProductAnalyticsModule,

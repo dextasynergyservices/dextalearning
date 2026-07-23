@@ -4,13 +4,21 @@ import type { TranscriptCue } from "./transcript";
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3000/api/v1";
 
 // ── Playback (media-token, §12.6) ──────────────────────────────────────────
+/** A `code` lesson's learner-facing config (§9 Tech Academy). */
+export interface CodeLessonConfig {
+	language: string;
+	instructions: string;
+	starterCode: string;
+}
+
 export interface MediaToken {
-	type: "video" | "audio" | "pdf" | "text";
+	type: "video" | "audio" | "pdf" | "text" | "code";
 	qualities?: Record<string, string>;
 	defaultQuality?: string;
 	audioUrl?: string | null;
 	pages?: string[];
 	contentText?: string | null;
+	code?: CodeLessonConfig;
 	captionUrls?: Record<string, string | null>;
 	transcriptText?: string | null;
 	/** Timed segments for the in-player synced highlight (video/audio only). */
@@ -76,7 +84,7 @@ export interface PublishedCourse extends Commercials {
 export interface PublicLesson {
 	id: string;
 	title: string;
-	contentType: "video" | "text" | "pdf" | "audio" | null;
+	contentType: "video" | "text" | "pdf" | "audio" | "code" | null;
 	orderIndex: number;
 	videoDurationSec: number | null;
 	audioDurationSec: number | null;
@@ -93,10 +101,17 @@ export interface InstructorPublic {
 	expertiseAreas: string[];
 }
 
+/** The academy a public detail page belongs to (for "back to {academy}" nav). */
+export interface AcademyRef {
+	slug: string;
+	name: string;
+}
+
 export interface PublicCourse extends Commercials {
 	id: string;
 	title: string;
 	slug: string;
+	academy: AcademyRef | null;
 	description: string | null;
 	level: string | null;
 	language: string;
@@ -120,11 +135,36 @@ export interface InstructorProfile {
 	cohorts: PublishedCohort[];
 }
 
-export const getInstructor = (id: string) =>
-	apiFetch<InstructorProfile>(`/catalog/instructors/${id}`);
+/** An academy (tenant) — the switcher + academy-landing branding (§2.1). */
+export interface AcademySummary {
+	id: string;
+	slug: string;
+	name: string;
+	branding: Record<string, unknown> | null;
+}
 
-export const getPublishedCourses = () =>
-	apiFetch<PublishedCourse[]>("/catalog/courses");
+export const getAcademies = () => apiFetch<AcademySummary[]>("/academies");
+
+export const getAcademy = (slug: string) =>
+	apiFetch<AcademySummary>(`/academies/${slug}`);
+
+/**
+ * Request init that scopes a catalogue read to one academy via the `x-academy`
+ * header (§2.1 tenant isolation). Omitted (global, cross-academy view) when no
+ * academy is given — used by the homepage and search.
+ */
+function academyInit(academy?: string): RequestInit | undefined {
+	return academy ? { headers: { "x-academy": academy } } : undefined;
+}
+
+export const getInstructor = (id: string, academy?: string) =>
+	apiFetch<InstructorProfile>(
+		`/catalog/instructors/${id}`,
+		academyInit(academy),
+	);
+
+export const getPublishedCourses = (academy?: string) =>
+	apiFetch<PublishedCourse[]>("/catalog/courses", academyInit(academy));
 
 export interface FeaturedCatalog {
 	courses: PublishedCourse[];
@@ -134,10 +174,11 @@ export interface FeaturedCatalog {
 	personalized?: { courses: boolean; paths: boolean; cohorts: boolean };
 }
 
-export const getFeatured = () => apiFetch<FeaturedCatalog>("/catalog/featured");
+export const getFeatured = (academy?: string) =>
+	apiFetch<FeaturedCatalog>("/catalog/featured", academyInit(academy));
 
-export const getRecommended = () =>
-	apiFetch<FeaturedCatalog>("/catalog/recommended");
+export const getRecommended = (academy?: string) =>
+	apiFetch<FeaturedCatalog>("/catalog/recommended", academyInit(academy));
 
 export interface FeatureRequestItem {
 	type: "course" | "path";
@@ -150,8 +191,8 @@ export interface FeatureRequestItem {
 export const getFeatureRequests = () =>
 	apiFetch<FeatureRequestItem[]>("/catalog/feature-requests");
 
-export const getPublicCourse = (slug: string) =>
-	apiFetch<PublicCourse>(`/catalog/courses/${slug}`);
+export const getPublicCourse = (slug: string, academy?: string) =>
+	apiFetch<PublicCourse>(`/catalog/courses/${slug}`, academyInit(academy));
 
 // ── Authoring (courses → modules → lessons) ─────────────────────────────────
 export interface CourseSummary extends Commercials {
@@ -168,7 +209,7 @@ export interface CourseSummary extends Commercials {
 export interface LessonNode {
 	id: string;
 	title: string;
-	contentType: "video" | "text" | "pdf" | "audio" | null;
+	contentType: "video" | "text" | "pdf" | "audio" | "code" | null;
 	orderIndex: number;
 	introForPathId?: string | null;
 	introForCohortId?: string | null;
@@ -182,6 +223,7 @@ export interface LessonNode {
 	audioSizeBytes: number | null;
 	pdfKey: string | null;
 	contentText: string | null;
+	codeConfigJson: CodeLessonConfig | null;
 	minVideoWatchPct?: number | string | null;
 	hasPreQuiz?: boolean;
 	hasPostQuiz?: boolean;
@@ -213,6 +255,8 @@ export const createCourse = (body: {
 	title: string;
 	description?: string;
 	level?: string;
+	/** Academy (tenant) slug this course belongs to. Default: teachers. */
+	academy?: string;
 }) =>
 	apiFetch<CourseSummary>("/courses", {
 		method: "POST",
@@ -426,7 +470,7 @@ export interface PathCourseNode {
  *  fields (to show ready vs empty); publicly only id + contentType. */
 export interface IntroLesson {
 	id: string;
-	contentType: "video" | "text" | "pdf" | "audio" | null;
+	contentType: "video" | "text" | "pdf" | "audio" | "code" | null;
 	videoKeysJson?: unknown;
 	audioKey?: string | null;
 	pdfKey?: string | null;
@@ -434,6 +478,8 @@ export interface IntroLesson {
 }
 
 export interface PathDetail extends PathSummary {
+	/** Academy (tenant) slug — for inline-creating courses into the same academy. */
+	academy: string | null;
 	description: string | null;
 	outcomeStatement: string | null;
 	estimatedDuration: string | null;
@@ -462,6 +508,7 @@ export interface PublicPath extends Commercials {
 	id: string;
 	title: string;
 	slug: string;
+	academy: AcademyRef | null;
 	description: string | null;
 	level: string | null;
 	outcomeStatement: string | null;
@@ -496,6 +543,7 @@ export const createPath = (body: {
 	title: string;
 	description?: string;
 	level?: string;
+	academy?: string;
 }) =>
 	apiFetch<PathSummary>("/paths", {
 		method: "POST",
@@ -552,11 +600,11 @@ export const uploadPathThumbnail = (
 		onProgress,
 	);
 
-export const getPublishedPaths = () =>
-	apiFetch<PublishedPath[]>("/catalog/paths");
+export const getPublishedPaths = (academy?: string) =>
+	apiFetch<PublishedPath[]>("/catalog/paths", academyInit(academy));
 
-export const getPublicPath = (slug: string) =>
-	apiFetch<PublicPath>(`/catalog/paths/${slug}`);
+export const getPublicPath = (slug: string, academy?: string) =>
+	apiFetch<PublicPath>(`/catalog/paths/${slug}`, academyInit(academy));
 
 // ── Cohorts (Admin only — §4.1) ─────────────────────────────────────────────
 export type CohortStatus = "draft" | "open" | "active" | "closed" | null;
@@ -611,6 +659,8 @@ export interface CohortPathNode {
 }
 
 export interface CohortDetail extends CohortSummary {
+	/** Academy (tenant) slug — inline-created content inherits it. */
+	academy: string | null;
 	description: string | null;
 	/** Admin-set Earn-Back window; null falls back to the platform max (§4.11.1). */
 	earnBackDeadlineDays: number | null;
@@ -651,6 +701,7 @@ export interface PublishedCohort {
 }
 
 export interface PublicCohort extends PublishedCohort {
+	academy: AcademyRef | null;
 	examMode: string | null;
 	introLesson: { id: string; contentType: string | null } | null;
 	courses: CohortCourseNode[];
@@ -683,7 +734,11 @@ export interface CohortSettingsInput {
 
 export const listCohorts = () => apiFetch<CohortSummary[]>("/cohorts");
 
-export const createCohort = (body: { title: string; description?: string }) =>
+export const createCohort = (body: {
+	title: string;
+	description?: string;
+	academy?: string;
+}) =>
 	apiFetch<CohortSummary>("/cohorts", {
 		method: "POST",
 		body: JSON.stringify(body),
@@ -752,11 +807,11 @@ export const assignCohortFacilitator = (id: string, userId: string) =>
 export const removeCohortFacilitator = (id: string, userId: string) =>
 	apiFetch(`/cohorts/${id}/facilitators/${userId}`, { method: "DELETE" });
 
-export const getPublishedCohorts = () =>
-	apiFetch<PublishedCohort[]>("/catalog/cohorts");
+export const getPublishedCohorts = (academy?: string) =>
+	apiFetch<PublishedCohort[]>("/catalog/cohorts", academyInit(academy));
 
-export const getPublicCohort = (slug: string) =>
-	apiFetch<PublicCohort>(`/catalog/cohorts/${slug}`);
+export const getPublicCohort = (slug: string, academy?: string) =>
+	apiFetch<PublicCohort>(`/catalog/cohorts/${slug}`, academyInit(academy));
 
 // ── Blog (Admin only) ───────────────────────────────────────────────────────
 export interface BlogPostSummary {
@@ -850,14 +905,24 @@ export type AssessmentScope =
 	| "course_final"
 	| "path_final"
 	| "cohort";
-export type QuestionType = "mcq" | "true_false" | "short_answer";
+export type QuestionType = "mcq" | "true_false" | "short_answer" | "code";
 export type AssessmentGradingType = "auto" | "manual" | "ai_assisted" | "peer";
+
+/** Language + starter code for a code question (§9). `grading` is "manual" when
+ *  an instructor grades it (held on submit), else AI-graded at submit. */
+export interface QuestionCodeConfig {
+	language: string;
+	starterCode?: string;
+	grading?: "ai" | "manual";
+}
 
 export interface QuestionNode {
 	id: string;
 	type: QuestionType | null;
 	body: string;
 	optionsJson: string[] | null;
+	/** Present for a code question; null otherwise. */
+	codeConfig: QuestionCodeConfig | null;
 	correctAnswer: string | null;
 	points: number;
 	orderIndex: number | null;
@@ -947,6 +1012,8 @@ export interface QuestionInput {
 	type: QuestionType;
 	body: string;
 	options?: string[];
+	/** {language, starterCode} for a code question. */
+	codeConfig?: QuestionCodeConfig;
 	correctAnswer?: string;
 	points?: number;
 }
@@ -1054,6 +1121,9 @@ export interface AttemptInfo {
 	/** Post-exhaustion lockout end (§4.4) — after this the allowance resets. */
 	lockedUntil: string | null;
 	lastAttemptId: string | null;
+	/** The attempt held for a manual grade, if any (§9) — `reason` is
+	 *  "awaiting_grading" while set. */
+	pendingGradingAttemptId: string | null;
 }
 
 export interface AttemptQuestion {
@@ -1062,6 +1132,8 @@ export interface AttemptQuestion {
 	body: string;
 	points: number;
 	options: string[] | null;
+	/** {language, starterCode} for a code question; null otherwise. */
+	codeConfig: QuestionCodeConfig | null;
 }
 
 export interface AttemptState {
@@ -1083,6 +1155,7 @@ export interface AttemptReviewItem {
 	type: QuestionType | null;
 	body: string;
 	options: string[] | null;
+	codeConfig: QuestionCodeConfig | null;
 	points: number;
 	yourAnswer: string | null;
 	correctAnswer: string | null;
@@ -1103,6 +1176,9 @@ export interface AttemptResult {
 	/** score − previousBest ("You've grown +X%"); null on attempt 1. */
 	delta: number | null;
 	passed: boolean | null;
+	/** True while submitted but held for an instructor's manual grade (§9): the
+	 *  UI shows "Awaiting grading", not a score/pass. */
+	pendingGrading: boolean;
 	passMark: number;
 	integrityScore: number;
 	flagCount: number;
@@ -1143,6 +1219,46 @@ export const submitAttempt = (
 
 export const getAttemptResult = (attemptId: string) =>
 	apiFetch<AttemptResult>(`/attempts/${attemptId}/result`);
+
+// ── Instructor: manual grading of held code answers (§9) ────────────────────
+export interface PendingManualAnswer {
+	questionId: string;
+	body: string;
+	codeConfig: QuestionCodeConfig | null;
+	answer: string;
+	/** The creator's reference solution / grading notes. */
+	reference: string | null;
+}
+
+export interface PendingManualAttempt {
+	attemptId: string;
+	userName: string | null;
+	userEmail: string | null;
+	submittedAt: string | null;
+	attemptNumber: number;
+	answers: PendingManualAnswer[];
+}
+
+export interface PendingManualQueue {
+	assessmentId: string;
+	title: string | null;
+	attempts: PendingManualAttempt[];
+}
+
+export const getPendingManualAttempts = (assessmentId: string) =>
+	apiFetch<PendingManualQueue>(`/assessments/${assessmentId}/pending-attempts`);
+
+export const gradeManualAttempt = (
+	attemptId: string,
+	body: {
+		verdicts: { questionId: string; correct: boolean }[];
+		feedback?: string;
+	},
+) =>
+	apiFetch<AttemptResult>(`/attempts/${attemptId}/grade-manual`, {
+		method: "POST",
+		body: JSON.stringify(body),
+	});
 
 // ── Read-only translation (§11) ─────────────────────────────────────────────
 export type ContentLang = "en" | "fr" | "es" | "pcm";
@@ -1309,8 +1425,15 @@ export type ProjectSubmissionType =
 	| "file_upload"
 	| "text_submission"
 	| "url_submission"
+	| "code"
 	| "peer_review";
 export type ProjectGradingType = "manual" | "peer_review" | "ai_assisted";
+
+/** Language + starter code for a project that accepts a `code` submission. */
+export interface ProjectCodeConfig {
+	language: string;
+	starterCode?: string;
+}
 
 export interface RubricCriterion {
 	id?: string;
@@ -1337,6 +1460,7 @@ export interface ProjectSummary {
 
 export interface ProjectDetail extends ProjectSummary {
 	rubricJson: RubricCriterion[] | null;
+	codeConfigJson: ProjectCodeConfig | null;
 	allowedFileTypes: string[];
 	maxFileSizeMb: number;
 	peerReviewCount: number;
@@ -1367,6 +1491,7 @@ export interface ProjectSettingsInput {
 	retryLockoutDays?: number | null;
 	dueAt?: string | null;
 	rubric?: RubricCriterion[];
+	codeConfigJson?: ProjectCodeConfig;
 }
 
 export const listProjects = (parent: {
@@ -1425,6 +1550,8 @@ export interface ProjectInfo {
 	description: string | null;
 	scope: ProjectScope;
 	submissionTypes: string[];
+	/** Language + starter code when the project accepts a `code` submission. */
+	codeConfig: ProjectCodeConfig | null;
 	gradingType: ProjectGradingType;
 	passMark: number;
 	dueAt: string | null;
@@ -1486,6 +1613,8 @@ export interface SubmissionForGrading {
 	submittedAt: string | null;
 	textContent: string | null;
 	urlSubmission: string | null;
+	/** Present when the project accepts code — render `textContent` as code. */
+	codeConfig: ProjectCodeConfig | null;
 	files: SubmissionFileRef[];
 	projectId: string;
 	projectTitle: string;
@@ -1853,6 +1982,10 @@ export interface EditableProfile {
 	studyAnchor: string | null;
 	weeklyHours: string | null;
 	timezone: string | null;
+	/** Instructor application state (§8.1.1). Read live from the database, so it
+	 *  is right even when the session still carries a pre-approval snapshot. */
+	instructorStatus: "pending" | "approved" | "rejected" | null;
+	role: string;
 }
 
 export interface UpdateProfilePayload {
@@ -1874,6 +2007,13 @@ export interface UpdateProfilePayload {
 
 export const getMyProfile = () =>
 	apiFetch<EditableProfile>("/onboarding/profile");
+
+/** Files an instructor application for the signed-in user — used to redeem the
+ *  "Join as: Instructor" choice after a Google sign-up (§8.1.1). */
+export const applyAsInstructor = () =>
+	apiFetch<{ instructorPending: boolean }>("/auth/instructor-application", {
+		method: "POST",
+	});
 
 export const updateMyProfile = (payload: UpdateProfilePayload) =>
 	apiFetch<{ ok: true }>("/onboarding/profile", {

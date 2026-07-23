@@ -21,6 +21,7 @@ import { CoachCard } from "@/components/engagement/coach-card";
 import { NextBadgeNudge } from "@/components/engagement/next-badge-nudge";
 import { StreakPanel } from "@/components/engagement/streak-panel";
 import { LearnerShell } from "@/components/layout/learner-shell";
+import { InstructorApplicationStatus } from "@/components/learn/instructor-application-status";
 import { MyLearningCard } from "@/components/learn/my-learning-card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -99,7 +100,7 @@ function DashboardPage() {
 	const firstName = firstNameOf(session?.user.name);
 	const { data: courses, isPending: coursesLoading } = useQuery({
 		queryKey: ["published-courses"],
-		queryFn: getPublishedCourses,
+		queryFn: () => getPublishedCourses(),
 		staleTime: 0,
 		refetchOnMount: "always",
 	});
@@ -128,6 +129,12 @@ function DashboardPage() {
 				animate="show"
 				className="space-y-6 pt-4 lg:space-y-8 lg:pt-7"
 			>
+				{/* Where an instructor application stands — first thing they see,
+				    and self-hiding for everyone who never applied (§8.1.1). */}
+				<motion.div variants={itemMotion}>
+					<InstructorApplicationStatus />
+				</motion.div>
+
 				<motion.section
 					variants={itemMotion}
 					className="rounded-card border border-brand-primary/15 bg-card p-4 shadow-card sm:p-6"

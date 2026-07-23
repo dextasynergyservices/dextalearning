@@ -7,6 +7,7 @@ import {
 } from "@nestjs/common";
 import type { AuthenticatedUser } from "../../auth/types";
 import { PrismaService } from "../../prisma/prisma.service";
+import { NotificationsService } from "../notifications/notifications.service";
 
 /** The roles an Admin may assign. `facilitator` is per-cohort, not global. */
 export const ASSIGNABLE_ROLES = ["learner", "instructor", "admin"] as const;
@@ -122,7 +123,10 @@ function toRow(u: UserRecord): AdminUserRow {
 export class AdminUsersService {
 	private readonly logger = new Logger(AdminUsersService.name);
 
-	constructor(private readonly prisma: PrismaService) {}
+	constructor(
+		private readonly prisma: PrismaService,
+		private readonly notifications: NotificationsService,
+	) {}
 
 	async list(params: {
 		search?: string;
@@ -232,6 +236,106 @@ export class AdminUsersService {
 		this.logger.warn(
 			`Role change by ${actor.email}: ${target.email} ${target.role} → ${role}`,
 		);
+		return this.rowFor(userId);
+	}
+
+	// ── Instructor applications (§5) ─────────────────────────────────────────
+	/**
+	 * Everyone waiting on an instructor decision. They are ordinary `learner`
+	 * accounts until approved, so nothing they can reach is privileged while
+	 * they sit here.
+	 */
+	async listInstructorApplications() {
+		const users = await this.prisma.user.findMany({
+			where: { instructorStatus: "pending" },
+			orderBy: { createdAt: "asc" },
+			select: {
+				id: true,
+				email: true,
+				firstName: true,
+				lastName: true,
+				avatarUrl: true,
+				createdAt: true,
+				headline: true,
+				bio: true,
+			},
+		});
+		return users.map((u) => ({
+			id: u.id,
+			email: u.email,
+			name: `${u.firstName} ${u.lastName}`.trim(),
+			avatarUrl: u.avatarUrl,
+			appliedAt: u.createdAt,
+			headline: u.headline,
+			bio: u.bio,
+		}));
+	}
+
+	/**
+	 * Approve or reject an instructor application. Approval is what actually
+	 * grants the `instructor` role — until this runs the applicant cannot author
+	 * anything, which is the whole point of the gate. Either way the applicant is
+	 * told, and the decision is recorded (who + when) for the audit trail.
+	 */
+	async decideInstructorApplication(
+		actor: AuthenticatedUser,
+		userId: string,
+		approve: boolean,
+	): Promise<AdminUserRow> {
+		const target = await this.prisma.user.findUnique({
+			where: { id: userId },
+			select: {
+				id: true,
+				email: true,
+				role: true,
+				firstName: true,
+				instructorStatus: true,
+			},
+		});
+		if (!target) throw new NotFoundException("User not found");
+		if (target.instructorStatus !== "pending") {
+			throw new BadRequestException(
+				"This user has no instructor application awaiting a decision.",
+			);
+		}
+
+		await this.prisma.user.update({
+			where: { id: userId },
+			data: {
+				instructorStatus: approve ? "approved" : "rejected",
+				instructorDecidedAt: new Date(),
+				instructorDecidedBy: actor.id,
+				// The role is the gate — grant it only on approval.
+				...(approve ? { role: "instructor" as const } : {}),
+			},
+		});
+		this.logger.warn(
+			`Instructor application ${approve ? "approved" : "rejected"} by ${actor.email}: ${target.email}`,
+		);
+
+		await this.notifications.notify(userId, {
+			type: approve ? "instructor_approved" : "instructor_rejected",
+			inApp: true,
+			email: {
+				to: target.email,
+				subject: approve
+					? "You're approved to teach on DextaLearning 🎉"
+					: "About your DextaLearning instructor application",
+				html: approve
+					? `<p>Hi ${target.firstName},</p><p>Your instructor application has been approved — you can now create courses, paths and cohorts. Head to your dashboard to start building.</p>`
+					: `<p>Hi ${target.firstName},</p><p>Thanks for applying to teach on DextaLearning. We're not able to approve your application at this time. You can still learn on the platform, and you're welcome to get in touch if you'd like more detail.</p>`,
+			},
+			...(approve
+				? {
+						push: {
+							title: "You're approved to teach 🎉",
+							body: "You can now create courses on DextaLearning.",
+							url: "/instructor/courses",
+							tag: "instructor-decision",
+						},
+					}
+				: {}),
+		});
 		return this.rowFor(userId);
 	}
 
