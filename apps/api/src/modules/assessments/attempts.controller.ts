@@ -18,6 +18,7 @@ import { SessionGuard } from "../../auth/guards/session.guard";
 import type { AuthenticatedUser } from "../../auth/types";
 import type { UploadFile } from "../media/media.constants";
 import { AttemptsService } from "./attempts.service";
+import { GradeManualDto } from "./dto/assessments.dto";
 import {
 	IngestAntiCheatDto,
 	SaveAnswerDto,
@@ -95,6 +96,30 @@ export class AttemptsController {
 		@Param("attemptId") attemptId: string,
 	) {
 		return this.attempts.getResult(user, attemptId);
+	}
+
+	// ── Instructor grading of held (manual) code answers (§9) ─────────────────
+	@Get("assessments/:id/pending-attempts")
+	@ApiOperation({
+		summary: "Attempts awaiting a manual grade + their held code answers",
+		description: "Owner-or-admin. Feeds the instructor's code-grading queue.",
+	})
+	pending(@CurrentUser() user: AuthenticatedUser, @Param("id") id: string) {
+		return this.attempts.listPendingManual(user, id);
+	}
+
+	@Post("attempts/:attemptId/grade-manual")
+	@ApiOperation({
+		summary: "Grade an attempt's held code answers (recomputes score + pass)",
+		description:
+			"Owner-or-admin. Every held answer needs a verdict; the attempt is then graded and completion/reminders fire as for an auto-graded submit.",
+	})
+	gradeManual(
+		@CurrentUser() user: AuthenticatedUser,
+		@Param("attemptId") attemptId: string,
+		@Body() dto: GradeManualDto,
+	) {
+		return this.attempts.gradeManual(user, attemptId, dto);
 	}
 
 	@Post("attempts/:attemptId/anti-cheat")

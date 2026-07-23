@@ -18,6 +18,9 @@ vi.mock("@/components/onboarding/instructor-onboarding", () => ({
 vi.mock("@/components/onboarding/learner-onboarding", () => ({
 	LearnerOnboarding: () => <div>Learner onboarding flow</div>,
 }));
+vi.mock("@/components/onboarding/instructor-applicant-onboarding", () => ({
+	InstructorApplicantOnboarding: () => <div>Applicant onboarding flow</div>,
+}));
 
 describe("OnboardingPage", () => {
 	it("renders the instructor onboarding flow for an instructor", async () => {
@@ -47,6 +50,36 @@ describe("OnboardingPage", () => {
 		renderRoute("/onboarding");
 		expect(
 			await screen.findByText("Learner onboarding flow"),
+		).toBeInTheDocument();
+	});
+
+	/**
+	 * A pending applicant's role is `learner` until an admin approves (§8.1.1), so
+	 * branching on the role alone silently sent every instructor applicant down
+	 * the learner flow. Route on INTENT instead — this is the regression guard.
+	 */
+	it("renders the applicant flow for a pending instructor, not the learner flow", async () => {
+		useSessionMock.mockReturnValue({
+			data: { user: { role: "learner", instructorStatus: "pending" } },
+			isPending: false,
+		});
+		renderRoute("/onboarding");
+		expect(
+			await screen.findByText("Applicant onboarding flow"),
+		).toBeInTheDocument();
+		expect(
+			screen.queryByText("Learner onboarding flow"),
+		).not.toBeInTheDocument();
+	});
+
+	it("keeps an approved instructor on the studio track", async () => {
+		useSessionMock.mockReturnValue({
+			data: { user: { role: "instructor", instructorStatus: "approved" } },
+			isPending: false,
+		});
+		renderRoute("/onboarding");
+		expect(
+			await screen.findByText("Instructor onboarding flow"),
 		).toBeInTheDocument();
 	});
 });

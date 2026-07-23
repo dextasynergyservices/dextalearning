@@ -98,6 +98,15 @@
 			"stripe": "Cards and wallets. The default for every other currency."
 		}
 	},
+	"instructors": {
+		"queue_title": "Instructor applications",
+		"queue_hint": "They can't create or publish anything until you approve them.",
+		"queue_empty": "No one is waiting. New instructor applications land here.",
+		"approve": "Approve",
+		"reject": "Reject",
+		"approved": "Instructor approved",
+		"rejected": "Application rejected"
+	},
 	"admin_users": {
 		"title": "Users",
 		"subtitle": "Everyone on the platform. Change what someone can do, or suspend access.",
@@ -251,6 +260,7 @@
 		"type_mcq": "Multiple choice",
 		"type_tf": "True / False",
 		"type_short": "Short answer",
+		"type_code": "Code",
 		"answer": "Answer",
 		"edit": "Edit",
 		"ai_added": "Added {{count}} questions",
@@ -264,6 +274,17 @@
 		"true": "True",
 		"false": "False",
 		"expected_answer": "Expected answer",
+		"code_language": "Code language",
+		"code_starter": "Starter code (optional)",
+		"code_grading": "Grading",
+		"code_grading_ai": "AI-graded",
+		"code_grading_manual": "Manual",
+		"code_grading_ai_hint": "Graded automatically against your reference solution when the learner submits.",
+		"code_grading_manual_hint": "You review each submission and grade it yourself. The attempt is held until you do.",
+		"code_notes": "Grading notes (optional)",
+		"code_notes_ph": "Optional notes to guide your own grading later.",
+		"code_reference": "Reference solution / expected behaviour",
+		"code_reference_ph": "Describe what correct code must do, or paste a model solution. The AI grades the learner's code against this.",
 		"save_question": "Save question",
 		"ai_title": "Generate questions with AI",
 		"ai_blurb": "AI drafts questions from the transcripts of every lesson you pick — choose a whole module or course to spread questions across it. Review and edit them before learners take the assessment.",
@@ -629,6 +650,7 @@
 		"learner": "Learner",
 		"attempt": "Attempt {{n}}",
 		"writeup": "Write-up",
+		"code": "Code",
 		"ai_draft": "Draft grade with AI",
 		"score": "Score",
 		"pass": "Pass",
@@ -637,6 +659,13 @@
 		"feedback": "Feedback",
 		"cancel": "Cancel",
 		"submit": "Save grade",
+		"code_queue_title": "Awaiting your grading",
+		"code_queue_hint": "These learners submitted code you chose to grade manually. Their result is held until you grade it.",
+		"code_reference_notes": "Reference / grading notes",
+		"code_correct": "Correct",
+		"code_incorrect": "Incorrect",
+		"code_graded": "Attempt graded",
+		"code_submit": "Submit grade",
 		"queue_title": "Submissions",
 		"no_subs": "No submissions yet.",
 		"graded_score": "Graded · {{n}}%",
@@ -866,7 +895,12 @@
 		"timed_import": "Import timing",
 		"timed_parse_error": "No timed segments found. Paste a valid .vtt or .srt transcript.",
 		"timed_saved": "Synced transcript saved",
-		"timed_removed": "Timing removed"
+		"timed_removed": "Timing removed",
+		"code_language": "Language",
+		"code_editor_only_hint": "Only JavaScript runs in the browser today; other languages are editor-only.",
+		"code_instructions": "Exercise instructions",
+		"code_instructions_ph": "Describe the task the learner should complete…",
+		"code_starter": "Starter code"
 	},
 	"paths": {
 		"title": "Learning Paths",
@@ -1005,6 +1039,10 @@
 		"type_file_upload": "File upload",
 		"type_text_submission": "Text",
 		"type_url_submission": "Link / URL",
+		"type_code": "Code",
+		"code_language": "Code language",
+		"code_language_hint": "The language learners write in. Only JavaScript runs in the in-browser self-check; the rest are editor-only.",
+		"code_starter": "Starter code (optional)",
 		"type_peer_review": "Peer review",
 		"grading": "Grading",
 		"grading_manual": "Manual",
@@ -1099,6 +1137,9 @@
 		"remaining_other": "{{count}} attempts left"
 	},
 	"settings": {
+		"name": "Name",
+		"name_hint": "The title learners see on the catalogue.",
+		"name_too_short": "The name must be at least 3 characters.",
 		"title": "Course settings",
 		"subtitle": "Thumbnail, description, pricing and Earn-Back learners see on the catalogue.",
 		"thumbnail": "Thumbnail",
@@ -1184,6 +1225,8 @@
 		"failed": "Not passed",
 		"pending": "Submitted — awaiting grading.",
 		"your_work": "Your submission",
+		"code": "Your code",
+		"code_hint": "Run is a self-check — your grade comes from a reviewer, not the run.",
 		"text": "Write-up",
 		"url": "Link / URL",
 		"files": "Files",
@@ -1217,6 +1260,7 @@
 		"start": "Start assessment",
 		"view_result": "View last result",
 		"your_answer": "Your answer…",
+		"code_hint": "Run is a self-check — your grade is decided after you submit.",
 		"answered": "{{a}} of {{n}} answered",
 		"submit": "Submit",
 		"passed": "Passed",
@@ -1238,6 +1282,9 @@
 		"reason_locked_out": "You've used all your retakes for now.",
 		"locked_until": "Your retakes reset {{when}}",
 		"reason_prerequisites": "Finish all the lessons and module quizzes first.",
+		"reason_awaiting_grading": "Your last attempt is waiting to be graded by an instructor.",
+		"awaiting_title": "Awaiting grading",
+		"awaiting_body": "You've submitted this assessment. An instructor will grade your code — your result appears here once they're done.",
 		"camera_unavailable": "Monitoring unavailable",
 		"camera_unavailable_hint": "Your attempt is recorded as unmonitored.",
 		"offline_banner": "You're offline — keep going. Your answers are saved on this device and will sync when you're back. The timer keeps running.",
@@ -1268,5 +1315,8 @@
 		"audio": "Audio",
 		"pdf": "PDF",
 		"text": "Text"
+	},
+	"academy": {
+		"label": "Academy"
 	}
 }

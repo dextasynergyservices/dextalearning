@@ -1,4 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+import { Type } from "class-transformer";
 import {
 	ArrayMaxSize,
 	ArrayNotEmpty,
@@ -15,6 +16,7 @@ import {
 	MaxLength,
 	Min,
 	MinLength,
+	ValidateNested,
 } from "class-validator";
 
 export const ASSESSMENT_SCOPES = [
@@ -27,7 +29,25 @@ export const ASSESSMENT_SCOPES = [
 ] as const;
 const ASSESSMENT_TYPES = ["quiz", "assignment", "peer_review"] as const;
 const GRADING_TYPES = ["auto", "manual", "ai_assisted", "peer"] as const;
-const QUESTION_TYPES = ["mcq", "true_false", "short_answer"] as const;
+const QUESTION_TYPES = ["mcq", "true_false", "short_answer", "code"] as const;
+// The AI generator's repertoire — text questions only (no `code`).
+const GENERATED_QUESTION_TYPES = ["mcq", "true_false", "short_answer"] as const;
+// Mirrors the lesson/project code languages (§9). Only `javascript` runs in the
+// learner's in-browser self-check sandbox; the rest are editor-only.
+export const CODE_LANGUAGES = [
+	"javascript",
+	"typescript",
+	"python",
+	"html",
+	"css",
+	"sql",
+	"json",
+	"java",
+	"cpp",
+	"go",
+	"rust",
+	"shell",
+] as const;
 
 export type AssessmentScopeDto = (typeof ASSESSMENT_SCOPES)[number];
 
@@ -201,6 +221,34 @@ export class UpdateAssessmentDto {
 	gradingType?: (typeof GRADING_TYPES)[number];
 }
 
+/** Code-question config: the language the learner writes in and optional starter
+ *  code pre-filled in their editor (§9). Stored in the question's optionsJson. */
+export const CODE_GRADING_MODES = ["ai", "manual"] as const;
+
+export class QuestionCodeConfigDto {
+	@ApiProperty({ enum: CODE_LANGUAGES })
+	@IsIn(CODE_LANGUAGES)
+	language!: (typeof CODE_LANGUAGES)[number];
+
+	@ApiPropertyOptional({
+		description: "Starter code pre-filled in the editor.",
+	})
+	@IsOptional()
+	@IsString()
+	@MaxLength(20000)
+	starterCode?: string;
+
+	@ApiPropertyOptional({
+		enum: CODE_GRADING_MODES,
+		default: "ai",
+		description:
+			"How the code answer is graded: `ai` (against the reference solution, at submit) or `manual` (held for an instructor). Default `ai`.",
+	})
+	@IsOptional()
+	@IsIn(CODE_GRADING_MODES)
+	grading?: (typeof CODE_GRADING_MODES)[number];
+}
+
 export class CreateQuestionDto {
 	@ApiProperty({ enum: QUESTION_TYPES })
 	@IsIn(QUESTION_TYPES)
@@ -221,12 +269,18 @@ export class CreateQuestionDto {
 
 	@ApiPropertyOptional({
 		description:
-			"Correct answer: the option text (MCQ), 'true'/'false', or the expected text (short answer).",
+			"Correct answer: the option text (MCQ), 'true'/'false', the expected text (short answer), or the reference solution / expected behaviour the AI grades code against.",
 	})
 	@IsOptional()
 	@IsString()
-	@MaxLength(2000)
+	@MaxLength(20000)
 	correctAnswer?: string;
+
+	@ApiPropertyOptional({ type: QuestionCodeConfigDto })
+	@IsOptional()
+	@ValidateNested()
+	@Type(() => QuestionCodeConfigDto)
+	codeConfig?: QuestionCodeConfigDto;
 
 	@ApiPropertyOptional({ default: 1 })
 	@IsOptional()
@@ -259,8 +313,14 @@ export class UpdateQuestionDto {
 	@ApiPropertyOptional()
 	@IsOptional()
 	@IsString()
-	@MaxLength(2000)
+	@MaxLength(20000)
 	correctAnswer?: string;
+
+	@ApiPropertyOptional({ type: QuestionCodeConfigDto })
+	@IsOptional()
+	@ValidateNested()
+	@Type(() => QuestionCodeConfigDto)
+	codeConfig?: QuestionCodeConfigDto;
 
 	@ApiPropertyOptional()
 	@IsOptional()
@@ -276,6 +336,35 @@ export class ReorderQuestionsDto {
 	@ArrayNotEmpty()
 	@IsUUID("4", { each: true })
 	questionIds!: string[];
+}
+
+/** One instructor verdict on a manually-graded (code) answer. */
+export class ManualVerdictDto {
+	@IsUUID()
+	questionId!: string;
+
+	@IsBoolean()
+	correct!: boolean;
+}
+
+/** Instructor grades an attempt's pending manual questions (§9). Every pending
+ *  question must be included; the score + pass are recomputed server-side. */
+export class GradeManualDto {
+	@ApiProperty({ type: [ManualVerdictDto] })
+	@IsArray()
+	@ArrayNotEmpty()
+	@ArrayMaxSize(200)
+	@ValidateNested({ each: true })
+	@Type(() => ManualVerdictDto)
+	verdicts!: ManualVerdictDto[];
+
+	@ApiPropertyOptional({
+		description: "Optional feedback shown to the learner.",
+	})
+	@IsOptional()
+	@IsString()
+	@MaxLength(5000)
+	feedback?: string;
 }
 
 export class GenerateQuestionsDto {
@@ -308,9 +397,11 @@ export class GenerateQuestionsDto {
 	@Max(20)
 	count?: number;
 
-	@ApiPropertyOptional({ enum: QUESTION_TYPES, isArray: true })
+	// The AI generator produces text questions only — code questions are authored
+	// by hand (they need a language + reference solution), so `code` is excluded.
+	@ApiPropertyOptional({ enum: GENERATED_QUESTION_TYPES, isArray: true })
 	@IsOptional()
 	@IsArray()
-	@IsIn(QUESTION_TYPES, { each: true })
-	types?: (typeof QUESTION_TYPES)[number][];
+	@IsIn(GENERATED_QUESTION_TYPES, { each: true })
+	types?: (typeof GENERATED_QUESTION_TYPES)[number][];
 }

@@ -97,7 +97,11 @@ describe("InstructorCoursesRoute", () => {
 		await user.click(screen.getByRole("button", { name: "Create course" }));
 
 		await waitFor(() => {
-			expect(createCourseMock).toHaveBeenCalledWith({ title: "Vue Basics" });
+			// The create form also carries the chosen academy (§9 multi-academy).
+			expect(createCourseMock).toHaveBeenCalledWith({
+				title: "Vue Basics",
+				academy: "teachers",
+			});
 		});
 	});
 

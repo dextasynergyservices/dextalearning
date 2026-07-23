@@ -1,4 +1,29 @@
 {
 	"$schema": "https://openapi.vercel.sh/vercel.json",
-	"rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
+	"rewrites": [{ "source": "/(.*)", "destination": "/index.html" }],
+	"headers": [
+		{
+			"source": "/(.*)",
+			"headers": [
+				{
+					"key": "Content-Security-Policy",
+					"value": "default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; media-src 'self' blob: https:; font-src 'self' data: https:; connect-src 'self' https: wss:; worker-src 'self' blob:; child-src 'self' blob:; frame-ancestors 'none'; base-uri 'self'; object-src 'none'; form-action 'self'"
+				},
+				{ "key": "X-Content-Type-Options", "value": "nosniff" },
+				{ "key": "X-Frame-Options", "value": "DENY" },
+				{
+					"key": "Referrer-Policy",
+					"value": "strict-origin-when-cross-origin"
+				},
+				{
+					"key": "Permissions-Policy",
+					"value": "geolocation=(), microphone=(), payment=(), camera=(self)"
+				},
+				{
+					"key": "Strict-Transport-Security",
+					"value": "max-age=31536000; includeSubDomains"
+				}
+			]
+		}
+	]
 }

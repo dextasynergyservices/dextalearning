@@ -161,6 +161,70 @@ export class AssessmentsService {
 		return { [key]: id };
 	}
 
+	/**
+	 * The academy an assessment/project belongs to: its parent's (§2.1). It is
+	 * never independently chosen — everything under a Tech course is Tech.
+	 */
+	private async parentTenantId(parent: ParentRef): Promise<string | null> {
+		if (parent.courseId) {
+			return (
+				(
+					await this.prisma.course.findUnique({
+						where: { id: parent.courseId },
+						select: { tenantId: true },
+					})
+				)?.tenantId ?? null
+			);
+		}
+		if (parent.pathId) {
+			return (
+				(
+					await this.prisma.learningPath.findUnique({
+						where: { id: parent.pathId },
+						select: { tenantId: true },
+					})
+				)?.tenantId ?? null
+			);
+		}
+		if (parent.cohortId) {
+			return (
+				(
+					await this.prisma.cohort.findUnique({
+						where: { id: parent.cohortId },
+						select: { tenantId: true },
+					})
+				)?.tenantId ?? null
+			);
+		}
+		if (parent.moduleId) {
+			return (
+				(
+					await this.prisma.module.findUnique({
+						where: { id: parent.moduleId },
+						select: { course: { select: { tenantId: true } } },
+					})
+				)?.course?.tenantId ?? null
+			);
+		}
+		if (parent.lessonId) {
+			const l = await this.prisma.lesson.findUnique({
+				where: { id: parent.lessonId },
+				select: {
+					module: { select: { course: { select: { tenantId: true } } } },
+					introForPath: { select: { tenantId: true } },
+					introForCohort: { select: { tenantId: true } },
+				},
+			});
+			return (
+				l?.module?.course?.tenantId ??
+				l?.introForPath?.tenantId ??
+				l?.introForCohort?.tenantId ??
+				null
+			);
+		}
+		return null;
+	}
+
 	// ── Assessments ─────────────────────────────────────────────────────────
 	async createAssessment(user: AuthenticatedUser, dto: CreateAssessmentDto) {
 		const parent = this.scopeParent(dto);
@@ -171,7 +235,7 @@ export class AssessmentsService {
 				type: dto.type ?? "quiz",
 				title: dto.title,
 				...parent,
-				tenantId: user.tenantId ?? null,
+				tenantId: await this.parentTenantId(parent),
 				createdBy: user.id,
 			},
 		});
@@ -204,10 +268,24 @@ export class AssessmentsService {
 			where: { id },
 			include: { questions: { orderBy: { orderIndex: "asc" } } },
 		});
+		// Code questions keep {language, starterCode} in optionsJson; surface it as
+		// a typed `codeConfig` and keep `optionsJson` as the MCQ options array only,
+		// so the editor never confuses the two shapes.
+		const questions = (assessment?.questions ?? []).map((q) => {
+			const codeConfig =
+				q.type === "code" && q.optionsJson && !Array.isArray(q.optionsJson)
+					? (q.optionsJson as { language: string; starterCode?: string })
+					: null;
+			return {
+				...q,
+				optionsJson: codeConfig ? null : q.optionsJson,
+				codeConfig,
+			};
+		});
 		// Candidate lessons across the assessment's whole scope, for the AI
 		// generator's multi-select picker (§4.4).
 		const sourceLessons = await this.resolveSourceLessons(owned);
-		return { ...assessment, sourceLessons };
+		return { ...assessment, questions, sourceLessons };
 	}
 
 	/**
@@ -394,7 +472,14 @@ export class AssessmentsService {
 				assessmentId,
 				type: dto.type,
 				body: dto.body,
-				optionsJson: dto.options ?? undefined,
+				// A code question stores its {language, starterCode} in optionsJson;
+				// MCQ stores its options there. They never coexist (type decides).
+				optionsJson:
+					dto.type === "code"
+						? dto.codeConfig
+							? { ...dto.codeConfig }
+							: undefined
+						: (dto.options ?? undefined),
 				correctAnswer: dto.correctAnswer,
 				points: dto.points ?? 1,
 				orderIndex: (last._max.orderIndex ?? 0) + 1,
@@ -420,12 +505,18 @@ export class AssessmentsService {
 		dto: UpdateQuestionDto,
 	) {
 		await this.loadOwnedQuestion(user, questionId);
-		const { options, ...rest } = dto;
+		const { options, codeConfig, ...rest } = dto;
 		return this.prisma.question.update({
 			where: { id: questionId },
 			data: {
 				...rest,
-				...(options !== undefined ? { optionsJson: options } : {}),
+				// Code config and MCQ options share optionsJson; whichever the edit
+				// carries wins (Prisma Json wants a plain object, not the DTO class).
+				...(codeConfig !== undefined
+					? { optionsJson: { ...codeConfig } }
+					: options !== undefined
+						? { optionsJson: options }
+						: {}),
 			},
 		});
 	}

@@ -113,12 +113,22 @@ describe("AnalyticsOverviewPage (instructor)", () => {
 		renderRoute("/instructor/analytics");
 
 		await screen.findByTestId("entity-analytics-list");
-		await user.click(
-			screen.getAllByRole("button", { name: /React Basics/ })[0],
-		);
-		// The detail route mounts (its own query fires); the back-link is unique to it.
+		// findAll, not getAll: the list container can render a tick before its rows
+		// do, and a synchronous get throws instead of waiting for them — which is
+		// what made this flake under full-suite parallel load.
+		const rows = await screen.findAllByRole("button", {
+			name: /React Basics/,
+		});
+		await user.click(rows[0]);
+		// The detail route mounts (its own query fires); the back-link is unique to
+		// it. This waits on a route transition AND a fetch, which under the full
+		// suite's parallel load can exceed the 1s default — hence the headroom.
 		expect(
-			await screen.findByRole("link", { name: /Back to analytics/i }),
+			await screen.findByRole(
+				"link",
+				{ name: /Back to analytics/i },
+				{ timeout: 5000 },
+			),
 		).toBeInTheDocument();
 	});
 });

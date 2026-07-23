@@ -16,17 +16,51 @@ import {
 	MinLength,
 	ValidateNested,
 } from "class-validator";
+import { SanitizeRichText } from "../../../common/sanitize/rich-text.sanitizer";
 
 export const PROJECT_SCOPES = ["course", "path", "cohort"] as const;
 export const SUBMISSION_TYPES = [
 	"file_upload",
 	"text_submission",
 	"url_submission",
+	"code",
 	"peer_review",
 ] as const;
 const GRADING_TYPES = ["manual", "peer_review", "ai_assisted"] as const;
+// Mirrors the lesson code editor's languages (§9). Only `javascript` runs in the
+// browser sandbox for self-checks; the rest are editor-only.
+export const CODE_LANGUAGES = [
+	"javascript",
+	"typescript",
+	"python",
+	"html",
+	"css",
+	"sql",
+	"json",
+	"java",
+	"cpp",
+	"go",
+	"rust",
+	"shell",
+] as const;
 
 export type ProjectScopeDto = (typeof PROJECT_SCOPES)[number];
+
+/** Code-submission config on a project: the language the learner writes in and
+ *  optional starter code pre-filled in their editor. */
+export class ProjectCodeConfigDto {
+	@ApiProperty({ enum: CODE_LANGUAGES })
+	@IsIn(CODE_LANGUAGES)
+	language!: (typeof CODE_LANGUAGES)[number];
+
+	@ApiPropertyOptional({
+		description: "Starter code pre-filled in the editor.",
+	})
+	@IsOptional()
+	@IsString()
+	@MaxLength(20000)
+	starterCode?: string;
+}
 
 export class RubricCriterionDto {
 	@ApiPropertyOptional()
@@ -51,6 +85,7 @@ export class RubricCriterionDto {
 	@IsOptional()
 	@IsString()
 	@MaxLength(500)
+	@SanitizeRichText()
 	description?: string;
 }
 
@@ -92,6 +127,7 @@ export class UpdateProjectDto {
 	@IsOptional()
 	@IsString()
 	@MaxLength(5000)
+	@SanitizeRichText()
 	description?: string;
 
 	@ApiPropertyOptional({ enum: SUBMISSION_TYPES, isArray: true })
@@ -177,4 +213,10 @@ export class UpdateProjectDto {
 	@ValidateNested({ each: true })
 	@Type(() => RubricCriterionDto)
 	rubric?: RubricCriterionDto[];
+
+	@ApiPropertyOptional({ type: ProjectCodeConfigDto })
+	@IsOptional()
+	@ValidateNested()
+	@Type(() => ProjectCodeConfigDto)
+	codeConfigJson?: ProjectCodeConfigDto;
 }

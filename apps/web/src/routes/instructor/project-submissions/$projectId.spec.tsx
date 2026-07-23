@@ -58,6 +58,7 @@ function submissionForGrading(): SubmissionForGrading {
 		submittedAt: new Date().toISOString(),
 		textContent: "Here is my write-up.",
 		urlSubmission: null,
+		codeConfig: null,
 		files: [],
 		projectId: "proj1",
 		projectTitle: "Build a todo app",

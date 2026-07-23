@@ -50,6 +50,7 @@ export function CourseSettingsPanel({ course }: { course: CourseDetail }) {
 	const fileRef = useRef<HTMLInputElement>(null);
 
 	const [thumbUrl, setThumbUrl] = useState(course.thumbnailUrl);
+	const [title, setTitle] = useState(course.title);
 	const [description, setDescription] = useState(course.description ?? "");
 	const [level, setLevel] = useState(course.level ?? "");
 	const [language, setLanguage] = useState(course.language ?? "en");
@@ -82,8 +83,16 @@ export function CourseSettingsPanel({ course }: { course: CourseDetail }) {
 	});
 
 	const save = useMutation({
-		mutationFn: () =>
-			updateCourse(course.id, {
+		mutationFn: () => {
+			if (title.trim().length < 3) {
+				throw new Error(
+					t("settings.name_too_short", {
+						defaultValue: "The name must be at least 3 characters.",
+					}),
+				);
+			}
+			return updateCourse(course.id, {
+				title: title.trim(),
 				description: isBlankHtml(description) ? undefined : description,
 				level: level || undefined,
 				language,
@@ -96,7 +105,8 @@ export function CourseSettingsPanel({ course }: { course: CourseDetail }) {
 					!isFree && earnBack ? Number(pct) || 100 : undefined,
 				earnBackDeadlineDays:
 					!isFree && earnBack ? Number(deadline) || 30 : undefined,
-			}),
+			});
+		},
 		onSuccess: () => {
 			invalidate();
 			toast.success(t("settings.saved", { defaultValue: "Settings saved" }));
@@ -215,6 +225,21 @@ export function CourseSettingsPanel({ course }: { course: CourseDetail }) {
 
 				{/* Fields */}
 				<div className="space-y-5">
+					<Field
+						label={t("settings.name", { defaultValue: "Course name" })}
+						hint={t("settings.name_hint", {
+							defaultValue: "The title learners see on the catalogue.",
+						})}
+					>
+						<input
+							type="text"
+							value={title}
+							onChange={(e) => setTitle(e.target.value)}
+							maxLength={200}
+							className="h-11 w-full rounded-input border border-border px-3.5 text-foreground outline-none focus:border-brand-primary"
+						/>
+					</Field>
+
 					<Field
 						label={t("settings.description", { defaultValue: "Description" })}
 					>

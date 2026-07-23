@@ -190,5 +190,28 @@
 		},
 		"earnback_hint_learner_deadline": "You'll set your own deadline — up to {{max}} days — right after payment. Finish by it and we send the refundable {{amount}} back to your card.",
 		"skip_deadline": "Skip for now"
+	},
+	"not_found": {
+		"title": "Academy not found",
+		"body": "This academy doesn't exist. Check the address or head back home."
+	},
+	"academies": {
+		"tech": {
+			"headline": "Build real-world software",
+			"subtitle": "Learn to code the way engineers actually work — hands-on, project-first, with the science that makes it stick."
+		}
+	},
+	"code": {
+		"run": "Run",
+		"output": "Output",
+		"no_output": "(no output)",
+		"editor_only": "Editor only",
+		"completed": "Completed",
+		"mark_complete": "Mark exercise complete",
+		"run_first": "Run your code first"
+	},
+	"play": {
+		"code_done": "Exercise complete",
+		"code_to_complete": "Finish the exercise and mark it complete above."
 	}
 }

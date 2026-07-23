@@ -26,6 +26,7 @@ function projectDetail(): ProjectDetail {
 		title: "Build a todo app",
 		description: null,
 		submissionTypes: ["file_upload"],
+		codeConfigJson: null,
 		gradingType: "manual",
 		passMark: 70,
 		dueAt: null,

@@ -97,7 +97,11 @@ describe("CohortsListPage", () => {
 		await user.click(screen.getByRole("button", { name: "Create cohort" }));
 
 		await waitFor(() => {
-			expect(createCohortMock).toHaveBeenCalledWith({ title: "March Cohort" });
+			// The create form also carries the chosen academy (§9 multi-academy).
+			expect(createCohortMock).toHaveBeenCalledWith({
+				title: "March Cohort",
+				academy: "teachers",
+			});
 		});
 	});
 

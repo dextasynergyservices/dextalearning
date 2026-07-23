@@ -368,8 +368,9 @@ export class GeminiAdapter implements AiPort {
 	async gradeShortAnswers(items: ShortAnswerGrade[]): Promise<boolean[]> {
 		if (items.length === 0) return [];
 		const prompt = [
-			"You are grading short-answer responses. For EACH item, decide whether the learner's answer is correct — i.e. it matches the expected answer in MEANING.",
-			"Accept answers in ANY language; accept reasonable paraphrases, synonyms, and minor spelling/case differences. Reject blank, off-topic, or factually different answers.",
+			"You are grading learner responses. For EACH item, decide whether the learner's answer is correct.",
+			"For a text item: it is correct if it matches the expected answer in MEANING. Accept answers in ANY language; accept reasonable paraphrases, synonyms, and minor spelling/case differences. Reject blank, off-topic, or factually different answers.",
+			"For a CODE item (one with a `language` field): the answer is source code. It is correct if it correctly solves the task in the question and is consistent with the expected solution/behaviour. Judge the logic, not exact text; ignore formatting, comments and variable names. Reject blank, non-compiling, or incorrect code.",
 			"Return a JSON array of booleans in the SAME order and length — one per item.",
 			"",
 			JSON.stringify(
@@ -378,6 +379,7 @@ export class GeminiAdapter implements AiPort {
 					question: it.question,
 					expected: it.expected,
 					answer: it.given,
+					...(it.language ? { language: it.language } : {}),
 				})),
 			),
 		].join("\n");

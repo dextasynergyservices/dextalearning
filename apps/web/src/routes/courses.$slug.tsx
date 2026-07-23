@@ -150,7 +150,8 @@ function CoursePage() {
 								{t("detail.not_found_body")}
 							</p>
 							<Link
-								to="/teachers/courses"
+								to="/$academy/courses"
+								params={{ academy: "teachers" }}
 								className={cn(
 									buttonVariants({ variant: "primary", size: "md" }),
 									"mt-4",

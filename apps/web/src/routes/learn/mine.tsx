@@ -80,7 +80,8 @@ function MyLearningPage() {
 						})}
 						action={
 							<Link
-								to="/teachers/courses"
+								to="/$academy/courses"
+								params={{ academy: "teachers" }}
 								className={cn(buttonVariants({ variant: "primary" }))}
 							>
 								<Compass className="size-4" />

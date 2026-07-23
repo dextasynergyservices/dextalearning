@@ -2,6 +2,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
 	createMemoryHistory,
 	createRootRoute,
+	createRoute,
 	createRouter,
 	RouterProvider,
 } from "@tanstack/react-router";
@@ -51,6 +52,27 @@ export function renderWithRouter(ui: ReactElement) {
 	const router = createRouter({
 		routeTree: rootRoute,
 		history: createMemoryHistory(),
+	});
+	return render(<RouterProvider router={router} />);
+}
+
+/**
+ * Like `renderWithRouter`, but mounts the component under a `/$academy` route so
+ * `useParams({ strict: false })` resolves an `academy` slug — i.e. the "inside
+ * an academy" context that academy-aware chrome (header, footer, tab bar) keys
+ * off. Without this, those components see no param and render their global
+ * (academies-menu) branch instead of the catalogue nav.
+ */
+export function renderInAcademy(ui: ReactElement, academy = "teachers") {
+	const rootRoute = createRootRoute();
+	const academyRoute = createRoute({
+		getParentRoute: () => rootRoute,
+		path: "$academy",
+		component: () => withCommonProviders(ui),
+	});
+	const router = createRouter({
+		routeTree: rootRoute.addChildren([academyRoute]),
+		history: createMemoryHistory({ initialEntries: [`/${academy}`] }),
 	});
 	return render(<RouterProvider router={router} />);
 }

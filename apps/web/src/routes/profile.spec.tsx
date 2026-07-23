@@ -50,6 +50,8 @@ function profile(overrides: Partial<EditableProfile> = {}): EditableProfile {
 		studyAnchor: null,
 		weeklyHours: null,
 		timezone: null,
+		instructorStatus: null,
+		role: "learner",
 		...overrides,
 	};
 }

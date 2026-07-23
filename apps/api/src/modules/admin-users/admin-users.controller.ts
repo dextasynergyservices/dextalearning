@@ -48,6 +48,41 @@ export class AdminUsersController {
 		});
 	}
 
+	// ── Instructor applications (§5) ─────────────────────────────────────────
+	// Declared before `:id/…` routes so "instructor-applications" is never
+	// swallowed as a user id.
+	@Get("instructor-applications")
+	@ApiOperation({
+		summary: "Instructor applications awaiting a decision",
+		description:
+			"Self-service sign-up can request `instructor`, but the role is only granted here — applicants stay learners until approved.",
+	})
+	instructorApplications() {
+		return this.users.listInstructorApplications();
+	}
+
+	@Post("instructor-applications/:id/approve")
+	@ApiOperation({
+		summary: "Approve an instructor application (grants the role)",
+	})
+	approveInstructor(
+		@CurrentUser() actor: AuthenticatedUser,
+		@Param("id") id: string,
+	) {
+		return this.users.decideInstructorApplication(actor, id, true);
+	}
+
+	@Post("instructor-applications/:id/reject")
+	@ApiOperation({
+		summary: "Reject an instructor application (stays a learner)",
+	})
+	rejectInstructor(
+		@CurrentUser() actor: AuthenticatedUser,
+		@Param("id") id: string,
+	) {
+		return this.users.decideInstructorApplication(actor, id, false);
+	}
+
 	@Patch(":id/role")
 	@ApiOperation({ summary: "Change a user's global role" })
 	setRole(

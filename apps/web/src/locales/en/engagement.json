@@ -200,6 +200,42 @@
 			"project_submission_received": {
 				"title": "New submission to grade",
 				"body": "{{learnerName}} submitted {{projectTitle}}."
+			},
+			"instructor_application": {
+				"title": "New instructor application",
+				"body": "{{name}} applied to teach. They can't publish anything until you approve them."
+			},
+			"instructor_approved": {
+				"title": "You're approved to teach 🎉",
+				"body": "Your Creator Studio is open — start building your first course."
+			},
+			"instructor_rejected": {
+				"title": "About your instructor application",
+				"body": "We couldn't approve it this time. You're still very welcome here as a learner."
+			},
+			"group_reassigned": {
+				"title": "Your group changed",
+				"body": "You're now in {{groupName}} for {{cohortTitle}}."
+			},
+			"cohort_kickoff": {
+				"title": "{{cohortTitle}} has started",
+				"body": "Your cohort is under way — open it to meet your group and start."
+			},
+			"deadline_soon": {
+				"title": "Due soon",
+				"body": "{{count}} thing(s) are due in the next few days, starting with {{first}}."
+			},
+			"facilitator_assigned": {
+				"title": "You're facilitating a cohort",
+				"body": "You've been assigned as a facilitator for {{cohortTitle}}."
+			},
+			"course_published": {
+				"title": "New course live",
+				"body": "{{title}} has just been published to the catalogue."
+			},
+			"integrity_flagged": {
+				"title": "Attempt flagged for review",
+				"body": "{{learnerName}} finished {{assessmentTitle}} with an integrity score of {{integrityScore}}/100."
 			}
 		}
 	},

@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, getRouteApi, Link } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import {
 	ArrowRight,
@@ -18,25 +18,38 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useReveal } from "@/hooks/use-reveal";
 import { getPublishedCourses } from "@/lib/content-api";
 
-export const Route = createFileRoute("/teachers/")({
-	component: TeacherAcademyPage,
+export const Route = createFileRoute("/$academy/")({
+	component: AcademyLandingPage,
 });
+
+const academyRoute = getRouteApi("/$academy");
 
 const PILLARS: {
 	key: "courses" | "paths" | "cohorts";
-	to: string;
+	to: "/$academy/courses" | "/$academy/paths" | "/$academy/cohorts";
 	icon: ComponentType<{ className?: string }>;
 }[] = [
-	{ key: "courses", to: "/teachers/courses", icon: BookOpen },
-	{ key: "paths", to: "/teachers/paths", icon: Waypoints },
-	{ key: "cohorts", to: "/teachers/cohorts", icon: Users },
+	{ key: "courses", to: "/$academy/courses", icon: BookOpen },
+	{ key: "paths", to: "/$academy/paths", icon: Waypoints },
+	{ key: "cohorts", to: "/$academy/cohorts", icon: Users },
 ];
 
-function TeacherAcademyPage() {
+function AcademyLandingPage() {
 	const { t } = useTranslation("academy");
+	const { academy } = Route.useParams();
+	const { academy: summary } = academyRoute.useLoaderData();
+	// Per-academy hero copy lives in i18n (localised ×4), falling back to the
+	// generic academy copy; the accent comes from the academy's branding.
+	const accent = (summary.branding as { accent?: string } | null)?.accent;
+	const headline = t(`academies.${academy}.headline`, {
+		defaultValue: t("landing.title"),
+	});
+	const subtitle = t(`academies.${academy}.subtitle`, {
+		defaultValue: t("landing.subtitle"),
+	});
 	const { data: courses, isPending } = useQuery({
-		queryKey: ["published-courses"],
-		queryFn: getPublishedCourses,
+		queryKey: ["published-courses", academy],
+		queryFn: () => getPublishedCourses(academy),
 	});
 	const featured = (courses ?? []).slice(0, 4);
 	const pillarsRef = useReveal<HTMLElement>();
@@ -51,9 +64,10 @@ function TeacherAcademyPage() {
 						initial={{ opacity: 0, y: 12 }}
 						animate={{ opacity: 1, y: 0 }}
 						transition={{ duration: 0.5 }}
+						style={accent ? { color: accent } : undefined}
 						className="badge-earnback mb-6 bg-white/10 text-brand-accent"
 					>
-						<GraduationCap className="mr-1.5 size-3.5" /> {t("landing.badge")}
+						<GraduationCap className="mr-1.5 size-3.5" /> {summary.name}
 					</motion.span>
 					<motion.h1
 						initial={{ opacity: 0, y: 20 }}
@@ -61,7 +75,7 @@ function TeacherAcademyPage() {
 						transition={{ duration: 0.6, delay: 0.05 }}
 						className="font-display text-3xl leading-[1.1] tracking-tight sm:text-5xl lg:text-6xl"
 					>
-						{t("landing.title")}
+						{headline}
 					</motion.h1>
 					<motion.p
 						initial={{ opacity: 0, y: 20 }}
@@ -69,7 +83,7 @@ function TeacherAcademyPage() {
 						transition={{ duration: 0.6, delay: 0.15 }}
 						className="mx-auto mt-5 max-w-2xl text-base text-muted-foreground sm:text-lg"
 					>
-						{t("landing.subtitle")}
+						{subtitle}
 					</motion.p>
 					<motion.div
 						initial={{ opacity: 0, y: 20 }}
@@ -78,13 +92,15 @@ function TeacherAcademyPage() {
 						className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row"
 					>
 						<Link
-							to="/teachers/courses"
+							to="/$academy/courses"
+							params={{ academy }}
 							className={buttonVariants({ variant: "accent", size: "lg" })}
 						>
 							{t("landing.browse_courses")} <ArrowRight className="size-4" />
 						</Link>
 						<Link
-							to="/teachers/paths"
+							to="/$academy/paths"
+							params={{ academy }}
 							className={buttonVariants({ variant: "white", size: "lg" })}
 						>
 							{t("landing.view_paths")}
@@ -109,6 +125,7 @@ function TeacherAcademyPage() {
 						<Link
 							key={key}
 							to={to}
+							params={{ academy }}
 							data-reveal={idx % 2 === 0 ? "left" : "right"}
 							className="group rounded-card border border-border bg-card p-6 shadow-card transition-all hover:-translate-y-1 hover:border-brand-primary/30 hover:shadow-card-hover active:scale-[0.99]"
 						>
@@ -140,7 +157,8 @@ function TeacherAcademyPage() {
 							{t("landing.featured")}
 						</h2>
 						<Link
-							to="/teachers/courses"
+							to="/$academy/courses"
+							params={{ academy }}
 							data-reveal
 							className="inline-flex items-center gap-1 text-sm font-semibold text-brand-primary hover:gap-2"
 						>

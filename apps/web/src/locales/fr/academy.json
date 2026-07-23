@@ -190,5 +190,28 @@
 		},
 		"earnback_hint_learner_deadline": "Vous fixerez votre propre échéance — jusqu'à {{max}} jours — juste après le paiement. Terminez avant et nous renvoyons les {{amount}} remboursables sur votre carte.",
 		"skip_deadline": "Plus tard"
+	},
+	"not_found": {
+		"title": "Académie introuvable",
+		"body": "Cette académie n'existe pas. Vérifiez l'adresse ou revenez à l'accueil."
+	},
+	"academies": {
+		"tech": {
+			"headline": "Créez de vrais logiciels",
+			"subtitle": "Apprenez à coder comme les ingénieurs travaillent vraiment — pratique, axé projet, avec la science qui ancre les acquis."
+		}
+	},
+	"code": {
+		"run": "Exécuter",
+		"output": "Sortie",
+		"no_output": "(aucune sortie)",
+		"editor_only": "Éditeur seulement",
+		"completed": "Terminé",
+		"mark_complete": "Marquer l’exercice terminé",
+		"run_first": "Exécutez d’abord votre code"
+	},
+	"play": {
+		"code_done": "Exercice terminé",
+		"code_to_complete": "Terminez l’exercice et marquez-le comme terminé ci-dessus."
 	}
 }

@@ -39,6 +39,7 @@ function projectDetail(overrides: Partial<ProjectDetail> = {}): ProjectDetail {
 		title: "Build a todo app",
 		description: "Ship a working CRUD app.",
 		submissionTypes: ["file_upload"],
+		codeConfigJson: null,
 		gradingType: "manual",
 		passMark: 70,
 		dueAt: null,

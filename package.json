@@ -19,10 +19,10 @@
 		"test:cov": "turbo run test:cov"
 	},
 	"devDependencies": {
-		"@biomejs/biome": "^2.5.0",
-		"lefthook": "^2.1.9",
-		"prettier": "^3.7.4",
-		"turbo": "^2.9.18",
+		"@biomejs/biome": "^2.5.5",
+		"lefthook": "^2.1.10",
+		"prettier": "^3.9.6",
+		"turbo": "^2.10.5",
 		"typescript": "5.9.2"
 	},
 	"engines": {
@@ -33,6 +33,11 @@
 		"apps/*",
 		"packages/*"
 	],
+	"overrides": {
+		"//": "Security pins for transitive deps we don't declare directly. Drop each once the parent ships a release that already requires the fixed version. multer arrives via @nestjs/platform-express and handles every upload we accept (GHSA-72gw-mp4g-v24j, DoS). form-data arrives via axios and builds our outbound multipart requests (GHSA-hmw2-7cc7-3qxx, CRLF injection).",
+		"multer": "^2.2.0",
+		"form-data": "^4.0.6"
+	},
 	"trustedDependencies": [
 		"ffmpeg-static",
 		"ffprobe-static",

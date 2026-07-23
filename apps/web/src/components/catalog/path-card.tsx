@@ -12,7 +12,7 @@ export function PathCard({ path }: { path: SamplePath }) {
 
 	return (
 		<Link
-			to="/teachers/paths/$slug"
+			to="/paths/$slug"
 			params={{ slug: path.slug }}
 			className="group flex flex-col overflow-hidden rounded-card border border-slate-200 bg-white shadow-card transition-all hover:-translate-y-1 hover:shadow-card-hover active:scale-[0.99]"
 		>

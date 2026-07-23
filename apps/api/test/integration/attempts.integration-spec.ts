@@ -8,6 +8,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 import type { AuthenticatedUser } from "../../src/auth/types";
 import { AttemptsService } from "../../src/modules/assessments/attempts.service";
 import { CompletionService } from "../../src/modules/completion/completion.service";
+import type { NotificationsService } from "../../src/modules/notifications/notifications.service";
 import { LearningEvents } from "../../src/shared/events/learning-events";
 import { getTestPrisma } from "./support/db";
 import {
@@ -36,6 +37,8 @@ describe("AttemptsService (integration)", () => {
 		new FakeAiAdapter(),
 		events,
 		new CompletionService(prisma, new FakeStorageAdapter(), events),
+		// Integrity flags notify the creator + admins (§8.6) — a side effect here.
+		{ notify: async () => {} } as unknown as NotificationsService,
 	);
 
 	let learnerId: string;
@@ -486,6 +489,57 @@ describe("AttemptsService (integration)", () => {
 			).resolves.toBeTruthy();
 		});
 
+		// Stream B — a code question grades through the same server-side AI path as
+		// short_answer (§9). The learner's editor carries {language, starterCode};
+		// the reference solution stays server-side in correctAnswer.
+		it("grades a code question via AI and exposes its config without the solution", async () => {
+			const assessment = await createAssessment(prisma, { passMark: 50 });
+			const code = await prisma.question.create({
+				data: {
+					assessmentId: assessment.id,
+					type: "code",
+					body: "Write add(a, b).",
+					optionsJson: {
+						language: "javascript",
+						starterCode: "function add(a, b) {}",
+					},
+					correctAnswer: "return a + b",
+					points: 1,
+				},
+			});
+			const state = await service.startOrResume(
+				asAuthenticatedUser(learnerId),
+				assessment.id,
+				undefined,
+				undefined,
+			);
+			// The learner receives the language + starter, never the reference.
+			const shown = state.questions.find((q) => q.id === code.id);
+			expect(shown?.codeConfig).toEqual({
+				language: "javascript",
+				starterCode: "function add(a, b) {}",
+			});
+			expect(JSON.stringify(state)).not.toContain("return a + b");
+
+			// A different-cased-but-equivalent answer misses the exact match and is
+			// upheld by the (fake) AI grader — proving code takes the AI path.
+			await service.saveAnswer(
+				asAuthenticatedUser(learnerId),
+				state.attemptId,
+				{
+					questionId: code.id,
+					answer: "RETURN A + B",
+				},
+			);
+			const result = await service.submit(
+				asAuthenticatedUser(learnerId),
+				state.attemptId,
+				{},
+			);
+			expect(result.score).toBe(100);
+			expect(result.passed).toBe(true);
+		});
+
 		it("getResult rejects an attempt that hasn't been submitted yet", async () => {
 			const assessment = await createAssessment(prisma);
 			await createQuestion(prisma, assessment.id);
@@ -599,6 +653,150 @@ describe("AttemptsService (integration)", () => {
 				passed: true,
 				attemptNumber: 1,
 			});
+		});
+	});
+
+	// §9 — a code question set to `grading: "manual"` holds the attempt: submitted
+	// but ungraded until an instructor grades it, at which point the score/pass are
+	// recomputed and the learner's result is released.
+	describe("manual grading", () => {
+		async function ownedAssessment() {
+			const owner = await createUser(prisma, { role: "instructor" });
+			const assessment = await createAssessment(prisma, { passMark: 50 });
+			await prisma.assessment.update({
+				where: { id: assessment.id },
+				data: { createdBy: owner.id },
+			});
+			const ownerUser: AuthenticatedUser = {
+				id: owner.id,
+				email: `${owner.id}@example.com`,
+				role: "instructor",
+			};
+			return { assessment, ownerUser };
+		}
+		const manualCode = (assessmentId: string) =>
+			prisma.question.create({
+				data: {
+					assessmentId,
+					type: "code",
+					body: "Write a function.",
+					optionsJson: { language: "javascript", grading: "manual" },
+					points: 1,
+				},
+			});
+
+		it("holds the attempt pending and blocks a retake until it's graded", async () => {
+			const { assessment, ownerUser } = await ownedAssessment();
+			const code = await manualCode(assessment.id);
+			const state = await service.startOrResume(
+				asAuthenticatedUser(learnerId),
+				assessment.id,
+				undefined,
+				undefined,
+			);
+			await service.saveAnswer(
+				asAuthenticatedUser(learnerId),
+				state.attemptId,
+				{
+					questionId: code.id,
+					answer: "function add(a, b) { return a + b; }",
+				},
+			);
+			const result = await service.submit(
+				asAuthenticatedUser(learnerId),
+				state.attemptId,
+				{},
+			);
+			expect(result.pendingGrading).toBe(true);
+			expect(result.passed).toBeNull();
+			// It's submitted but ungraded on the record.
+			const row = await prisma.assessmentAttempt.findUnique({
+				where: { id: state.attemptId },
+			});
+			expect(row?.submittedAt).not.toBeNull();
+			expect(row?.gradedAt).toBeNull();
+
+			// No retake while held.
+			const info = await service.getInfo(
+				asAuthenticatedUser(learnerId),
+				assessment.id,
+			);
+			expect(info.canStart).toBe(false);
+			expect(info.reason).toBe("awaiting_grading");
+			expect(info.pendingGradingAttemptId).toBe(state.attemptId);
+
+			// The queue surfaces the held code answer to its owner.
+			const queue = await service.listPendingManual(ownerUser, assessment.id);
+			expect(queue.attempts).toHaveLength(1);
+			expect(queue.attempts[0].answers.map((a) => a.questionId)).toEqual([
+				code.id,
+			]);
+		});
+
+		it("recomputes the score and releases the result once graded", async () => {
+			const { assessment, ownerUser } = await ownedAssessment();
+			const code = await manualCode(assessment.id);
+			const state = await service.startOrResume(
+				asAuthenticatedUser(learnerId),
+				assessment.id,
+				undefined,
+				undefined,
+			);
+			await service.saveAnswer(
+				asAuthenticatedUser(learnerId),
+				state.attemptId,
+				{
+					questionId: code.id,
+					answer: "solved",
+				},
+			);
+			await service.submit(asAuthenticatedUser(learnerId), state.attemptId, {});
+
+			const graded = await service.gradeManual(ownerUser, state.attemptId, {
+				verdicts: [{ questionId: code.id, correct: true }],
+				feedback: "Clean solution.",
+			});
+			expect(graded.pendingGrading).toBe(false);
+			expect(graded.score).toBe(100);
+			expect(graded.passed).toBe(true);
+			// The held reason is gone (the learner passed, so a retake isn't offered).
+			const info = await service.getInfo(
+				asAuthenticatedUser(learnerId),
+				assessment.id,
+			);
+			expect(info.reason).not.toBe("awaiting_grading");
+		});
+
+		it("refuses grading by anyone but the assessment's owner", async () => {
+			const { assessment } = await ownedAssessment();
+			const code = await manualCode(assessment.id);
+			const state = await service.startOrResume(
+				asAuthenticatedUser(learnerId),
+				assessment.id,
+				undefined,
+				undefined,
+			);
+			await service.saveAnswer(
+				asAuthenticatedUser(learnerId),
+				state.attemptId,
+				{
+					questionId: code.id,
+					answer: "x",
+				},
+			);
+			await service.submit(asAuthenticatedUser(learnerId), state.attemptId, {});
+			const stranger = await createUser(prisma, { role: "instructor" });
+			await expect(
+				service.gradeManual(
+					{
+						id: stranger.id,
+						email: `${stranger.id}@example.com`,
+						role: "instructor",
+					},
+					state.attemptId,
+					{ verdicts: [{ questionId: code.id, correct: true }] },
+				),
+			).rejects.toThrow(ForbiddenException);
 		});
 	});
 

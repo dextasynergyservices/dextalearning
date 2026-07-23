@@ -72,7 +72,35 @@
 		"learner_title": "Let's personalize your learning",
 		"learner_subtitle": "A few quick questions so we can tailor courses, pace and reminders to you.",
 		"instructor_title": "Welcome to the Creator Studio",
-		"instructor_subtitle": "Set up your instructor profile so learners know who they're learning from."
+		"instructor_subtitle": "Set up your instructor profile so learners know who they're learning from.",
+		"applicant_title": "Tell us who you are",
+		"applicant_subtitle": "We review every instructor application by hand. It keeps DextaLearning worth trusting."
+	},
+	"applicant": {
+		"welcome_title": "Your application is in",
+		"welcome_subtitle": "Teaching here is reviewed by a person, not a form. Here's what happens next.",
+		"points": {
+			"review": "An admin reads your profile and decides — usually within a couple of days.",
+			"notified": "We'll email you the moment there's an answer. Nothing for you to chase.",
+			"meanwhile": "Your account is live right now, so you can take courses while you wait."
+		},
+		"profile_title": "What should we know about you?",
+		"profile_subtitle": "This is exactly what an admin sees when they review your application, so make it count.",
+		"headline": "Your headline",
+		"bio": "What do you want to teach, and what makes you qualified?",
+		"bio_ph": "Tell us about your experience, and what you'd like to build here.",
+		"submit": "Submit application",
+		"waiting_title": "Thanks — we'll be in touch",
+		"waiting_subtitle": "Your application is with our admins. You'll get an email as soon as it's decided.",
+		"meanwhile_note": "In the meantime your account works like any learner's: browse the catalogue, enrol, and start a course today.",
+		"set_up_learning": "Set up my learning",
+		"status_pending_title": "Instructor application under review",
+		"status_pending_body": "An admin is reviewing it. We'll email you the moment it's decided — meanwhile, everything here is yours to learn from.",
+		"status_approved_title": "You're approved to teach 🎉",
+		"status_approved_body": "Your Creator Studio is open. Start building your first course.",
+		"open_studio": "Open studio",
+		"status_rejected_title": "About your instructor application",
+		"status_rejected_body": "We weren't able to approve it this time. You're still very welcome here as a learner — get in touch if you'd like more detail."
 	},
 	"whatsapp": {
 		"title": "Study reminders on WhatsApp",

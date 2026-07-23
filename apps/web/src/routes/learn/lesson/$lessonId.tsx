@@ -194,8 +194,14 @@ function LessonBody({
 
 	const [quizJustPassed, setQuizJustPassed] = useState(false);
 
+	const isCode = ctx.lesson.contentType === "code";
+	// text/pdf/code all complete on a boolean "done" signal (threshold 100); only
+	// video/audio track a watched %. Code's signal comes from its own complete
+	// button, not scroll — so the completion checklist reads differently below.
 	const isReadable =
-		ctx.lesson.contentType === "text" || ctx.lesson.contentType === "pdf";
+		ctx.lesson.contentType === "text" ||
+		ctx.lesson.contentType === "pdf" ||
+		isCode;
 	const threshold = isReadable ? 100 : Math.round(ctx.lesson.minVideoWatchPct);
 	const consumptionMet = watchedPct >= threshold;
 	// The post-lesson quiz only gates completion when it actually exists (§4.3).
@@ -304,6 +310,7 @@ function LessonBody({
 				title={ctx.lesson.title}
 				onProgress={handleProgress}
 				resumePct={ctx.resumePct}
+				done={done}
 			/>
 
 			{/* System-driven completion checklist (§4.3) — no manual marking. */}
@@ -356,7 +363,20 @@ function LessonBody({
 								<Circle className="mt-0.5 size-5 shrink-0 text-muted-foreground" />
 							)}
 							<div className="min-w-0 flex-1">
-								{isReadable ? (
+								{isCode ? (
+									<p className="text-muted-foreground text-sm">
+										{consumptionMet
+											? t("play.code_done", {
+													ns: "academy",
+													defaultValue: "Exercise complete",
+												})
+											: t("play.code_to_complete", {
+													ns: "academy",
+													defaultValue:
+														"Finish the exercise and mark it complete above.",
+												})}
+									</p>
+								) : isReadable ? (
 									<p className="text-muted-foreground text-sm">
 										{consumptionMet
 											? t("play.read_done", { defaultValue: "Content read" })

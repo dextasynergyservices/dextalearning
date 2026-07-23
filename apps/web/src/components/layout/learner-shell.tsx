@@ -118,7 +118,8 @@ export function LearnerShell({
 							) : null}
 							<NotificationBell />
 							<Link
-								to="/teachers/courses"
+								to="/$academy/courses"
+								params={{ academy: "teachers" }}
 								aria-label={t("nav.explore")}
 								className="hidden size-9 items-center justify-center rounded-btn text-muted-foreground transition-colors hover:bg-accent hover:text-foreground sm:flex"
 							>

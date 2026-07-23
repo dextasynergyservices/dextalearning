@@ -95,7 +95,7 @@ function CatalogShelves({
 								? personalizedNotes?.courses
 								: undefined
 						}
-						seeAllTo="/teachers/courses"
+						seeAllTo="/$academy/courses"
 					>
 						<Carousel
 							items={data.courses}
@@ -110,7 +110,7 @@ function CatalogShelves({
 						subtitle={
 							data.personalized?.paths ? personalizedNotes?.paths : undefined
 						}
-						seeAllTo="/teachers/paths"
+						seeAllTo="/$academy/paths"
 					>
 						<Carousel
 							items={data.paths}
@@ -127,7 +127,7 @@ function CatalogShelves({
 								? personalizedNotes?.cohorts
 								: undefined
 						}
-						seeAllTo="/teachers/cohorts"
+						seeAllTo="/$academy/cohorts"
 					>
 						<Carousel
 							items={data.cohorts}
@@ -147,7 +147,7 @@ function Featured() {
 	return (
 		<CatalogShelves
 			queryKey="featured"
-			queryFn={getFeatured}
+			queryFn={() => getFeatured()}
 			titles={{
 				courses: t("featured.courses", { defaultValue: "Featured courses" }),
 				paths: t("featured.paths", { defaultValue: "Featured paths" }),
@@ -164,7 +164,7 @@ function Recommended() {
 	return (
 		<CatalogShelves
 			queryKey={`recommended-${session?.user?.id ?? "anon"}`}
-			queryFn={getRecommended}
+			queryFn={() => getRecommended()}
 			bg="bg-background"
 			personalizedNotes={{
 				courses: t("recommended.because_collab", {
@@ -201,7 +201,7 @@ function Shelf({
 }: {
 	title: string;
 	subtitle?: string;
-	seeAllTo: "/teachers/courses" | "/teachers/paths" | "/teachers/cohorts";
+	seeAllTo: "/$academy/courses" | "/$academy/paths" | "/$academy/cohorts";
 	children: ReactNode;
 }) {
 	const { t } = useTranslation("academy");
@@ -218,6 +218,7 @@ function Shelf({
 				</div>
 				<Link
 					to={seeAllTo}
+					params={{ academy: "teachers" }}
 					className="flex shrink-0 items-center gap-1 font-semibold text-brand-primary text-sm transition-all hover:gap-1.5"
 				>
 					{t("featured.see_all", { defaultValue: "See all" })}
@@ -369,7 +370,8 @@ function Hero() {
 							{t("common:actions.start_free")} <ArrowRight className="size-4" />
 						</Link>
 						<Link
-							to="/teachers/courses"
+							to="/$academy/courses"
+							params={{ academy: "teachers" }}
 							className={buttonVariants({ variant: "white", size: "lg" })}
 						>
 							{t("common:actions.explore_courses")}
@@ -451,13 +453,15 @@ function Principles() {
 
 const ACADEMY_ITEMS: {
 	key: string;
+	/** The academy (tenant) slug this card links into, when open. */
+	slug: string;
 	icon: ComponentType<{ className?: string }>;
 	open: boolean;
 }[] = [
-	{ key: "teacher", icon: GraduationCap, open: true },
-	{ key: "tech", icon: Code2, open: false },
-	{ key: "business", icon: Briefcase, open: false },
-	{ key: "corporate", icon: Building2, open: false },
+	{ key: "teacher", slug: "teachers", icon: GraduationCap, open: true },
+	{ key: "tech", slug: "tech", icon: Code2, open: true },
+	{ key: "business", slug: "business", icon: Briefcase, open: false },
+	{ key: "corporate", slug: "corporate", icon: Building2, open: false },
 ];
 
 function Academies() {
@@ -483,7 +487,7 @@ function Academies() {
 				</div>
 
 				<div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-					{ACADEMY_ITEMS.map(({ key, icon: Icon, open }) => (
+					{ACADEMY_ITEMS.map(({ key, slug, icon: Icon, open }) => (
 						<div
 							key={key}
 							data-reveal="scale"
@@ -510,7 +514,8 @@ function Academies() {
 							</p>
 							{open ? (
 								<Link
-									to="/teachers"
+									to="/$academy"
+									params={{ academy: slug }}
 									className="mt-5 inline-flex items-center gap-1 text-sm font-semibold text-brand-primary hover:gap-2 transition-all"
 								>
 									{t("academies.enter")} <ArrowRight className="size-4" />

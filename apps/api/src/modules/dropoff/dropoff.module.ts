@@ -16,6 +16,6 @@ import { DropoffQueryService } from "./dropoff-query.service";
 	imports: [EngagementModule, NotificationsModule],
 	controllers: [DropoffController],
 	providers: [DropoffService, DropoffQueryService, DropoffScheduler],
-	exports: [DropoffQueryService],
+	exports: [DropoffQueryService, DropoffService],
 })
 export class DropoffModule {}

@@ -12,6 +12,7 @@ import {
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
+import { InstructorApplications } from "@/components/admin/instructor-applications";
 import { StudioShell } from "@/components/authoring/studio-shell";
 import { type ActionItem, ActionMenu } from "@/components/ui/action-menu";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
@@ -156,6 +157,10 @@ function AdminUsersPage() {
 						})}
 					</p>
 				</div>
+
+				{/* Anything waiting on a decision comes first — it's the one thing
+				    on this page that blocks someone else. */}
+				<InstructorApplications />
 
 				{/* Filters: one row, above the data. */}
 				<div className="space-y-3">

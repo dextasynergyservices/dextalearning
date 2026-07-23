@@ -2,6 +2,8 @@ import { NotFoundException } from "@nestjs/common";
 import { beforeEach, describe, expect, it } from "vitest";
 import type { AuthenticatedUser } from "../../src/auth/types";
 import { CohortsService } from "../../src/modules/content/cohorts.service";
+import type { NotificationsService } from "../../src/modules/notifications/notifications.service";
+import { TenantService } from "../../src/modules/tenant/tenant.service";
 import { getTestPrisma } from "./support/db";
 import { createCourse, createPath, createUser } from "./support/factories";
 
@@ -13,7 +15,9 @@ const BOGUS_ID = "00000000-0000-0000-0000-000000000000";
 
 describe("CohortsService (integration)", () => {
 	const prisma = getTestPrisma();
-	const service = new CohortsService(prisma);
+	const service = new CohortsService(prisma, new TenantService(prisma), {
+		notify: async () => {},
+	} as unknown as NotificationsService);
 
 	let adminId: string;
 	let instructorId: string;

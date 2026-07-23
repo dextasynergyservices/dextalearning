@@ -200,6 +200,42 @@
 			"project_submission_received": {
 				"title": "Nouveau rendu à noter",
 				"body": "{{learnerName}} a rendu {{projectTitle}}."
+			},
+			"instructor_application": {
+				"title": "Nouvelle candidature de formateur",
+				"body": "{{name}} souhaite enseigner. Rien ne pourra être publié avant votre approbation."
+			},
+			"instructor_approved": {
+				"title": "Vous êtes approuvé pour enseigner 🎉",
+				"body": "Votre Creator Studio est ouvert — créez votre premier cours."
+			},
+			"instructor_rejected": {
+				"title": "À propos de votre candidature de formateur",
+				"body": "Nous n'avons pas pu l'approuver cette fois. Vous restez le bienvenu comme apprenant."
+			},
+			"group_reassigned": {
+				"title": "Votre groupe a changé",
+				"body": "Vous êtes maintenant dans {{groupName}} pour {{cohortTitle}}."
+			},
+			"cohort_kickoff": {
+				"title": "{{cohortTitle}} a démarré",
+				"body": "Votre cohorte a démarré — ouvrez-la pour rencontrer votre groupe."
+			},
+			"deadline_soon": {
+				"title": "Échéance proche",
+				"body": "{{count}} élément(s) à rendre dans les prochains jours, à commencer par {{first}}."
+			},
+			"facilitator_assigned": {
+				"title": "Vous animez une cohorte",
+				"body": "Vous avez été désigné animateur de {{cohortTitle}}."
+			},
+			"course_published": {
+				"title": "Nouveau cours en ligne",
+				"body": "{{title}} vient d'être publié au catalogue."
+			},
+			"integrity_flagged": {
+				"title": "Tentative signalée",
+				"body": "{{learnerName}} a terminé {{assessmentTitle}} avec un score d'intégrité de {{integrityScore}}/100."
 			}
 		}
 	},

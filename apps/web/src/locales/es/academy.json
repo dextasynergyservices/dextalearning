@@ -190,5 +190,28 @@
 		},
 		"earnback_hint_learner_deadline": "Fijarás tu propia fecha límite — hasta {{max}} días — justo después del pago. Termina antes y te devolvemos los {{amount}} reembolsables a tu tarjeta.",
 		"skip_deadline": "Ahora no"
+	},
+	"not_found": {
+		"title": "Academia no encontrada",
+		"body": "Esta academia no existe. Comprueba la dirección o vuelve al inicio."
+	},
+	"academies": {
+		"tech": {
+			"headline": "Crea software del mundo real",
+			"subtitle": "Aprende a programar como trabajan de verdad los ingenieros: práctico, orientado a proyectos y con la ciencia que fija el aprendizaje."
+		}
+	},
+	"code": {
+		"run": "Ejecutar",
+		"output": "Salida",
+		"no_output": "(sin salida)",
+		"editor_only": "Solo editor",
+		"completed": "Completado",
+		"mark_complete": "Marcar ejercicio como completado",
+		"run_first": "Ejecuta tu código primero"
+	},
+	"play": {
+		"code_done": "Ejercicio completado",
+		"code_to_complete": "Termina el ejercicio y márcalo como completado arriba."
 	}
 }

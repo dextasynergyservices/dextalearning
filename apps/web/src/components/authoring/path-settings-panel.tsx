@@ -35,6 +35,7 @@ export function PathSettingsPanel({ path }: { path: PathDetail }) {
 	const fileRef = useRef<HTMLInputElement>(null);
 
 	const [thumbUrl, setThumbUrl] = useState(path.thumbnailUrl);
+	const [title, setTitle] = useState(path.title);
 	const [description, setDescription] = useState(path.description ?? "");
 	const [outcome, setOutcome] = useState(path.outcomeStatement ?? "");
 	const [level, setLevel] = useState(path.level ?? "");
@@ -67,8 +68,16 @@ export function PathSettingsPanel({ path }: { path: PathDetail }) {
 	});
 
 	const save = useMutation({
-		mutationFn: () =>
-			updatePath(path.id, {
+		mutationFn: () => {
+			if (title.trim().length < 3) {
+				throw new Error(
+					t("settings.name_too_short", {
+						defaultValue: "The name must be at least 3 characters.",
+					}),
+				);
+			}
+			return updatePath(path.id, {
+				title: title.trim(),
 				description: isBlankHtml(description) ? undefined : description,
 				outcomeStatement: isBlankHtml(outcome) ? undefined : outcome,
 				level: level || undefined,
@@ -81,7 +90,8 @@ export function PathSettingsPanel({ path }: { path: PathDetail }) {
 					!isFree && earnBack ? Number(pct) || 100 : undefined,
 				earnBackDeadlineDays:
 					!isFree && earnBack ? Number(deadline) || 30 : undefined,
-			}),
+			});
+		},
 		onSuccess: () => {
 			invalidate();
 			toast.success(t("settings.saved", { defaultValue: "Settings saved" }));
@@ -198,6 +208,21 @@ export function PathSettingsPanel({ path }: { path: PathDetail }) {
 				</div>
 
 				<div className="space-y-5">
+					<Field
+						label={t("settings.name", { defaultValue: "Path name" })}
+						hint={t("settings.name_hint", {
+							defaultValue: "The title learners see on the catalogue.",
+						})}
+					>
+						<input
+							type="text"
+							value={title}
+							onChange={(e) => setTitle(e.target.value)}
+							maxLength={200}
+							className="h-11 w-full rounded-input border border-border px-3.5 text-foreground outline-none focus:border-brand-primary"
+						/>
+					</Field>
+
 					<Field
 						label={t("settings.description", { defaultValue: "Description" })}
 					>
@@ -452,7 +477,15 @@ export function PathSettingsPanel({ path }: { path: PathDetail }) {
 	);
 }
 
-function Field({ label, children }: { label: string; children: ReactNode }) {
+function Field({
+	label,
+	hint,
+	children,
+}: {
+	label: string;
+	hint?: string;
+	children: ReactNode;
+}) {
 	return (
 		// biome-ignore lint/a11y/noLabelWithoutControl: the control is passed in as `children` and wrapped by the label.
 		<label className="block">
@@ -460,6 +493,9 @@ function Field({ label, children }: { label: string; children: ReactNode }) {
 				{label}
 			</span>
 			{children}
+			{hint ? (
+				<span className="mt-1 block text-muted-foreground text-xs">{hint}</span>
+			) : null}
 		</label>
 	);
 }

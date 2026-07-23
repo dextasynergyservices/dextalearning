@@ -171,6 +171,8 @@ export class SubmissionsService {
 			description: project.description,
 			scope: project.scope,
 			submissionTypes: project.submissionTypes,
+			// The language + starter code for a `code` submission (null otherwise).
+			codeConfig: project.codeConfigJson ?? null,
 			gradingType: project.gradingType,
 			passMark: Number(project.passMark),
 			dueAt: project.dueAt,

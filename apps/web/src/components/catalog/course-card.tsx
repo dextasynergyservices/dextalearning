@@ -11,7 +11,7 @@ export function CourseCard({ course }: { course: SampleCourse }) {
 
 	return (
 		<Link
-			to="/teachers/courses/$slug"
+			to="/courses/$slug"
 			params={{ slug: course.slug }}
 			className="group flex flex-col overflow-hidden rounded-card border border-slate-200 bg-white shadow-card transition-all hover:-translate-y-1 hover:shadow-card-hover active:scale-[0.99]"
 		>
